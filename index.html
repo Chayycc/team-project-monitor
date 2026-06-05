@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <title>Team Project Monitoring — EasyMoney Data Team</title>
-<!-- Last synced: 2026-06-05 09:55 UTC -->
+<!-- Last synced: 2026-06-05 10:12 UTC -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -467,6 +467,81 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
   .ph-h1 { font-size:16px; }
   #sv-score-cards { grid-template-columns:repeat(2,1fr) !important; }
 }
+
+/* ══ KPI SCORECARD STYLES ═══════════════════════════════════════ */
+.kpisc-filter-bar{display:flex;align-items:center;gap:5px;flex-wrap:wrap;background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:6px 12px;margin-bottom:14px}
+.kpisc-pill{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--ln);transition:all .15s;white-space:nowrap;background:transparent;color:var(--f3)}
+.kpisc-pill.on{background:var(--cu);color:#1a1510;border-color:var(--cu)}
+.kpisc-pill:not(.on):hover{border-color:var(--cu);color:var(--cu)}
+.kpisc-sep{width:1px;height:14px;background:var(--ln);margin:0 4px}
+.kpisc-sel{height:24px;padding:0 20px 0 7px;background:var(--sf);border:1px solid var(--ln);border-radius:6px;color:var(--f2);font-size:11px;font-family:inherit;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%235a5448' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 5px center}
+.kpisc-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.kpisc-card{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:12px 14px;position:relative;overflow:hidden}
+.kpisc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.kpisc-card.c-cu::before{background:var(--cu)}.kpisc-card.c-grn::before{background:var(--prog)}.kpisc-card.c-red::before{background:var(--dly)}.kpisc-card.c-blu::before{background:#6c9cc4}
+.kpisc-card-lbl{font-size:9.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--f4);margin-bottom:4px}
+.kpisc-card-val{font-size:24px;font-weight:700;letter-spacing:-1px;line-height:1;margin-bottom:3px}
+.kpisc-card-sub{font-size:10.5px;color:var(--f3)}
+.kpisc-grid{display:grid;grid-template-columns:1fr 360px;gap:14px}
+.kpisc-left{display:flex;flex-direction:column;gap:12px;min-width:0}
+.kpisc-right{display:flex;flex-direction:column;gap:12px;min-width:0}
+.kpisc-box{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:12px 14px}
+.kpisc-box-title{font-size:13px;font-weight:700;color:var(--f1);margin-bottom:2px}
+.kpisc-box-sub{font-size:10.5px;color:var(--f4);margin-bottom:10px}
+.kpisc-bottom{display:grid;grid-template-columns:3fr 2fr;gap:12px}
+.kpisc-an-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+.kpisc-an-item{background:var(--hv);border-radius:8px;padding:11px 13px;border:1px solid var(--ln);cursor:pointer;transition:all .15s}
+.kpisc-an-item:hover{border-color:var(--cu)}.kpisc-an-val{font-size:24px;font-weight:700;letter-spacing:-.5px;line-height:1;margin-top:3px;color:var(--f1)}.kpisc-an-lbl{font-size:10.5px;color:var(--f4)}
+.kpisc-an-item.red-bg{background:rgba(196,108,108,.08);border-color:rgba(196,108,108,.18)}.kpisc-an-item.red-bg .kpisc-an-val{color:var(--dly)}
+.kpisc-an-item.yel-bg{background:rgba(196,168,108,.08);border-color:rgba(196,168,108,.18)}.kpisc-an-item.yel-bg .kpisc-an-val{color:var(--cu)}
+.kpisc-persp-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;cursor:pointer;padding:3px 5px;border-radius:5px;transition:background .15s;margin-left:-5px}
+.kpisc-persp-row:hover{background:var(--hv)}
+.kpisc-persp-lbl{font-size:12.5px;color:var(--f2);width:75px;flex-shrink:0}
+.kpisc-persp-track{flex:1;height:5px;background:var(--ln);border-radius:3px;overflow:hidden}
+.kpisc-persp-fill{height:100%;border-radius:3px;transition:width .4s}
+.kpisc-persp-pct{font-size:11.5px;font-weight:600;color:var(--f2);width:30px;text-align:right;flex-shrink:0}
+.kpisc-risk-item{padding:10px 0;border-bottom:1px solid var(--ln)}
+.kpisc-risk-item:last-child{border-bottom:none}
+.kpisc-risk-name{font-size:12.5px;font-weight:600;color:var(--f1);display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.kpisc-risk-desc{font-size:11.5px;color:var(--f4);line-height:1.4}
+.kpisc-members{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px;margin-top:12px}
+.kpisc-mc{background:var(--hv);border:1px solid var(--ln);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .15s}
+.kpisc-mc:hover{border-color:var(--cu);box-shadow:0 0 0 1px rgba(196,154,108,.1)}
+.kpisc-mc-head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.kpisc-mc-av{width:32px;height:32px;border-radius:50%;background:var(--s3,#1c1915);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--cu);border:1.5px solid var(--ln);flex-shrink:0}
+.kpisc-mc-name{font-size:13px;font-weight:600;color:var(--f1)}.kpisc-mc-role{font-size:10px;color:var(--f4)}
+.kpisc-mc-prog{display:flex;justify-content:space-between;margin-bottom:3px}
+.kpisc-mc-bar{height:3px;background:var(--ln);border-radius:2px;overflow:hidden}
+.kpisc-mc-fill{height:100%;border-radius:2px;background:var(--cu)}
+.kpisc-tag{font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;display:inline-block}
+.kpisc-tag.late{background:rgba(196,108,108,.13);color:var(--dly)}.kpisc-tag.ok{background:rgba(82,153,110,.12);color:var(--prog)}
+.kpisc-tag.Finance{background:rgba(108,156,196,.13);color:#6c9cc4}.kpisc-tag.Customer{background:rgba(196,154,108,.13);color:var(--cu)}
+.kpisc-tag.Process{background:rgba(82,153,110,.12);color:var(--prog)}.kpisc-tag.LG{background:rgba(196,168,108,.12);color:var(--cu)}
+.kpisc-tab-bar{display:flex;gap:2px;border-bottom:1px solid var(--ln);margin-bottom:14px}
+.kpisc-tab{height:30px;padding:0 14px;font-size:12px;font-weight:500;color:var(--f3);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.kpisc-tab.active{color:var(--cu);border-bottom-color:var(--cu)}
+.kpisc-pane{display:none}.kpisc-pane.active{display:block}
+.kpisc-drw-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
+.kpisc-drw-overlay.open{opacity:1;pointer-events:all}
+.kpisc-drawer{position:fixed;top:0;right:0;width:500px;height:100vh;background:var(--sf);border-left:1px solid var(--ln);z-index:201;transform:translateX(100%);transition:transform .3s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column;overflow:hidden}
+.kpisc-drawer.open{transform:translateX(0)}
+.kpisc-drw-hd{padding:14px 18px;border-bottom:1px solid var(--ln);display:flex;align-items:center;gap:11px;flex-shrink:0}
+.kpisc-drw-av{width:38px;height:38px;border-radius:50%;background:var(--hv);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--cu);border:1.5px solid var(--ln);flex-shrink:0}
+.kpisc-drw-name{font-size:14px;font-weight:600;color:var(--f1)}.kpisc-drw-meta{font-size:11px;color:var(--f4);margin-top:2px}
+.kpisc-drw-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:10px 18px;border-bottom:1px solid var(--ln);flex-shrink:0}
+.kpisc-ds-item{text-align:center}.kpisc-ds-val{font-size:15px;font-weight:700;letter-spacing:-.5px}.kpisc-ds-lbl{font-size:9px;color:var(--f4);margin-top:2px}
+.kpisc-drw-body{overflow-y:auto;flex:1}
+.kpisc-dkpi{padding:11px 18px;border-bottom:1px solid var(--ln)}.kpisc-dkpi:last-child{border-bottom:none}
+.kpisc-dkpi-name{font-size:12px;color:var(--f1);line-height:1.5;margin-bottom:5px}
+.kpisc-dkpi-grid{display:grid;grid-template-columns:65px 1fr 75px;gap:5px;align-items:center}
+.kpisc-dm-lbl{font-size:9px;color:var(--f4);margin-bottom:1px}.kpisc-dm-val{font-size:11px;color:var(--f2);font-weight:500}
+.kpisc-dprog{display:flex;align-items:center;gap:6px}
+.kpisc-dprog-bar{flex:1;height:4px;background:var(--ln);border-radius:2px;overflow:hidden}
+.kpisc-dprog-fill{height:100%;border-radius:2px;background:var(--cu)}
+.kpisc-dprog-pct{font-size:11px;font-weight:600;color:var(--cu);width:26px;text-align:right}
+@media(max-width:900px){.kpisc-grid{grid-template-columns:1fr}.kpisc-cards{grid-template-columns:repeat(2,1fr)}.kpisc-bottom{grid-template-columns:1fr}}
+@media(max-width:600px){.kpisc-drawer{width:100vw}.kpisc-cards{grid-template-columns:1fr 1fr}.kpisc-members{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 <body>
@@ -490,6 +565,7 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
   <div class="sb-s">
     <div class="sb-lbl">Project Overview</div>
     <button class="sb-i" id="nav-all-projects" onclick="pmGoTo('projects')"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>All Projects<span class="sb-bge" id="sb-all">—</span></button>
+    <button class="sb-i" id="nav-kpi" onclick="pmGoTo('kpi')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>KPI Scorecard</button>
     <button class="sb-i" id="nav-req-overview" onclick="pmGoTo('req-overview')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>User Request<span class="sb-bge" id="sb-req-total">—</span></button>
     <button class="sb-i" id="nav-data-issue" onclick="pmGoTo('data-issue')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Data Issue Report<span class="sb-bge" id="sb-issue-total">—</span></button>
     <button class="sb-i" id="nav-team-req" onclick="pmGoTo('team-req')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Team Request<span class="sb-bge" id="sb-teamreq-total">—</span></button>
@@ -861,6 +937,158 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
     </div>
   </div>
   <div id="tr-pag"></div>
+</div>
+
+
+<!-- ══ KPI SCORECARD PAGE ══ -->
+<div id="kpi-page" style="display:none;padding:0 4px">
+  <!-- Filter bar -->
+  <div class="kpisc-filter-bar">
+    <span style="font-size:10.5px;color:var(--f4);font-weight:500">Role</span>
+    <div class="kpisc-pill on" id="kpi-rf-all" onclick="kpiSetR('all')">ทั้งหมด</div>
+    <div class="kpisc-pill" id="kpi-rf-dads" onclick="kpiSetR('DA/DS')">DA/DS</div>
+    <div class="kpisc-pill" id="kpi-rf-ae" onclick="kpiSetR('AE')">AE</div>
+    <div class="kpisc-sep"></div>
+    <span style="font-size:10.5px;color:var(--f4);font-weight:500">คน</span>
+    <select class="kpisc-sel" id="kpi-psel" onchange="kpiCurPerson=this.value;kpiRefresh()"><option value="all">ทุกคน</option></select>
+    <div class="kpisc-sep"></div>
+    <span style="font-size:10.5px;color:var(--f4);font-weight:500">Perspective</span>
+    <div class="kpisc-pill on" id="kpi-pf-all" onclick="kpiSetP('all')">ทั้งหมด</div>
+    <div class="kpisc-pill" id="kpi-pf-fi" onclick="kpiSetP('Finance')">Finance</div>
+    <div class="kpisc-pill" id="kpi-pf-cu" onclick="kpiSetP('Customer')">Customer</div>
+    <div class="kpisc-pill" id="kpi-pf-pr" onclick="kpiSetP('Process')">Process</div>
+    <div class="kpisc-pill" id="kpi-pf-lg" onclick="kpiSetP('Learning & Growth')">L&G</div>
+    <div style="margin-left:auto">
+      <a href="https://docs.google.com/spreadsheets/d/1w_86nOniyO-6PxpI9XVcEhQUdqAEn3fyxwVrpo-EaJE/edit?usp=sharing" target="_blank" style="font-size:11px;color:var(--f4);text-decoration:none;display:flex;align-items:center;gap:4px;transition:color .15s" onmouseover="this.style.color='var(--cu)'" onmouseout="this.style.color='var(--f4)'">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Google Sheet
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="kpisc-cards" id="kpi-sum-cards"></div>
+
+  <!-- Tab bar -->
+  <div class="kpisc-tab-bar">
+    <button class="kpisc-tab active" onclick="kpiSwitchTab('ov',this)">Overview</button>
+    <button class="kpisc-tab" onclick="kpiSwitchTab('tbl',this)">Table</button>
+  </div>
+
+  <!-- Overview tab -->
+  <div class="kpisc-pane active" id="kpi-pane-ov">
+    <div class="kpisc-grid">
+      <!-- Left -->
+      <div class="kpisc-left">
+        <!-- Score Stream -->
+        <div class="kpisc-box">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+            <div>
+              <div class="kpisc-box-title">KPI Score Stream</div>
+              <div class="kpisc-box-sub">คะแนนความคืบหน้ารายคน</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--f4)">
+              <span style="width:7px;height:7px;border-radius:50%;background:var(--dly);display:inline-block"></span>Average Progress
+            </div>
+          </div>
+          <div id="kpi-bar-chart" style="overflow-x:auto;overflow-y:hidden"></div>
+        </div>
+        <!-- Bottom: Trend + Donut -->
+        <div class="kpisc-bottom">
+          <div class="kpisc-box">
+            <div class="kpisc-box-title">Monthly Trend</div>
+            <div class="kpisc-box-sub">แนวโน้ม progress รายเดือน</div>
+            <div id="kpi-line-chart"></div>
+          </div>
+          <div class="kpisc-box">
+            <div class="kpisc-box-title">Status Split</div>
+            <div class="kpisc-box-sub">สัดส่วน KPI ตามสถานะ</div>
+            <div style="display:flex;align-items:center;gap:18px;justify-content:center;padding-top:6px">
+              <div style="position:relative;width:110px;height:110px;flex-shrink:0">
+                <svg width="110" height="110" viewBox="0 0 110 110" style="transform:rotate(-90deg)">
+                  <circle cx="55" cy="55" r="42" fill="none" stroke="var(--ln)" stroke-width="12"/>
+                  <circle id="kpi-d-ok"   cx="55" cy="55" r="42" fill="none" stroke="var(--prog)" stroke-width="12" stroke-dasharray="0 264"/>
+                  <circle id="kpi-d-late" cx="55" cy="55" r="42" fill="none" stroke="var(--dly)"  stroke-width="12" stroke-dasharray="0 264"/>
+                </svg>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                  <div id="kpi-d-total" style="font-size:20px;font-weight:700;color:var(--f1)">0</div>
+                  <div style="font-size:9px;color:var(--f4)">KPI</div>
+                </div>
+              </div>
+              <div>
+                <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="width:7px;height:7px;border-radius:50%;background:var(--prog);flex-shrink:0"></span><span style="font-size:12px;color:var(--f2)">ตามแผน</span><span id="kpi-d-ok-n" style="font-size:12px;font-weight:600;color:var(--f1);margin-left:4px">0</span></div>
+                <div style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;background:var(--dly);flex-shrink:0"></span><span style="font-size:12px;color:var(--f2)">ล่าช้า</span><span id="kpi-d-late-n" style="font-size:12px;font-weight:600;color:var(--f1);margin-left:4px">0</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Members -->
+        <div class="kpisc-box">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="kpisc-box-title">Team Members</div>
+            <span style="font-size:11px;color:var(--f4)">กดดูรายละเอียด KPI</span>
+          </div>
+          <div class="kpisc-members" id="kpi-members"></div>
+        </div>
+      </div>
+      <!-- Right -->
+      <div class="kpisc-right">
+        <div class="kpisc-box">
+          <div style="margin-bottom:10px">
+            <div style="font-size:10px;font-weight:700;color:var(--dly);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px">LIVE INSIGHT</div>
+            <div class="kpisc-box-title">Analytics Panel</div>
+          </div>
+          <div class="kpisc-an-grid" id="kpi-analytics"></div>
+        </div>
+        <div class="kpisc-box">
+          <div class="kpisc-box-title" style="margin-bottom:2px">Perspective</div>
+          <div class="kpisc-box-sub">คะแนนแยกตามหมวด KPI</div>
+          <div id="kpi-persp"></div>
+        </div>
+        <div class="kpisc-box">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div>
+              <div class="kpisc-box-title">Risk Alert</div>
+              <div class="kpisc-box-sub">รายการที่ต้องติดตามก่อน</div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--dly)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div id="kpi-risk"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table tab -->
+  <div class="kpisc-pane" id="kpi-pane-tbl">
+    <div style="background:var(--sf);border:1px solid var(--ln);border-radius:12px;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:var(--hv)">
+          <th style="padding:9px 12px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--f4);border-bottom:1px solid var(--ln);white-space:nowrap">คน</th>
+          <th style="padding:9px 12px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--f4);border-bottom:1px solid var(--ln);white-space:nowrap">Perspective</th>
+          <th style="padding:9px 12px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--f4);border-bottom:1px solid var(--ln)">KPI</th>
+          <th style="padding:9px 12px;text-align:center;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--f4);border-bottom:1px solid var(--ln);white-space:nowrap">Weight</th>
+          <th style="padding:9px 12px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--f4);border-bottom:1px solid var(--ln);white-space:nowrap">Target</th>
+          <th style="padding:9px 12px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--f4);border-bottom:1px solid var(--ln);white-space:nowrap">Progress</th>
+          <th style="padding:9px 12px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--f4);border-bottom:1px solid var(--ln);white-space:nowrap">Status</th>
+        </tr></thead>
+        <tbody id="kpi-tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- KPI Drawer -->
+<div class="kpisc-drw-overlay" id="kpi-drw-overlay" onclick="kpiCloseDrawer()"></div>
+<div class="kpisc-drawer" id="kpi-drawer">
+  <div class="kpisc-drw-hd">
+    <div class="kpisc-drw-av" id="kpi-d-av"></div>
+    <div><div class="kpisc-drw-name" id="kpi-d-name"></div><div class="kpisc-drw-meta" id="kpi-d-meta"></div></div>
+    <button onclick="kpiCloseDrawer()" style="margin-left:auto;width:26px;height:26px;border-radius:6px;background:var(--hv);border:1px solid var(--ln);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--f3);flex-shrink:0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="kpisc-drw-sum" id="kpi-d-sum"></div>
+  <div class="kpisc-drw-body" id="kpi-d-body"></div>
 </div>
 
 <!-- ══ SURVEY PAGE ══ -->
@@ -2904,8 +3132,8 @@ window.updateKPIs=function(){
 };
 
 // ══ PAGE ROUTER ═════════════════════════════════════════════
-const PM_TITLES={dashboard:'Dashboard',projects:'All Projects',people:'People & Workload',reports:'Reports & Analytics','my-projects':'My Projects',starred:'Starred',archived:'Archived',ownership:'Ownership',company:'Company'};
-const PM_EXTRA=['my-projects','starred','archived','ownership','company','requests','req-overview','data-issue','team-req','survey'];
+const PM_TITLES={dashboard:'Dashboard',projects:'All Projects',people:'People & Workload',reports:'Reports & Analytics','my-projects':'My Projects',starred:'Starred',archived:'Archived',ownership:'Ownership',company:'Company',kpi:'KPI Scorecard'};
+const PM_EXTRA=['my-projects','starred','archived','ownership','company','requests','req-overview','data-issue','team-req','survey','kpi'];
 
 function pmGoTo(page){
   ['dashboard','projects','people','reports'].forEach(p=>{
@@ -4140,6 +4368,317 @@ async function syncTeamReq() {
     window.TEAM_REQ_DATA=rows; initTeamReq();
     if(btn){btn.textContent='✓ Synced ('+rows.length+')';btn.disabled=false;}
   }catch(e){if(btn){btn.textContent='✗ Failed';btn.disabled=false;}console.error(e);}
+}
+
+
+// ══ KPI SCORECARD ════════════════════════════════════════════════
+// Placeholder — populated by sync_notion.py via Google Apps Script
+var KPI_DATA =[];
+
+const KPI_PEOPLE = [
+  {nick:'โตโต้',name:'วรภพ วิบูลย์ศิริชัย',role:'DA/DS',pos:'Senior Data Science'},
+  {nick:'หมิว', name:'อัญชนา จันทร์สิงห์', role:'DA/DS',pos:'Data Analyst'},
+  {nick:'ทราย', name:'ทรายทอง สุขใจ',      role:'DA/DS',pos:'Data Analyst'},
+  {nick:'พลอย', name:'พลอยพรรณ ใจดี',      role:'DA/DS',pos:'Data Analyst'},
+  {nick:'โบว์',  name:'กมลชนก เฟื่องฟู',   role:'DA/DS',pos:'Data Science'},
+  {nick:'เอโกะ',name:'ภัทรวดี ศรีสุข',     role:'DA/DS',pos:'Data Analyst'},
+  {nick:'ต้า',  name:'ธีรนาถ มั่นคง',      role:'DA/DS',pos:'Junior Data Analyst'},
+  {nick:'ฟ้าใส',name:'ณัฏฐา วงศ์สมบัติ',   role:'AE',   pos:'Analytics Engineer'},
+  {nick:'เซ่',  name:'ศิริพร แก้วใส',      role:'AE',   pos:'Analytics Engineer'},
+  {nick:'โอม',  name:'อธิษฐาน พงษ์เจริญ',  role:'AE',   pos:'Junior Analytics Engineer'},
+];
+const KPI_TREND_M=['Jan','Feb','Mar','Apr','May'];
+const KPI_TREND_V=[52,55,58,62,3];
+
+let kpiCurRole='all', kpiCurPersp='all', kpiCurPerson='all';
+let _kpiInited=false;
+
+function kpiGf(){
+  return KPI_DATA.filter(r=>{
+    if(kpiCurRole!=='all'&&r.role!==kpiCurRole)return false;
+    if(kpiCurPersp!=='all'&&r.persp!==kpiCurPersp)return false;
+    if(kpiCurPerson!=='all'&&r.nick!==kpiCurPerson)return false;
+    return true;
+  });
+}
+
+function initKPIPage(){
+  if(!_kpiInited){
+    // Populate person dropdown
+    const sel=document.getElementById('kpi-psel');
+    if(sel){
+      KPI_PEOPLE.forEach(p=>{
+        const o=document.createElement('option');
+        o.value=p.nick;o.textContent=p.nick+' ('+p.role+')';
+        sel.appendChild(o);
+      });
+    }
+    // If KPI_DATA is empty, try fetch from Google Apps Script
+    if(!KPI_DATA.length){
+      fetch('https://script.google.com/macros/s/AKfycbzL5pUQ3bnxmZ--QGVxn-D5XXqM8euDGQUL1HYS7Jl7iBo0g1uYPilm00dwST1v1CgLkQ/exec?action=all')
+        .then(r=>r.json())
+        .then(d=>{
+          if(d.ok&&d.data){
+            KPI_DATA.length=0;
+            d.data.forEach(r=>KPI_DATA.push({
+              nick: (r.nickname||r.owner||'').replace(/.*\((.+)\).*/,'$1')||r.nickname||'—',
+              name: r.owner||'', role: r.role||'DA/DS', pos: r.position||'',
+              no: r.kpi_no||0, persp: r.perspective||'',
+              kname: r.kpi_name||'', w: r.weight||0, tgt: r.target||'',
+              prog: r.progress||0,
+              status: (r.status||'').includes('ล่าช้า')||r.status==='ล่าช้า'?'ล่าช้า':'ตามแผน',
+              risk: r.risk_level||'Medium'
+            }));
+            // fix nick from PEOPLE mapping
+            KPI_DATA.forEach(r=>{
+              const match=KPI_PEOPLE.find(p=>r.name.includes(p.name.split(' ')[0])||p.name.includes(r.name.split(' ')[0]));
+              if(match)r.nick=match.nick;
+            });
+            kpiRefresh();
+          }
+        }).catch(()=>{});
+    }
+    _kpiInited=true;
+  }
+  kpiRefresh();
+}
+
+function kpiRefresh(){
+  kpiRenderCards();kpiRenderBar();kpiRenderLine();kpiRenderDonut();
+  kpiRenderAnalytics();kpiRenderPersp();kpiRenderRisk();kpiRenderMembers();kpiRenderTable();
+}
+
+function kpiRenderCards(){
+  const d=kpiGf();const t=d.length||1;
+  const ap=Math.round(d.reduce((s,r)=>s+r.prog,0)/t);
+  const ok=d.filter(r=>r.status==='ตามแผน').length;
+  const late=d.filter(r=>r.status==='ล่าช้า').length;
+  const ppl=KPI_PEOPLE.filter(p=>(kpiCurRole==='all'||p.role===kpiCurRole)&&(kpiCurPerson==='all'||p.nick===kpiCurPerson));
+  const ws=(d.reduce((s,r)=>s+r.w*r.prog/100,0)/Math.max(ppl.length,1)).toFixed(1);
+  const el=document.getElementById('kpi-sum-cards');
+  if(!el)return;
+  el.innerHTML=[
+    {lbl:'Overall Progress',val:ap+'%',sub:'ความคืบหน้ารวม',c:'c-cu'},
+    {lbl:'Weighted Score',val:ws,sub:'คะแนนถ่วงน้ำหนักเฉลี่ย',c:'c-grn'},
+    {lbl:'On Track KPI',val:ok,sub:'เสี่ยง 0 / ล่าช้า '+late,c:'c-blu'},
+    {lbl:'Team Members',val:ppl.length,sub:'จำนวนคนตามตัวกรอง',c:'c-red'},
+  ].map(c=>`<div class="kpisc-card ${c.c}"><div class="kpisc-card-lbl">${c.lbl}</div><div class="kpisc-card-val">${c.val}</div><div class="kpisc-card-sub">${c.sub}</div></div>`).join('');
+}
+
+function kpiRenderBar(){
+  const el=document.getElementById('kpi-bar-chart');if(!el)return;
+  const ppl=KPI_PEOPLE.filter(p=>(kpiCurRole==='all'||p.role===kpiCurRole)&&(kpiCurPerson==='all'||p.nick===kpiCurPerson));
+  if(!ppl.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--f4);font-size:12px">ไม่พบข้อมูล KPI</div>';return;}
+  const allProgs=ppl.map(p=>{
+    const pk=KPI_DATA.filter(r=>r.nick===p.nick&&(kpiCurPersp==='all'||r.persp===kpiCurPersp));
+    return pk.length?Math.round(pk.reduce((s,r)=>s+r.prog,0)/pk.length):0;
+  });
+  const avg=(allProgs.reduce((s,v)=>s+v,0)/Math.max(allProgs.length,1)).toFixed(1);
+  const maxP=Math.max(...allProgs,1);const maxH=90;const MINB=10;
+  el.innerHTML=`<div style="position:relative">
+    <div style="position:absolute;left:0;top:0;bottom:40px;display:flex;flex-direction:column;justify-content:space-between;width:26px">
+      ${[100,50,0].map(v=>`<div style="font-size:8px;color:var(--f4);text-align:right;padding-right:3px;font-family:'JetBrains Mono',monospace">${v}</div>`).join('')}
+    </div>
+    <div style="margin-left:30px;position:relative">
+      <div style="position:absolute;left:0;right:0;bottom:calc(40px + ${avg}%);height:2px;border-top:1.5px dashed var(--dly);z-index:2;opacity:.7">
+        <span style="position:absolute;right:0;top:-16px;font-size:9px;color:var(--dly);font-weight:600;background:var(--sf);padding:0 3px;white-space:nowrap">avg ${avg}%</span>
+      </div>
+      <div style="display:flex;align-items:flex-end;height:${maxH+40}px;min-width:${ppl.length*58}px">
+        ${ppl.map((p,i)=>{
+          const prog=allProgs[i];
+          const bh=prog>0?Math.max(Math.round(maxH*prog/maxP),MINB):2;
+          const isLate=KPI_DATA.filter(r=>r.nick===p.nick).some(r=>r.status==='ล่าช้า');
+          return`<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:50px;cursor:pointer;padding:0 3px" onclick="kpiOpenDrawer('${p.nick}')">
+            <div style="font-size:10px;font-weight:600;color:var(--f2);margin-bottom:3px">${prog}%</div>
+            <div style="width:100%;max-width:40px;height:${bh}px;background:${isLate?'var(--dly)':'var(--cu)'};border-radius:3px 3px 0 0;opacity:.88;transition:opacity .15s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.88"></div>
+            <div style="width:100%;max-width:40px;height:1.5px;background:var(--ln);margin-bottom:5px"></div>
+            <div style="font-size:10px;font-weight:600;color:var(--f1);text-align:center">${p.nick}</div>
+            <div style="font-size:8.5px;color:var(--f4);text-align:center;white-space:nowrap;max-width:58px;overflow:hidden;text-overflow:ellipsis">${p.name.split(' ')[0]}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function kpiRenderLine(){
+  const wrap=document.getElementById('kpi-line-chart');if(!wrap)return;
+  const W=Math.max(wrap.clientWidth||380,200);
+  const H=120;const PAD={t:12,b:26,l:28,r:10};
+  const innerW=W-PAD.l-PAD.r;const innerH=H-PAD.t-PAD.b;
+  const vals=KPI_TREND_V;const months=KPI_TREND_M;
+  const mx=Math.max(...vals,10);
+  const isDark=true;
+  const f4='#5a5448';const red='var(--dly)';const s3='#2e2920';
+  const pts=vals.map((v,i)=>[PAD.l+i*(innerW/(months.length-1)),PAD.t+innerH*(1-v/mx)]);
+  let out='';
+  [0,50,100].forEach(v=>{if(v>mx)return;const y=PAD.t+innerH*(1-v/mx);
+    out+=`<line x1="${PAD.l}" y1="${y}" x2="${W-PAD.r}" y2="${y}" stroke="${s3}" stroke-width=".7"/>`;
+    out+=`<text x="${PAD.l-3}" y="${y+3}" fill="${f4}" font-size="8" text-anchor="end" font-family="Inter">${v}</text>`;
+  });
+  const area='M '+pts.map(p=>p.join(',')).join(' L ')+` L ${pts[pts.length-1][0]},${PAD.t+innerH} L ${pts[0][0]},${PAD.t+innerH} Z`;
+  out+=`<path d="${area}" fill="var(--dly)" opacity=".1"/>`;
+  out+=`<path d="${'M '+pts.map(p=>p.join(',')).join(' L ')}" fill="none" stroke="var(--dly)" stroke-width="1.8" stroke-linejoin="round"/>`;
+  pts.forEach(([x,y],i)=>{
+    out+=`<circle cx="${x}" cy="${y}" r="3" fill="var(--dly)" stroke="var(--sf)" stroke-width="1.5"/>`;
+    out+=`<text x="${x}" y="${PAD.t+innerH+14}" fill="${f4}" font-size="9" text-anchor="middle" font-family="Inter">${months[i]}</text>`;
+  });
+  wrap.innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${out}</svg>`;
+}
+
+function kpiRenderDonut(){
+  const d=kpiGf();const t=d.length||1;
+  const ok=d.filter(r=>r.status==='ตามแผน').length;
+  const late=d.filter(r=>r.status==='ล่าช้า').length;
+  const C=2*Math.PI*42;
+  const okEl=document.getElementById('kpi-d-ok');
+  const lEl=document.getElementById('kpi-d-late');
+  if(okEl){okEl.style.strokeDasharray=`${ok/t*C} ${C}`;okEl.style.strokeDashoffset='0';}
+  if(lEl){lEl.style.strokeDasharray=`${late/t*C} ${C}`;lEl.style.strokeDashoffset=`-${ok/t*C}`;}
+  const _sb=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  _sb('kpi-d-total',t);_sb('kpi-d-ok-n',ok);_sb('kpi-d-late-n',late);
+}
+
+function kpiRenderAnalytics(){
+  const d=kpiGf();
+  const ppl=KPI_PEOPLE.filter(p=>kpiCurRole==='all'||p.role===kpiCurRole);
+  const da=ppl.filter(p=>p.role==='DA/DS').length;
+  const ae=ppl.filter(p=>p.role==='AE').length;
+  const late=d.filter(r=>r.status==='ล่าช้า').length;
+  const el=document.getElementById('kpi-analytics');if(!el)return;
+  el.innerHTML=`
+    <div class="kpisc-an-item" onclick="kpiSetR('DA/DS')"><div class="kpisc-an-lbl">DA/DS</div><div class="kpisc-an-val">${da}</div></div>
+    <div class="kpisc-an-item" onclick="kpiSetR('AE')"><div class="kpisc-an-lbl">AE</div><div class="kpisc-an-val">${ae}</div></div>
+    <div class="kpisc-an-item red-bg"><div class="kpisc-an-lbl">Delay KPI</div><div class="kpisc-an-val">${late}</div></div>
+    <div class="kpisc-an-item yel-bg"><div class="kpisc-an-lbl">At Risk</div><div class="kpisc-an-val">0</div></div>
+  `;
+}
+
+function kpiRenderPersp(){
+  const d=kpiGf();
+  const PC={Finance:'var(--blue,#6c9cc4)',Customer:'var(--cu)',Process:'var(--prog)','Learning & Growth':'var(--cu)'};
+  const items=[{k:'Finance',l:'Finance'},{k:'Customer',l:'Customer'},{k:'Process',l:'Process'},{k:'Learning & Growth',l:'L&G'}];
+  const avgs=items.map(it=>{const pk=d.filter(r=>r.persp===it.k);return pk.length?Math.round(pk.reduce((s,r)=>s+r.prog,0)/pk.length):0;});
+  const maxAvg=Math.max(...avgs,1);
+  const el=document.getElementById('kpi-persp');if(!el)return;
+  el.innerHTML=items.map((it,i)=>{
+    const avg=avgs[i];const bw=Math.max(Math.round(avg/maxAvg*100),avg>0?4:0);
+    return`<div class="kpisc-persp-row" onclick="kpiSetP('${it.k}')">
+      <div class="kpisc-persp-lbl">${it.l}</div>
+      <div class="kpisc-persp-track"><div class="kpisc-persp-fill" style="width:${bw}%;background:${PC[it.k]}"></div></div>
+      <div class="kpisc-persp-pct">${avg}%</div>
+    </div>`;
+  }).join('');
+}
+
+function kpiRenderRisk(){
+  const d=kpiGf().filter(r=>r.status==='ล่าช้า');
+  const el=document.getElementById('kpi-risk');if(!el)return;
+  if(!d.length){el.innerHTML='<div style="font-size:12px;color:var(--f4);padding:8px 0">ไม่มีรายการที่ต้องเฝ้าระวัง ✓</div>';return;}
+  el.innerHTML=d.slice(0,5).map(r=>`
+    <div class="kpisc-risk-item">
+      <div class="kpisc-risk-name">${r.nick} <span class="kpisc-tag late">ล่าช้า</span></div>
+      <div class="kpisc-risk-desc">${(r.kname||'').slice(0,60)}${(r.kname||'').length>60?'…':''}</div>
+    </div>`).join('');
+}
+
+function kpiRenderMembers(){
+  const el=document.getElementById('kpi-members');if(!el)return;
+  const ppl=KPI_PEOPLE.filter(p=>(kpiCurRole==='all'||p.role===kpiCurRole)&&(kpiCurPerson==='all'||p.nick===kpiCurPerson));
+  el.innerHTML=ppl.map(p=>{
+    const pk=KPI_DATA.filter(r=>r.nick===p.nick&&(kpiCurPersp==='all'||r.persp===kpiCurPersp));
+    const ok=pk.filter(r=>r.status==='ตามแผน').length;
+    const lt=pk.filter(r=>r.status==='ล่าช้า').length;
+    const avg=pk.length?Math.round(pk.reduce((s,r)=>s+r.prog,0)/pk.length):0;
+    return`<div class="kpisc-mc" onclick="kpiOpenDrawer('${p.nick}')">
+      <div class="kpisc-mc-head">
+        <div class="kpisc-mc-av">${p.nick.slice(0,2)}</div>
+        <div><div class="kpisc-mc-name">${p.nick}</div><div class="kpisc-mc-role">${p.pos}</div></div>
+        <div style="margin-left:auto;font-size:10.5px;color:var(--f3)">${ok}✓ ${lt}✗</div>
+      </div>
+      <div class="kpisc-mc-prog"><span style="font-size:10px;color:var(--f4)">Avg Progress</span><span style="font-size:11px;font-weight:600;color:var(--cu)">${avg}%</span></div>
+      <div class="kpisc-mc-bar"><div class="kpisc-mc-fill" style="width:${avg}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function kpiRenderTable(){
+  const el=document.getElementById('kpi-tbl-body');if(!el)return;
+  const PC={Finance:'Finance',Customer:'Customer',Process:'Process','Learning & Growth':'LG'};
+  el.innerHTML=kpiGf().map(r=>`
+    <tr style="border-bottom:1px solid var(--ln)" onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background=''">
+      <td style="padding:9px 12px;color:var(--f1);font-weight:600">${r.nick}<div style="font-size:9.5px;color:var(--f4)">${r.role}</div></td>
+      <td style="padding:9px 12px"><span class="kpisc-tag ${PC[r.persp]||''}">${r.persp==='Learning & Growth'?'L&G':r.persp}</span></td>
+      <td style="padding:9px 12px;color:var(--f1);font-size:11.5px;max-width:220px;line-height:1.4">${r.kname}</td>
+      <td style="padding:9px 12px;text-align:center;font-weight:600;color:var(--f2)">${r.w}%</td>
+      <td style="padding:9px 12px;font-size:11px;color:var(--f3);white-space:nowrap">${r.tgt}</td>
+      <td style="padding:9px 12px"><div style="display:flex;align-items:center;gap:6px;min-width:80px"><div style="flex:1;height:3px;background:var(--ln);border-radius:2px;overflow:hidden"><div style="width:${r.prog}%;height:100%;background:var(--cu);border-radius:2px"></div></div><span style="font-size:10.5px;font-weight:600;color:var(--cu);width:24px;text-align:right">${r.prog}%</span></div></td>
+      <td style="padding:9px 12px"><span class="kpisc-tag ${r.status==='ล่าช้า'?'late':'ok'}">${r.status}</span></td>
+    </tr>`).join('');
+}
+
+function kpiOpenDrawer(nick){
+  const p=KPI_PEOPLE.find(x=>x.nick===nick);if(!p)return;
+  const pk=KPI_DATA.filter(r=>r.nick===nick);
+  const ok=pk.filter(r=>r.status==='ตามแผน').length;
+  const lt=pk.filter(r=>r.status==='ล่าช้า').length;
+  const avg=pk.length?Math.round(pk.reduce((s,r)=>s+r.prog,0)/pk.length):0;
+  const ws=pk.reduce((s,r)=>s+r.w*r.prog/100,0).toFixed(1);
+  const PC={Finance:'Finance',Customer:'Customer',Process:'Process','Learning & Growth':'LG'};
+  const _sb=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  _sb('kpi-d-av',nick.slice(0,2));
+  _sb('kpi-d-name',nick+' — '+p.name);
+  _sb('kpi-d-meta',p.pos+' · '+p.role);
+  const sumEl=document.getElementById('kpi-d-sum');
+  if(sumEl)sumEl.innerHTML=[
+    {v:pk.length,l:'KPIs'},{v:ok,l:'ตามแผน',c:'var(--prog)'},{v:lt,l:'ล่าช้า',c:'var(--dly)'},{v:avg+'%',l:'Avg Prog',c:'var(--cu)'}
+  ].map(s=>`<div class="kpisc-ds-item"><div class="kpisc-ds-val" style="color:${s.c||'var(--f1)'}">${s.v}</div><div class="kpisc-ds-lbl">${s.l}</div></div>`).join('');
+  const bodyEl=document.getElementById('kpi-d-body');
+  if(bodyEl)bodyEl.innerHTML=pk.length?pk.map(k=>`
+    <div class="kpisc-dkpi">
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <div style="width:18px;height:18px;border-radius:4px;background:var(--hv);display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;color:var(--f3);flex-shrink:0;margin-top:2px">${k.no}</div>
+        <div>
+          <div class="kpisc-dkpi-name">${k.kname}</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <span class="kpisc-tag ${PC[k.persp]||''}">${k.persp==='Learning & Growth'?'L&G':k.persp}</span>
+            <span class="kpisc-tag ${k.status==='ล่าช้า'?'late':'ok'}">${k.status}</span>
+          </div>
+        </div>
+      </div>
+      <div class="kpisc-dkpi-grid">
+        <div><div class="kpisc-dm-lbl">Weight</div><div class="kpisc-dm-val">${k.w}%</div></div>
+        <div><div class="kpisc-dm-lbl">Progress</div><div class="kpisc-dprog"><div class="kpisc-dprog-bar"><div class="kpisc-dprog-fill" style="width:${k.prog}%"></div></div><span class="kpisc-dprog-pct">${k.prog}%</span></div></div>
+        <div><div class="kpisc-dm-lbl">Target</div><div class="kpisc-dm-val">${k.tgt}</div></div>
+      </div>
+    </div>`).join('')
+    :'<div style="padding:20px;text-align:center;color:var(--f4);font-size:12px">ยังไม่มีข้อมูล KPI<br>ระบบจะดึงข้อมูลจาก Google Sheet โดยอัตโนมัติ</div>';
+  document.getElementById('kpi-drw-overlay')?.classList.add('open');
+  document.getElementById('kpi-drawer')?.classList.add('open');
+}
+function kpiCloseDrawer(){
+  document.getElementById('kpi-drw-overlay')?.classList.remove('open');
+  document.getElementById('kpi-drawer')?.classList.remove('open');
+}
+function kpiSetR(v){
+  kpiCurRole=v;
+  ['all','dads','ae'].forEach(k=>{const el=document.getElementById('kpi-rf-'+k);if(el)el.className='kpisc-pill';});
+  const map={'all':'kpi-rf-all','DA/DS':'kpi-rf-dads','AE':'kpi-rf-ae'};
+  const el=document.getElementById(map[v]);if(el)el.className='kpisc-pill on';
+  kpiRefresh();
+}
+function kpiSetP(v){
+  kpiCurPersp=v;
+  ['all','fi','cu','pr','lg'].forEach(k=>{const el=document.getElementById('kpi-pf-'+k);if(el)el.className='kpisc-pill';});
+  const map={'all':'kpi-pf-all','Finance':'kpi-pf-fi','Customer':'kpi-pf-cu','Process':'kpi-pf-pr','Learning & Growth':'kpi-pf-lg'};
+  const el=document.getElementById(map[v]);if(el)el.className='kpisc-pill on';
+  kpiRefresh();
+}
+function kpiSwitchTab(n,btn){
+  ['ov','tbl'].forEach(p=>{const el=document.getElementById('kpi-pane-'+p);if(el)el.className='kpisc-pane';});
+  document.querySelectorAll('.kpisc-tab').forEach(b=>b.classList.remove('active'));
+  const pe=document.getElementById('kpi-pane-'+n);if(pe)pe.className='kpisc-pane active';
+  btn.classList.add('active');
 }
 
 // ══ SURVEY ═══════════════════════════════════════════════════

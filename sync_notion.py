@@ -190,6 +190,47 @@ html = replace_var(html, 'NOTION_DATA', user_req)
 html = replace_var(html, 'TEAM_REQ_DATA', team_req)
 html = replace_var(html, 'SURVEY_DATA', survey)
 
+# ── KPI Data from Google Apps Script ─────────────────────────────
+print("Fetching KPI data from Google Apps Script...")
+NICK_MAP = {
+    'วรภพ':'โตโต้','อัญชนา':'หมิว','ทรายทอง':'ทราย','พลอยพรรณ':'พลอย',
+    'กมลชนก':'โบว์','ภัทรวดี':'เอโกะ','ธีรนาถ':'ต้า','ณัฏฐา':'ฟ้าใส',
+    'ศิริพร':'เซ่','อธิษฐาน':'โอม',
+    'โตโต้':'โตโต้','หมิว':'หมิว','ทราย':'ทราย','พลอย':'พลอย',
+    'โบว์':'โบว์','เอโกะ':'เอโกะ','ต้า':'ต้า','ฟ้าใส':'ฟ้าใส','เซ่':'เซ่','โอม':'โอม',
+}
+kpi_data = []
+try:
+    kpi_resp = requests.get(
+        'https://script.google.com/macros/s/AKfycbzL5pUQ3bnxmZ--QGVxn-D5XXqM8euDGQUL1HYS7Jl7iBo0g1uYPilm00dwST1v1CgLkQ/exec?action=all',
+        timeout=30
+    )
+    kpi_raw = kpi_resp.json().get('data', [])
+    for r in kpi_raw:
+        owner = r.get('owner', '')
+        nick_raw = r.get('nickname', '') or ''
+        nick = NICK_MAP.get(nick_raw, '')
+        if not nick:
+            for k, v in NICK_MAP.items():
+                if k in owner:
+                    nick = v; break
+        if not nick:
+            nick = nick_raw or owner.split()[0]
+        kpi_data.append({
+            'nick': nick, 'name': owner,
+            'role': r.get('role', 'DA/DS'), 'pos': r.get('position', ''),
+            'no': r.get('kpi_no', 0), 'persp': r.get('perspective', ''),
+            'kname': r.get('kpi_name', ''), 'w': r.get('weight', 0),
+            'tgt': r.get('target', ''), 'prog': r.get('progress', 0),
+            'status': 'ล่าช้า' if 'ล่าช้า' in (r.get('status','')) else 'ตามแผน',
+            'risk': r.get('risk_level', 'Medium')
+        })
+    print(f"  ✓ KPI_DATA: {len(kpi_data)} rows")
+except Exception as e:
+    print(f"  ⚠ KPI fetch failed: {e} — keeping existing data")
+if kpi_data:
+    html = replace_var(html, 'KPI_DATA', kpi_data)
+
 # Add sync timestamp comment
 ts = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
 html = re.sub(r'<!-- Last synced:.*?-->', '', html)
