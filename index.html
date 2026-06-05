@@ -1730,6 +1730,12 @@ function goTo(page) {
     renderAtRiskSummary();
     populateDashOwners();
     renderDashTable();
+    // Re-draw charts AFTER page is visible (canvas needs visible parent)
+    setTimeout(function(){
+      drawDonut && drawDonut();
+      renderOwnerBars && renderOwnerBars();
+      renderOutputBars && renderOutputBars();
+    }, 50);
     const _nd=window.NOTION_DATA||[];const _el=document.getElementById('sb-req-total');if(_el)_el.textContent=_nd.length;
     const _tr=window.TEAM_REQ_DATA||[];const _te=document.getElementById('sb-teamreq-total');if(_te)_te.textContent=_tr.length;
     const _sv=window.SURVEY_DATA||[];const _se=document.getElementById('sb-survey-total');if(_se)_se.textContent=_sv.length;
