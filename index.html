@@ -1716,6 +1716,8 @@ function goTo(page) {
   if (page === 'projects') {
     document.getElementById('projects-page').style.display = 'block';
     document.getElementById('nav-projects').classList.add('active');
+    // Re-render table now that page is visible
+    applyFilters();
   } else if (page === 'people') {
     document.getElementById('people-page').style.display = 'block';
     document.getElementById('nav-people').classList.add('active');
