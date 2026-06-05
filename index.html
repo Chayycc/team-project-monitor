@@ -1358,7 +1358,7 @@ function drawDonut() {
   const canvas = document.getElementById('donut-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return; // canvas not ready (parent display:none)
+  if (!ctx) { console.warn('canvas ctx null'); return; }
   const filtered = getFiltered();
   const total = filtered.length;
 
@@ -1734,8 +1734,11 @@ function goTo(page) {
     renderAtRiskSummary();
     populateDashOwners();
     renderDashTable();
-    // Dashboard page is NOW visible — safe to call applyFilters (canvas works)
     applyFilters();
+    // Force re-draw charts (canvas now has visible parent)
+    drawDonut();
+    renderOwnerBars();
+    renderOutputBars();
     const _nd=window.NOTION_DATA||[];const _el=document.getElementById('sb-req-total');if(_el)_el.textContent=_nd.length;
     const _tr=window.TEAM_REQ_DATA||[];const _te=document.getElementById('sb-teamreq-total');if(_te)_te.textContent=_tr.length;
     const _sv=window.SURVEY_DATA||[];const _se=document.getElementById('sb-survey-total');if(_se)_se.textContent=_sv.length;
