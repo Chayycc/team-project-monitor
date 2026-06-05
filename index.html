@@ -1356,11 +1356,12 @@ function renderTimeline() {
 // ============================================================
 function drawDonut() {
   const canvas = document.getElementById('donut-canvas');
-  if (!canvas) return;
+  if (!canvas) { console.warn('donut: no canvas'); return; }
   const ctx = canvas.getContext('2d');
-  if (!ctx) { console.warn('canvas ctx null'); return; }
+  if (!ctx) { console.warn('donut: ctx null'); return; }
   const filtered = getFiltered();
   const total = filtered.length;
+
 
   const segs = [
     {key:'progress', label:'In Progress', value:filtered.filter(p=>p.status==='progress').length, color:'#B9895C'},
@@ -2783,13 +2784,14 @@ window.updateKPIs=function(){
   addPct('kv-done',top.filter(p=>p.status==='done').length);
   addPct('kv-pending',top.filter(p=>p.status==='pending').length);
   addPct('kv-delayed',top.filter(p=>p.risk==='delayed').length);
-  // sidebar counts
-  document.getElementById('sb-all').textContent=total;
-  document.getElementById('sb-prog').textContent=top.filter(p=>p.status==='progress').length;
-  document.getElementById('sb-pend').textContent=top.filter(p=>p.status==='pending').length;
-  document.getElementById('sb-done').textContent=top.filter(p=>p.status==='done').length;
-  document.getElementById('sb-risk').textContent=top.filter(p=>p.risk==='atrisk').length;
-  document.getElementById('sb-dly').textContent=top.filter(p=>p.risk==='delayed').length;
+  // sidebar counts (null-safe — some elements removed)
+  const _sb=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  _sb('sb-all',total);
+  _sb('sb-prog',top.filter(p=>p.status==='progress').length);
+  _sb('sb-pend',top.filter(p=>p.status==='pending').length);
+  _sb('sb-done',top.filter(p=>p.status==='done').length);
+  _sb('sb-risk',top.filter(p=>p.risk==='atrisk').length);
+  _sb('sb-dly',top.filter(p=>p.risk==='delayed').length);
 };
 
 // ══ PAGE ROUTER ═════════════════════════════════════════════
