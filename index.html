@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <title>Team Project Monitoring — EasyMoney Data Team</title>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -335,6 +335,130 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
 .drawer-field-value{font-size:13px;color:var(--f1);}
 .drawer-divider{height:1px;background:var(--ln);margin:14px 0;}
 .drawer-note{font-size:12.5px;color:var(--f2);line-height:1.65;background:var(--s2);padding:10px 12px;border-radius:9px;border:1px solid var(--ln);}
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE — Mobile First
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Sidebar overlay on mobile ── */
+#sidebar-overlay {
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+  z-index:149;backdrop-filter:blur(2px);
+  animation:fadeIn 140ms ease;
+}
+
+/* ── Tablet (≤ 1024px) ── */
+@media (max-width:1024px) {
+  .kpi-row { grid-template-columns:repeat(3,1fr); }
+  .insights-row { grid-template-columns:1fr 1fr; }
+  .insights-row .card:first-child { grid-column:1/-1; }
+  .reports-grid { grid-template-columns:1fr; }
+  .reports-charts-2, .reports-charts-4 { grid-template-columns:1fr; }
+  #rov-drill { width:420px; }
+}
+
+/* ── Mobile (≤ 768px) ── */
+@media (max-width:768px) {
+
+  /* App shell */
+  #app { position:relative; }
+
+  /* Sidebar: hidden by default, slides in as overlay */
+  #sidebar {
+    position:fixed; top:0; left:0; bottom:0;
+    z-index:150; transform:translateX(-100%);
+    transition:transform 220ms cubic-bezier(.4,0,.2,1), width 0ms;
+    width:260px !important;
+    box-shadow:4px 0 24px rgba(0,0,0,0.4);
+  }
+  #sidebar.mobile-open { transform:translateX(0); }
+  #sidebar.collapsed   { transform:translateX(-100%); }
+  #sidebar-overlay.show { display:block; }
+
+  /* Topbar */
+  #topbar { padding:0 12px; gap:8px; }
+  #topbar-title { font-size:13px; }
+  .tb-date { display:none; }
+  .tb-sep  { display:none; }
+  .theme-pill { padding:3px 6px; gap:3px; }
+  .theme-pill svg { display:none; }
+  .tb-avatar { display:none; }
+
+  /* Page body */
+  #page-body { padding:14px 14px 60px; }
+
+  /* KPI */
+  .kpi-row { grid-template-columns:repeat(2,1fr); gap:6px; margin-bottom:12px; }
+  .kpi { padding:11px 12px; border-radius:10px; }
+  .kpi-val { font-size:22px; }
+  .kpi-pct { font-size:10px; }
+
+  /* Page header */
+  .ph { flex-direction:column; gap:8px; margin-bottom:14px; }
+  .ph-h1 { font-size:18px; }
+  .ph-r { flex-wrap:wrap; gap:5px; }
+  .ph-r .btn { padding:0 9px; height:26px; font-size:11.5px; }
+
+  /* Insights charts: stack all */
+  .insights-row { grid-template-columns:1fr !important; }
+
+  /* Board: single column scroll */
+  #board-view { flex-direction:column !important; overflow-x:unset !important; }
+  .board-col { flex:none !important; width:100% !important; max-height:none !important; }
+
+  /* Table: wrap and horizontal scroll */
+  .table-wrap { border-radius:10px; }
+  table { font-size:11.5px; }
+  th { padding:7px 8px; font-size:9px; }
+  td { padding:7px 8px; }
+
+  /* Hide less important columns on mobile */
+  .td-company-col, th[data-col="company"] { display:none; }
+
+  /* Progress bar min-width */
+  .tpbar { min-width:80px; }
+  .tpbar-t { min-width:40px; }
+
+  /* People grid */
+  .people-grid { grid-template-columns:1fr !important; }
+
+  /* Reports */
+  .reports-grid { grid-template-columns:1fr !important; }
+
+  /* Toolbar */
+  .toolbar { gap:5px; }
+  .toolbar .segmented { margin-left:0; width:100%; justify-content:stretch; }
+  .toolbar .segmented .seg-btn { flex:1; justify-content:center; }
+  #search-input { width:150px; }
+  .filter-select { max-width:100px; font-size:11px; }
+
+  /* Section filters */
+  .pkpi-row { gap:6px; }
+  .pkpi { padding:10px 12px; border-radius:10px; }
+  .pkpi-val { font-size:18px; }
+
+  /* Drawer */
+  #drawer { width:100% !important; }
+  #rov-drill { width:100% !important; }
+
+  /* Gantt: keep horizontal scroll */
+  #timeline-view { overflow-x:auto; }
+
+  /* User Request filter bar */
+  #rov-year-pills, #rov-month-pills { gap:3px; }
+
+  /* Survey score cards */
+  #sv-score-cards { grid-template-columns:repeat(3,1fr) !important; }
+}
+
+/* ── Small mobile (≤ 420px) ── */
+@media (max-width:420px) {
+  .kpi-row { grid-template-columns:1fr 1fr; }
+  .kpi-val { font-size:20px; }
+  #topbar-title { max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ph-h1 { font-size:16px; }
+  #sv-score-cards { grid-template-columns:repeat(2,1fr) !important; }
+}
 </style>
 </head>
 <body>
@@ -2480,11 +2604,29 @@ function toggleTheme(){pmToggleTheme();}
 // ══ SIDEBAR TOGGLE ══════════════════════════════════════════
 function pmToggleSidebar(){
   const sb=document.getElementById('sidebar');
-  sb.classList.toggle('collapsed');
-  localStorage.setItem('pm_sb',sb.classList.contains('collapsed')?'0':'1');
+  const isMobile=window.innerWidth<=768;
+  if(isMobile){
+    sb.classList.toggle('mobile-open');
+    const ov=document.getElementById('sidebar-overlay');
+    if(ov) ov.classList.toggle('show', sb.classList.contains('mobile-open'));
+  } else {
+    sb.classList.toggle('collapsed');
+    localStorage.setItem('pm_sb',sb.classList.contains('collapsed')?'0':'1');
+  }
 }
+function pmCloseSidebar(){
+  const sb=document.getElementById('sidebar');
+  sb.classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay')?.classList.remove('show');
+}
+// Close sidebar when navigating on mobile
+const _pmGoToOrig = window.pmGoTo;
+window.pmGoTo = function(page){
+  if(window.innerWidth<=768) pmCloseSidebar();
+  _pmGoToOrig && _pmGoToOrig(page);
+};
 (function(){
-  if(localStorage.getItem('pm_sb')==='0')
+  if(window.innerWidth>768 && localStorage.getItem('pm_sb')==='0')
     document.getElementById('sidebar')?.classList.add('collapsed');
 })();
 
