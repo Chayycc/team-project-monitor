@@ -959,7 +959,11 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
     <div class="kpisc-pill" id="kpi-pf-cu" onclick="kpiSetP('Customer')">Customer</div>
     <div class="kpisc-pill" id="kpi-pf-pr" onclick="kpiSetP('Process')">Process</div>
     <div class="kpisc-pill" id="kpi-pf-lg" onclick="kpiSetP('Learning & Growth')">L&G</div>
-    <div style="margin-left:auto">
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span id="kpi-sync-badge" style="font-size:10.5px;color:var(--f4)">กำลังโหลด...</span>
+      <button onclick="kpiManualRefresh()" style="height:24px;padding:0 10px;background:var(--hv);border:1px solid var(--ln);border-radius:6px;color:var(--f3);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s;font-family:inherit" onmouseover="this.style.borderColor='var(--cu)';this.style.color='var(--cu)'" onmouseout="this.style.borderColor='var(--ln)';this.style.color='var(--f3)'">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+      </button>
       <a href="https://docs.google.com/spreadsheets/d/1w_86nOniyO-6PxpI9XVcEhQUdqAEn3fyxwVrpo-EaJE/edit?usp=sharing" target="_blank" style="font-size:11px;color:var(--f4);text-decoration:none;display:flex;align-items:center;gap:4px;transition:color .15s" onmouseover="this.style.color='var(--cu)'" onmouseout="this.style.color='var(--f4)'">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Google Sheet
       </a>
@@ -4403,9 +4407,40 @@ function kpiGf(){
   });
 }
 
+const KPI_API='https://script.google.com/macros/s/AKfycbzL5pUQ3bnxmZ--QGVxn-D5XXqM8euDGQUL1HYS7Jl7iBo0g1uYPilm00dwST1v1CgLkQ/exec?action=all';
+
+function kpiFetchLive(showLoading){
+  const badge=document.getElementById('kpi-sync-badge');
+  if(badge&&showLoading){badge.textContent='กำลังโหลด...';badge.style.color='var(--f4)';}
+  return fetch(KPI_API)
+    .then(r=>r.json())
+    .then(d=>{
+      if(!d.ok||!d.data)return;
+      KPI_DATA.length=0;
+      d.data.forEach(r=>{
+        let nick=r.nickname||'';
+        const match=KPI_PEOPLE.find(p=>r.owner&&(r.owner.includes(p.name.split(' ')[0])||p.name.includes(r.owner.split(' ')[0])));
+        if(match)nick=match.nick;
+        KPI_DATA.push({
+          nick,name:r.owner||'',role:r.role||'DA/DS',pos:r.position||'',
+          no:r.kpi_no||0,persp:r.perspective||'',kname:r.kpi_name||'',
+          w:r.weight||0,tgt:r.target||'',prog:r.progress||0,
+          status:(r.status||'').includes('ล่าช้า')?'ล่าช้า':'ตามแผน',
+          risk:r.risk_level||'Medium'
+        });
+      });
+      const now=new Date();
+      const ts=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+      if(badge){badge.textContent='อัปเดต '+ts;badge.style.color='var(--done)';}
+      kpiRefresh();
+    })
+    .catch(()=>{
+      if(badge){badge.textContent='offline';badge.style.color='var(--f4)';}
+    });
+}
+
 function initKPIPage(){
   if(!_kpiInited){
-    // Populate person dropdown
     const sel=document.getElementById('kpi-psel');
     if(sel){
       KPI_PEOPLE.forEach(p=>{
@@ -4414,34 +4449,15 @@ function initKPIPage(){
         sel.appendChild(o);
       });
     }
-    // If KPI_DATA is empty, try fetch from Google Apps Script
-    if(!KPI_DATA.length){
-      fetch('https://script.google.com/macros/s/AKfycbzL5pUQ3bnxmZ--QGVxn-D5XXqM8euDGQUL1HYS7Jl7iBo0g1uYPilm00dwST1v1CgLkQ/exec?action=all')
-        .then(r=>r.json())
-        .then(d=>{
-          if(d.ok&&d.data){
-            KPI_DATA.length=0;
-            d.data.forEach(r=>KPI_DATA.push({
-              nick: (r.nickname||r.owner||'').replace(/.*\((.+)\).*/,'$1')||r.nickname||'—',
-              name: r.owner||'', role: r.role||'DA/DS', pos: r.position||'',
-              no: r.kpi_no||0, persp: r.perspective||'',
-              kname: r.kpi_name||'', w: r.weight||0, tgt: r.target||'',
-              prog: r.progress||0,
-              status: (r.status||'').includes('ล่าช้า')||r.status==='ล่าช้า'?'ล่าช้า':'ตามแผน',
-              risk: r.risk_level||'Medium'
-            }));
-            // fix nick from PEOPLE mapping
-            KPI_DATA.forEach(r=>{
-              const match=KPI_PEOPLE.find(p=>r.name.includes(p.name.split(' ')[0])||p.name.includes(r.name.split(' ')[0]));
-              if(match)r.nick=match.nick;
-            });
-            kpiRefresh();
-          }
-        }).catch(()=>{});
-    }
     _kpiInited=true;
   }
-  kpiRefresh();
+  // Always fetch fresh data from Apps Script on page open
+  kpiRefresh(); // show cached data first
+  kpiFetchLive(true); // then update with live data
+}
+
+function kpiManualRefresh(){
+  kpiFetchLive(true);
 }
 
 function kpiRefresh(){
