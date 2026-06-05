@@ -490,6 +490,7 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
     <div class="sb-lbl">Project Overview</div>
     <button class="sb-i" id="nav-all-projects" onclick="pmGoTo('projects')"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>All Projects<span class="sb-bge" id="sb-all">—</span></button>
     <button class="sb-i" id="nav-req-overview" onclick="pmGoTo('req-overview')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>User Request<span class="sb-bge" id="sb-req-total">—</span></button>
+    <button class="sb-i" id="nav-data-issue" onclick="pmGoTo('data-issue')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Data Issue Report<span class="sb-bge" id="sb-issue-total">—</span></button>
     <button class="sb-i" id="nav-team-req" onclick="pmGoTo('team-req')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Team Request<span class="sb-bge" id="sb-teamreq-total">—</span></button>
     <button class="sb-i" id="nav-survey" onclick="pmGoTo('survey')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>ประเมินรายครั้ง<span class="sb-bge" id="sb-survey-total">—</span></button>
     <button class="sb-i" id="nav-starred" onclick="pmGoTo('starred')"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Starred</button>
@@ -637,7 +638,7 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
       <div class="ph-sub" id="req-ov-sub">Tally requirement — ภาพรวม requests ทั้งหมด</div>
     </div>
     <div class="ph-r">
-      <a href="https://tally.so/r/nPDxE5" target="_blank" class="btn btn-primary" style="text-decoration:none;">
+      <a href="https://tally.so/r/nG9gLZ" target="_blank" class="btn btn-primary" style="text-decoration:none;">
         <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         User Request
       </a>
@@ -746,6 +747,12 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
         <option value="High">High</option>
         <option value="Medium">Medium</option>
         <option value="Low">Low</option>
+      </select>
+      <select id="rovt-topic" onchange="renderROVTable()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:160px;">
+        <option value="">All Topics</option>
+        <option value="hide-issues">ซ่อน Issue/Report</option>
+        <option value="แจ้งปัญหารายงาน/การใช้งานข้อมูล">แจ้งปัญหา</option>
+        <option value="ต้องการขอ Data Request ">Data Request</option>
       </select>
       <span id="rovt-info" style="font-size:11.5px;color:var(--f4);margin-left:4px;"></span>
     </div>
@@ -898,6 +905,81 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
     </div>
   </div>
   <div id="sv-pag"></div>
+</div>
+
+
+<!-- ══ DATA ISSUE REPORT PAGE ══ -->
+<div id="data-issue-page" style="display:none;">
+  <div class="ph">
+    <div class="ph-l">
+      <div class="bc"><span onclick="pmGoTo('dashboard')">Dashboard</span><span class="bc-sep">›</span><span style="color:var(--f2)">Data Issue Report</span></div>
+      <div class="ph-h1">Data Issue Report</div>
+      <div class="ph-sub">แจ้งปัญหารายงาน/การใช้งานข้อมูล — จาก Tally requirement database</div>
+    </div>
+    <div class="ph-r">
+      <a href="https://tally.so/r/nG9gLZ" target="_blank" class="btn btn-primary" style="text-decoration:none;">
+        <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        แจ้งปัญหา
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI strip -->
+  <div class="pkpi-row" id="di-kpi" style="margin-bottom:16px;"></div>
+
+  <!-- Charts row -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+    <div class="card">
+      <div class="microlabel">By Department</div>
+      <div class="chart-title" style="margin-bottom:10px;">Issues ตามแผนก</div>
+      <div id="di-dept-chart"></div>
+    </div>
+    <div class="card">
+      <div class="microlabel">By Owner</div>
+      <div class="chart-title" style="margin-bottom:10px;">Workload ต่อคน</div>
+      <div id="di-owner-chart"></div>
+    </div>
+  </div>
+
+  <!-- Table toolbar -->
+  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+    <div style="position:relative;">
+      <svg viewBox="0 0 24 24" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:var(--f4);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="di-search" type="text" placeholder="ค้นหา…" oninput="renderDataIssue()" style="height:26px;padding:0 8px 0 26px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f1);font-size:12px;outline:none;width:180px;font-family:inherit;" onfocus="this.style.borderColor='var(--cu)'" onblur="this.style.borderColor='var(--lnm)'"/>
+    </div>
+    <select id="di-status" onchange="renderDataIssue()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;">
+      <option value="">All Status</option>
+      <option value="done">Done</option>
+      <option value="progress">In Progress</option>
+      <option value="pending">Pending</option>
+      <option value="todo">Not Started</option>
+    </select>
+    <select id="di-owner" onchange="renderDataIssue()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:130px;"><option value="">All Owners</option></select>
+    <select id="di-priority" onchange="renderDataIssue()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:110px;">
+      <option value="">All Priority</option>
+      <option value="Urgent">Urgent</option>
+      <option value="High">High</option>
+      <option value="Medium">Medium</option>
+      <option value="Low">Low</option>
+    </select>
+    <span id="di-info" style="font-size:11.5px;color:var(--f4);"></span>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Request by</th><th>Status</th><th>Priority</th><th>Owner</th>
+        <th>Output</th><th>Dept</th><th>Submitted</th><th>Deadline</th>
+      </tr></thead>
+      <tbody id="di-body"></tbody>
+    </table>
+    <div id="di-empty" class="empty-state hidden">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <div class="empty-state-title">ไม่พบ issue ที่ตรงกับ filter</div>
+    </div>
+  </div>
+  <div id="di-pag"></div>
 </div>
 
 <!-- ══ REQUESTS PAGE (Notion) ══ -->
@@ -1743,6 +1825,8 @@ function goTo(page) {
     const _nd=window.NOTION_DATA||[];const _el=document.getElementById('sb-req-total');if(_el)_el.textContent=_nd.length;
     const _tr=window.TEAM_REQ_DATA||[];const _te=document.getElementById('sb-teamreq-total');if(_te)_te.textContent=_tr.length;
     const _sv=window.SURVEY_DATA||[];const _se=document.getElementById('sb-survey-total');if(_se)_se.textContent=_sv.length;
+    const _di=(window.NOTION_DATA||[]).filter(r=>['แจ้งปัญหารายงาน/การใช้งานข้อมูล','Data Issue Report','แจ้งปัญหา'].some(t=>(r.topic||'').includes(t)||(r.type||'').includes(t)));
+    const _die=document.getElementById('sb-issue-total');if(_die)_die.textContent=_di.length;
   }
   document.getElementById('page-body').scrollTo({top:0, behavior:'instant'});
   localStorage.setItem('pm_page', page);
@@ -2796,7 +2880,7 @@ window.updateKPIs=function(){
 
 // ══ PAGE ROUTER ═════════════════════════════════════════════
 const PM_TITLES={dashboard:'Dashboard',projects:'All Projects',people:'People & Workload',reports:'Reports & Analytics','my-projects':'My Projects',starred:'Starred',archived:'Archived',ownership:'Ownership',company:'Company'};
-const PM_EXTRA=['my-projects','starred','archived','ownership','company','requests','req-overview','team-req','survey'];
+const PM_EXTRA=['my-projects','starred','archived','ownership','company','requests','req-overview','data-issue','team-req','survey'];
 
 function pmGoTo(page){
   ['dashboard','projects','people','reports'].forEach(p=>{
@@ -2818,6 +2902,7 @@ function pmGoTo(page){
     else if(page==='req-overview'){initROVPage();}
     else if(page==='team-req'){initTeamReq();}
     else if(page==='survey'){initSurvey();}
+    else if(page==='data-issue'){initDataIssue();}
   } else {
     goTo(page);
     if(page==='projects')document.getElementById('nav-all-projects')?.classList.add('on');
@@ -3765,18 +3850,26 @@ function populateROVFilters() {
   }
 }
 
+const ISSUE_TOPICS = ['แจ้งปัญหารายงาน/การใช้งานข้อมูล', 'Data Issue Report', 'แจ้งปัญหา'];
 function renderROVTable() {
   const nd = rovGetFiltered ? rovGetFiltered() : (window.NOTION_DATA||[]);
-  const q  = (document.getElementById('rovt-search')?.value||'').toLowerCase();
-  const sf = document.getElementById('rovt-status')?.value||'';
-  const pf = document.getElementById('rovt-priority')?.value||'';
-  const of2 = document.getElementById('rovt-owner')?.value||'';
+  const q    = (document.getElementById('rovt-search')?.value||'').toLowerCase();
+  const sf   = document.getElementById('rovt-status')?.value||'';
+  const pf   = document.getElementById('rovt-priority')?.value||'';
+  const of2  = document.getElementById('rovt-owner')?.value||'';
+  const topf = document.getElementById('rovt-topic')?.value||'';
 
   let rows = nd.filter(r => {
     if (q && !(r.title||'').toLowerCase().includes(q) && !(r.owner||'').toLowerCase().includes(q) && !(r.dept||'').toLowerCase().includes(q) && !(r.desc||'').toLowerCase().includes(q)) return false;
     if (sf && r.status!==sf) return false;
     if (pf && !(r.priority||'').includes(pf)) return false;
     if (of2 && !(r.owner||'').includes(of2)) return false;
+    // Topic filter
+    if (topf === 'hide-issues') {
+      if (ISSUE_TOPICS.some(t => (r.topic||'').includes(t) || (r.type||'').includes(t))) return false;
+    } else if (topf) {
+      if (!(r.topic||'').includes(topf) && !(r.type||'').includes(topf)) return false;
+    }
     return true;
   });
 
@@ -4270,6 +4363,124 @@ function dashRefresh(btn) {
   renderOwnerBars();
   renderOutputBars();
 }
+
+// ══ DATA ISSUE REPORT ════════════════════════════════════════
+const DATA_ISSUE_TOPICS = ['แจ้งปัญหารายงาน/การใช้งานข้อมูล','Data Issue Report','แจ้งปัญหา'];
+let _diPg = 1;
+
+function diGetData() {
+  return (window.NOTION_DATA||[]).filter(r =>
+    DATA_ISSUE_TOPICS.some(t => (r.topic||'').includes(t) || (r.type||'').includes(t))
+  );
+}
+
+function initDataIssue() {
+  const nd = diGetData();
+  const el = document.getElementById('sb-issue-total');
+  if(el) el.textContent = nd.length;
+  // Populate owner dropdown
+  const owSel = document.getElementById('di-owner');
+  if(owSel && owSel.options.length <= 1){
+    const owners=[...new Set(nd.map(r=>r.owner||'').filter(Boolean).flatMap(o=>o.split(',').map(x=>x.trim())))].sort();
+    owners.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o.split(' ')[0];owSel.appendChild(op);});
+  }
+  renderDataIssueCharts();
+  renderDataIssue();
+}
+
+function renderDataIssueCharts() {
+  const nd = diGetData();
+  const COLS = ['#4FB3D9','#C4834A','#52996E','#8A82C8','#D4893A','#6AAFB2','#B89C4F'];
+
+  // KPI
+  const kpiEl = document.getElementById('di-kpi');
+  if(kpiEl){
+    const done=nd.filter(r=>r.status==='done').length;
+    const prog=nd.filter(r=>r.status==='progress').length;
+    const pend=nd.filter(r=>r.status==='pending').length;
+    const todo=nd.filter(r=>r.status==='todo').length;
+    kpiEl.innerHTML=[
+      {l:'Total',v:nd.length,c:'var(--cu)'},{l:'Done',v:done,c:'var(--done)'},
+      {l:'In Progress',v:prog,c:'var(--prog)'},{l:'Pending',v:pend,c:'var(--pend)'},
+      {l:'Not Started',v:todo,c:'var(--f3)'},
+    ].map(s=>`<div class="pkpi"><div class="pkpi-val" style="color:${s.c}">${s.v}</div><div class="pkpi-lbl">${s.l}</div></div>`).join('');
+  }
+
+  // Dept bar
+  const dm={};nd.forEach(r=>{const k=r.dept?r.dept.split(':')[0].trim():'—';if(k)dm[k]=(dm[k]||0)+1;});
+  const dd=Object.entries(dm).sort((a,b)=>b[1]-a[1]);
+  const dmx=dd[0]?.[1]||1;
+  const dEl=document.getElementById('di-dept-chart');
+  if(dEl)dEl.innerHTML=dd.map(([k,v],i)=>`
+    <div onclick="rovOpenDrill('dept','${k.replace(/'/g,"\\'")}','${k} (${v})')"
+      style="display:flex;align-items:center;gap:8px;margin-bottom:7px;cursor:pointer;border-radius:6px;padding:5px 6px;transition:background 80ms;"
+      onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background=''">
+      <span style="font-size:11px;color:var(--f2);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${k}</span>
+      <div style="flex:1;height:7px;background:var(--s3);border-radius:4px;overflow:hidden;">
+        <div style="width:${v/dmx*100}%;height:100%;background:${COLS[i%COLS.length]};border-radius:4px;"></div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--f3);min-width:22px;text-align:right;">${v}</span>
+      <svg viewBox="0 0 24 24" style="width:9px;height:9px;stroke:var(--f4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>`).join('');
+
+  // Owner bar
+  const om={};nd.forEach(r=>{if(r.owner)om[r.owner]=(om[r.owner]||0)+1;});
+  const od=Object.entries(om).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const omx=od[0]?.[1]||1;
+  const oEl=document.getElementById('di-owner-chart');
+  if(oEl)oEl.innerHTML=od.map(([k,v])=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;cursor:pointer;border-radius:6px;padding:5px 6px;transition:background 80ms;"
+      onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background=''">
+      <div style="width:20px;height:20px;border-radius:50%;background:var(--cud2);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--cu);flex-shrink:0;">${k.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)}</div>
+      <span style="font-size:11px;color:var(--f2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${k.split(' ')[0]}</span>
+      <div style="width:80px;height:7px;background:var(--s3);border-radius:4px;overflow:hidden;">
+        <div style="width:${v/omx*100}%;height:100%;background:var(--dly);border-radius:4px;"></div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--f3);min-width:18px;text-align:right;">${v}</span>
+    </div>`).join('');
+}
+
+function renderDataIssue() {
+  const nd = diGetData();
+  const q  = (document.getElementById('di-search')?.value||'').toLowerCase();
+  const sf = document.getElementById('di-status')?.value||'';
+  const of = document.getElementById('di-owner')?.value||'';
+  const pf = document.getElementById('di-priority')?.value||'';
+
+  let rows = nd.filter(r => {
+    if(q && !(r.title||'').toLowerCase().includes(q) && !(r.owner||'').toLowerCase().includes(q) && !(r.dept||'').toLowerCase().includes(q)) return false;
+    if(sf && r.status!==sf) return false;
+    if(of && !(r.owner||'').includes(of)) return false;
+    if(pf && !(r.priority||'').includes(pf)) return false;
+    return true;
+  });
+
+  const total=rows.length;
+  const pages=Math.max(1,Math.ceil(total/PG)); _diPg=Math.min(_diPg,pages);
+  const paged=_paged(rows,_diPg);
+  const body=document.getElementById('di-body');
+  const empty=document.getElementById('di-empty');
+  document.getElementById('di-info').textContent=total+' issues';
+  if(!paged.length){body.innerHTML='';empty?.classList.remove('hidden');return;}
+  empty?.classList.add('hidden');
+
+  body.innerHTML=paged.map(r=>{
+    const owIni=(r.owner||'?').split(',')[0].trim().split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+    const dShort=r.dept?r.dept.split(':')[0].trim():'—';
+    return `<tr onclick="window.open('https://www.notion.so/${r.id}','_blank')" style="cursor:pointer;">
+      <td class="td-title"><div class="td-title-text">${escHtml(r.title||'—')}</div>${r.desc?`<div class="td-parent">${escHtml(r.desc.slice(0,55))}${r.desc.length>55?'…':''}</div>`:''}</td>
+      <td><span class="pill ${_reqStatusClass(r.status)}"><span class="pill-dot" style="background:${_reqStatusDot(r.status)}"></span>${_reqStatusLabel(r.status)}</span></td>
+      <td style="font-size:11px;font-weight:600;color:${_reqPriorityColor(r.priority)}">${_reqPriorityShort(r.priority)}</td>
+      <td><div class="ow-c"><div class="ow-av">${escHtml(owIni)}</div><span style="font-size:12px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(r.owner||'—')}</span></div></td>
+      <td><span style="font-size:10px;padding:1px 5px;border-radius:3px;background:var(--cud);color:var(--cus);">${escHtml(r.output||'—')}</span></td>
+      <td style="font-size:11.5px;color:var(--f3);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(dShort)}</td>
+      <td style="font-size:11px;color:var(--f4);white-space:nowrap;">${_fmtDateTH(r.submitted)}</td>
+      <td class="td-deadline ${r.deadline&&new Date(r.deadline)<new Date()?'delayed':''}" style="font-size:11px;">${_fmtDateTH(r.deadline)}</td>
+    </tr>`;
+  }).join('');
+  pmPag(total,_diPg,'di-pag',function(p){_diPg=p;renderDataIssue();});
+}
+
 // ══ INIT ════════════════════════════════════════════════════
 window.addEventListener('resize', function() {
   if(document.getElementById('dashboard-page')?.style.display !== 'none') {
