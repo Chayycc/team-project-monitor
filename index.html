@@ -718,6 +718,30 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
         <div id="rov-trend-chart"></div>
       </div>
     </div>
+
+    <!-- Activity Heatmap -->
+    <div class="card" style="margin-top:12px;padding:12px 14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <span class="microlabel">Activity Heatmap</span>
+          <span style="font-size:11.5px;font-weight:600;color:var(--f1);">Requests รายวัน</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:flex;align-items:center;gap:3px;">
+            <span style="font-size:9.5px;color:var(--f4);">น้อย</span>
+            <div style="display:flex;gap:1.5px;">
+              <div style="width:8px;height:8px;border-radius:1.5px;background:var(--s3);"></div>
+              <div style="width:8px;height:8px;border-radius:1.5px;background:rgba(196,154,108,0.3);"></div>
+              <div style="width:8px;height:8px;border-radius:1.5px;background:rgba(196,154,108,0.6);"></div>
+              <div style="width:8px;height:8px;border-radius:1.5px;background:var(--cu);"></div>
+            </div>
+            <span style="font-size:9.5px;color:var(--f4);">มาก</span>
+          </div>
+          <select id="rov-heatmap-year" onchange="renderROVHeatmap()" style="height:22px;padding:0 18px 0 6px;background:var(--s2);border:1px solid var(--lnm);border-radius:5px;color:var(--f2);font-size:10.5px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%228%22 height=%228%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 4px center;font-family:inherit;"></select>
+        </div>
+      </div>
+      <div id="rov-heatmap" style="overflow-x:auto;"></div>
+    </div>
   </div>
 
   <!-- TABLE PANEL -->
@@ -3632,6 +3656,7 @@ function rovFilterChange() {
     : `${total} requests`;
   _rovPg = 1;
   renderROVCharts();
+  renderROVHeatmap();
   const tabEl = document.getElementById('rov-table');
   if (tabEl && tabEl.style.display !== 'none') renderROVTable();
 }
@@ -3734,7 +3759,7 @@ function renderROVCharts() {
         s.progress?`<span style="color:var(--prog);font-size:10px;">${s.progress}</span>`:'',
         s.pending?`<span style="color:var(--pend);font-size:10px;">${s.pending}</span>`:'',
       ].filter(Boolean).join('<span style="color:var(--f4);font-size:10px;margin:0 2px;">·</span>');
-      return `<div style="margin-bottom:8px;cursor:pointer;border-radius:6px;padding:3px 4px;transition:background 80ms;"
+      return `<div onclick="rovOpenDrill('owner','${escHtml(name)}','${escHtml(short)} (${s.total})')" style="margin-bottom:8px;cursor:pointer;border-radius:6px;padding:3px 4px;transition:background 80ms;"
                onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background=''">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
           <span style="font-size:11px;color:var(--f2);width:70px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(short)}</span>
@@ -3742,6 +3767,7 @@ function renderROVCharts() {
             <div style="width:${barPct.toFixed(1)}%;height:100%;display:flex;">${segs}</div>
           </div>
           <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--f3);min-width:20px;text-align:right;">${s.total}</span>
+          <svg viewBox="0 0 24 24" style="width:9px;height:9px;stroke:var(--f4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
         <div style="padding-left:76px;display:flex;align-items:center;gap:4px;">${pills}</div>
       </div>`;
@@ -3794,7 +3820,7 @@ function renderROVCharts() {
         const isHigh = v===maxV;
         return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${isSelected?4:3}"
           fill="var(--cu)" opacity="${isSelected?1:0.85}"
-          style="cursor:pointer;" onclick="rovOpenDrill('month','${k}')"
+          style="cursor:pointer;" onclick="rovOpenDrill('month','${k}','${lbl} — ${v} requests')"
           title="${lbl}: ${v} requests"/>
         <text x="${x.toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle"
           fill="${isSelected?'var(--cu)':isHigh?'var(--f1)':'var(--f3)'}"
@@ -3908,6 +3934,7 @@ function initROVPage() {
   if (el) el.textContent = nd.length;
   populateROVFilters();
   renderROVCharts();
+  renderROVHeatmap();
 }
 
 
@@ -4479,6 +4506,125 @@ function renderDataIssue() {
     </tr>`;
   }).join('');
   pmPag(total,_diPg,'di-pag',function(p){_diPg=p;renderDataIssue();});
+}
+
+
+// ══ ACTIVITY HEATMAP ════════════════════════════════════════
+function renderROVHeatmap() {
+  const nd = rovGetFiltered ? rovGetFiltered() : (window.NOTION_DATA||[]);
+  const yrSel = document.getElementById('rov-heatmap-year');
+  const el = document.getElementById('rov-heatmap');
+  if(!el) return;
+
+  if(yrSel && yrSel.options.length === 0){
+    const years=[...new Set(nd.filter(r=>r.submitted).map(r=>new Date(r.submitted).getFullYear()))].sort().reverse();
+    years.forEach(y=>{const op=document.createElement('option');op.value=y;op.textContent=(y+543-2000);yrSel.appendChild(op);});
+  }
+  const selectedYear = yrSel ? parseInt(yrSel.value)||new Date().getFullYear() : new Date().getFullYear();
+
+  const dayCount={};
+  nd.forEach(r=>{
+    if(!r.submitted) return;
+    const d=new Date(r.submitted);
+    if(d.getFullYear()!==selectedYear) return;
+    const k=d.toISOString().slice(0,10);
+    dayCount[k]=(dayCount[k]||0)+1;
+  });
+  const maxVal=Math.max(...Object.values(dayCount),1);
+
+  // Design: tight 10px cells, clean mono labels
+  const C=10, G=2, LEFT=22, TOP=14;
+  const DAYS=['S','M','T','W','T','F','S'];
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  const getColor=v=>{
+    if(!v) return 'var(--s3)';
+    const r=v/maxVal;
+    if(r<=0.25) return 'rgba(196,154,108,0.2)';
+    if(r<=0.5)  return 'rgba(196,154,108,0.5)';
+    if(r<=0.75) return 'rgba(196,154,108,0.75)';
+    return 'var(--cu)';
+  };
+
+  const firstDay=new Date(selectedYear,0,1);
+  const startSun=new Date(firstDay); startSun.setDate(firstDay.getDate()-firstDay.getDay());
+  const endDay=new Date(selectedYear,11,31);
+  const weeks=[]; let cur=new Date(startSun);
+  while(cur<=endDay){
+    const w=[]; for(let d=0;d<7;d++){w.push(new Date(cur));cur.setDate(cur.getDate()+1);} weeks.push(w);
+  }
+
+  const W=LEFT+weeks.length*(C+G)+4;
+  const H=TOP+7*(C+G)+4;
+
+  let mLabels=''; let prevMo=-1;
+  weeks.forEach((wk,wi)=>{
+    const mo=wk[0].getMonth();
+    if(mo!==prevMo && wk[0].getFullYear()===selectedYear){
+      mLabels+=`<text x="${LEFT+wi*(C+G)}" y="${TOP-3}" fill="var(--f3)" font-size="7" font-family="'JetBrains Mono',monospace" font-weight="500">${MONTHS[mo]}</text>`;
+      prevMo=mo;
+    }
+  });
+
+  const dLabels=[0,1,2,3,4,5,6].map(d=>
+    `<text x="${LEFT-3}" y="${TOP+d*(C+G)+C/2}" fill="var(--f4)" font-size="6" font-family="'JetBrains Mono',monospace" text-anchor="end" dominant-baseline="middle">${DAYS[d]}</text>`
+  ).join('');
+
+  let cells='';
+  weeks.forEach((wk,wi)=>{
+    wk.forEach((date,di)=>{
+      const key=date.toISOString().slice(0,10);
+      const v=dayCount[key]||0;
+      const inYear=date.getFullYear()===selectedYear;
+      const x=LEFT+wi*(C+G), y=TOP+di*(C+G);
+      const color=inYear?getColor(v):'transparent';
+      const click=inYear&&v>0?` onclick="rovOpenDrillDay('${key}','${key} — ${v} requests')"` :'';
+      const style=inYear&&v>0?' style="cursor:pointer;"':'';
+      const ttip=inYear&&v>0?`<title>${key}: ${v}</title>`:'';
+      cells+=`<rect x="${x}" y="${y}" width="${C}" height="${C}" rx="1.5" fill="${color}" opacity="${inYear?1:0}"${style}${click}>${ttip}</rect>`;
+    });
+  });
+
+  el.innerHTML=`<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet">${mLabels}${dLabels}${cells}</svg>`;
+}
+
+
+function rovOpenDrillDay(dateKey, titleLabel) {
+  const nd = rovGetFiltered ? rovGetFiltered() : (window.NOTION_DATA||[]);
+  const rows = nd.filter(r => r.submitted && r.submitted.startsWith(dateKey));
+
+  document.getElementById('rov-drill-label').textContent = 'วันที่';
+  document.getElementById('rov-drill-title').textContent = titleLabel;
+  document.getElementById('rov-drill-count').textContent = rows.length + ' requests';
+
+  const done=rows.filter(r=>r.status==='done').length;
+  const prog=rows.filter(r=>r.status==='progress').length;
+  const pend=rows.filter(r=>r.status==='pending').length;
+  const todo=rows.filter(r=>r.status==='todo').length;
+  document.getElementById('rov-drill-kpi').innerHTML=[
+    {l:'Total',v:rows.length,c:'var(--cu)'},{l:'Done',v:done,c:'var(--done)'},
+    {l:'In Progress',v:prog,c:'var(--prog)'},{l:'Pending',v:pend,c:'var(--pend)'},
+    {l:'Not Started',v:todo,c:'var(--f3)'},
+  ].map(function(s){return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;background:var(--s2);border-radius:9px;min-width:60px;"><span style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:700;color:'+s.c+';">'+s.v+'</span><span style="font-size:9.5px;color:var(--f4);text-transform:uppercase;letter-spacing:.05em;font-weight:600;">'+s.l+'</span></div>';}).join('');
+
+  document.getElementById('rov-drill-list').innerHTML = rows.map(function(r){
+    var owIni=(r.owner||'?').split(',')[0].trim().split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+    var dShort=r.dept?r.dept.split(':')[0].trim():'—';
+    var priHtml=r.priority?'<span style="color:'+_reqPriorityColor(r.priority)+';">● '+_reqPriorityShort(r.priority)+'</span>':'';
+    var owHtml=r.owner?'<span>👤 '+escHtml(r.owner.split(',')[0].trim())+'</span>':'';
+    var deptHtml=dShort&&dShort!=='—'?'<span>🏢 '+escHtml(dShort)+'</span>':'';
+    var descHtml=r.desc?'<div style="font-size:11px;color:var(--f3);margin-bottom:6px;">'+escHtml(r.desc.slice(0,70))+(r.desc.length>70?'…':'')+'</div>':'';
+    return '<div onclick="window.open(\'https://www.notion.so/'+r.id+'\',\'_blank\')" style="background:var(--s2);border:1px solid var(--ln);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all 100ms;" onmouseover="this.style.borderColor=\'var(--lnm)\'" onmouseout="this.style.borderColor=\'var(--ln)\'">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">'
+      +'<div style="font-size:12.5px;font-weight:500;color:var(--f1);flex:1;line-height:1.4;">'+escHtml(r.title||'—')+'</div>'
+      +'<span class="pill '+_reqStatusClass(r.status)+'"><span class="pill-dot" style="background:'+_reqStatusDot(r.status)+'"></span>'+_reqStatusLabel(r.status)+'</span>'
+      +'</div>'+descHtml
+      +'<div style="display:flex;gap:8px;font-size:11px;color:var(--f4);flex-wrap:wrap;">'+owHtml+deptHtml+priHtml+'</div>'
+      +'</div>';
+  }).join('');
+
+  document.getElementById('rov-drill').style.display='block';
+  document.getElementById('rov-drill-overlay').style.display='block';
 }
 
 // ══ INIT ════════════════════════════════════════════════════
