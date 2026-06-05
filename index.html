@@ -1356,7 +1356,9 @@ function renderTimeline() {
 // ============================================================
 function drawDonut() {
   const canvas = document.getElementById('donut-canvas');
+  if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return; // canvas not ready (parent display:none)
   const filtered = getFiltered();
   const total = filtered.length;
 
@@ -1732,12 +1734,16 @@ function goTo(page) {
     renderAtRiskSummary();
     populateDashOwners();
     renderDashTable();
-    // Re-draw charts AFTER page is visible (canvas needs visible parent)
+    // Re-draw charts after page is visible — use a small delay to let CSS settle
     setTimeout(function(){
-      drawDonut && drawDonut();
-      renderOwnerBars && renderOwnerBars();
-      renderOutputBars && renderOutputBars();
-    }, 50);
+      try {
+        // updateKPIs first to ensure correct filter state
+        updateKPIs && updateKPIs();
+        drawDonut && drawDonut();
+        renderOwnerBars && renderOwnerBars();
+        renderOutputBars && renderOutputBars();
+      } catch(e) { console.warn('chart render:', e); }
+    }, 100);
     const _nd=window.NOTION_DATA||[];const _el=document.getElementById('sb-req-total');if(_el)_el.textContent=_nd.length;
     const _tr=window.TEAM_REQ_DATA||[];const _te=document.getElementById('sb-teamreq-total');if(_te)_te.textContent=_tr.length;
     const _sv=window.SURVEY_DATA||[];const _se=document.getElementById('sb-survey-total');if(_se)_se.textContent=_sv.length;
@@ -2180,10 +2186,13 @@ window.addEventListener('DOMContentLoaded', () => {
   // Re-draw after layout settles on mobile
   if(window.innerWidth <= 768) {
     setTimeout(function(){
-      drawDonut && drawDonut();
-      renderOwnerBars && renderOwnerBars();
-      renderOutputBars && renderOutputBars();
-    }, 300);
+      try {
+        updateKPIs && updateKPIs();
+        drawDonut && drawDonut();
+        renderOwnerBars && renderOwnerBars();
+        renderOutputBars && renderOutputBars();
+      } catch(e) {}
+    }, 400);
   }
   setView(localStorage.getItem('pm_view') || 'table');
   const savedPage = localStorage.getItem('pm_page') || 'dashboard';
