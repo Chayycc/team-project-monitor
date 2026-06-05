@@ -359,6 +359,13 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
 
 /* ── Mobile (≤ 768px) ── */
 @media (max-width:768px) {
+  /* Force chart containers visible */
+  #donut-canvas { min-width:140px !important; min-height:140px !important; display:block !important; }
+  .donut-wrap { margin-top:8px; min-height:160px; }
+  .bar-rows { min-height:40px; }
+  #owner-bars, #output-bars { min-height:40px; }
+  .card { overflow:visible; }
+
 
   /* App shell */
   #app { position:relative; }
@@ -2162,6 +2169,14 @@ function openSheetRowDetail(owner, idx) {
 window.addEventListener('DOMContentLoaded', () => {
   populateFilters();
   applyFilters();
+  // Re-draw after layout settles on mobile
+  if(window.innerWidth <= 768) {
+    setTimeout(function(){
+      drawDonut && drawDonut();
+      renderOwnerBars && renderOwnerBars();
+      renderOutputBars && renderOutputBars();
+    }, 300);
+  }
   setView(localStorage.getItem('pm_view') || 'table');
   const savedPage = localStorage.getItem('pm_page') || 'dashboard';
   goTo(savedPage || 'dashboard');
@@ -4252,6 +4267,14 @@ function dashRefresh(btn) {
   renderOutputBars();
 }
 // ══ INIT ════════════════════════════════════════════════════
+window.addEventListener('resize', function() {
+  if(document.getElementById('dashboard-page')?.style.display !== 'none') {
+    drawDonut();
+    renderOwnerBars();
+    renderOutputBars();
+  }
+}, {passive:true});
+
 window.addEventListener('DOMContentLoaded',()=>{
   populateFilters();
   applyFilters();
