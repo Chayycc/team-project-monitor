@@ -645,6 +645,63 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
   #team-info-page .ti-kpi-row{grid-template-columns:1fr 1fr}
 }
 
+/* ══ DASHBOARD OVERVIEW ROW ══ */
+.dash-ov-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px;}
+.dash-ov-card{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:12px 14px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .15s,background .15s;}
+.dash-ov-card:hover{border-color:var(--lnm);background:var(--hv);}
+.dash-ov-accent{position:absolute;top:0;left:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+.dash-ov-src{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--f4);margin-bottom:6px;}
+.dash-ov-num{font-size:22px;font-weight:800;line-height:1;margin-bottom:2px;font-variant-numeric:tabular-nums;letter-spacing:-0.5px;}
+.dash-ov-lbl{font-size:11px;color:var(--f3);margin-bottom:4px;}
+.dash-ov-tag{display:inline-block;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:10px;}
+@media(max-width:1100px){.dash-ov-row{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:480px){.dash-ov-row{grid-template-columns:repeat(2,1fr);gap:8px;}}
+
+/* ══ DASHBOARD BENTO GRID ══ */
+.dash-bento{display:grid;gap:14px;margin-bottom:14px;}
+.dash-bento-r1{grid-template-columns:300px 1fr 260px;}
+.dash-bento-r2{grid-template-columns:1fr 1fr 1fr;}
+@media(max-width:1100px){
+  .dash-bento-r1,.dash-bento-r2{grid-template-columns:1fr 1fr!important;}
+  .dash-bento-r1>.card:first-child{grid-column:1/-1;}
+}
+@media(max-width:640px){
+  .dash-bento-r1,.dash-bento-r2{grid-template-columns:1fr!important;}
+  .dash-bento-r1>.card:first-child{grid-column:auto;}
+}
+
+/* ══ ACTIVITY FEED ══ */
+.dash-act-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--lnm);}
+.dash-act-item:last-child{border-bottom:none;padding-bottom:0;}
+.dash-act-dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.dash-act-body{flex:1;min-width:0;}
+.dash-act-title{font-size:12px;color:var(--f1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;}
+.dash-act-meta{font-size:10.5px;color:var(--f4);}
+
+/* ══ RISK CARDS (bento) ══ */
+.dash-risk-item{padding:10px 12px;background:rgba(204,82,82,.05);border:1px solid rgba(204,82,82,.13);border-radius:8px;margin-bottom:8px;}
+.dash-risk-item:last-child{margin-bottom:0;}
+.dash-risk-title{font-size:12px;color:var(--f1);font-weight:500;margin-bottom:4px;}
+.dash-risk-meta{font-size:11px;color:var(--f3);}
+.dash-risk-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;}
+
+/* ══ KPI STACKED BAR ══ */
+.dash-kpi-stacked{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px;margin:8px 0 10px;}
+.dash-kpi-stacked div{border-radius:2px;}
+
+/* ══ SURVEY ROWS ══ */
+.dash-survey-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--lnm);font-size:12px;}
+.dash-survey-row:last-child{border-bottom:none;}
+.dash-stars{color:var(--cu);font-size:12px;letter-spacing:-1px;}
+
+/* ══ DASHBOARD QUICK ACCESS ══ */
+.dash-qa-strip{display:flex;align-items:center;gap:6px;padding:9px 12px;background:var(--sf);border:1px solid var(--ln);border-radius:10px;margin-bottom:14px;flex-wrap:wrap;}
+.dash-qa-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;color:var(--f4);text-transform:uppercase;margin-right:2px;flex-shrink:0;}
+.dash-qa-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;cursor:pointer;transition:filter .15s,transform .1s;border:1px solid transparent;user-select:none;white-space:nowrap;}
+.dash-qa-badge:hover{filter:brightness(1.12);transform:translateY(-1px);}
+.dash-qa-badge:active{transform:translateY(0);filter:brightness(.95);}
+.dash-qa-sep{color:var(--lnm);margin:0 0;font-size:11px;user-select:none;}
+
 </style>
 </head>
 <body>
@@ -728,13 +785,74 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
     </div>
     <div class="ph-r">
       <button class="btn btn-ghost" id="dash-refresh-btn" onclick="dashRefresh(this)"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
-      <button class="btn btn-ghost"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>
       <a href="https://tungthanasin-my.sharepoint.com/:x:/g/personal/chaiyanut_c_easymoney_co_th/IQAQDne0asJ8RI5HTkSlLMbCATWHqHZLklm9VkqeihaQbMA?e=AfQI2O" target="_blank" class="btn btn-ghost"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Data Sheet</a>
       <button class="btn btn-ghost" onclick="triggerImport()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="15"/></svg>Import</button>
       <button class="btn btn-primary" onclick="exportCSV()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
     </div>
   </div>
-  <div class="kpi-row" id="kpi-row">
+  <!-- ── OVERVIEW METRIC ROW ── -->
+  <div class="dash-ov-row" id="dash-ov-row">
+    <div class="dash-ov-card" onclick="filterStatus(null)">
+      <div class="dash-ov-accent" style="background:var(--cu)"></div>
+      <div class="dash-ov-src">Projects · RAW</div>
+      <div class="dash-ov-num" style="color:var(--cu)" id="dov-tasks">—</div>
+      <div class="dash-ov-lbl">Total Tasks</div>
+      <span class="dash-ov-tag" style="background:var(--cud);color:var(--cus);" id="dov-projects-tag">— projects</span>
+    </div>
+    <div class="dash-ov-card" onclick="filterStatus('done')">
+      <div class="dash-ov-accent" style="background:var(--done)"></div>
+      <div class="dash-ov-src">Completion</div>
+      <div class="dash-ov-num" style="color:var(--done)" id="dov-done">—</div>
+      <div class="dash-ov-lbl">Tasks Done</div>
+      <span class="dash-ov-tag" style="background:var(--donebg);color:var(--done);" id="dov-done-tag">—% rate</span>
+    </div>
+    <div class="dash-ov-card" onclick="filterRisk('delayed')">
+      <div class="dash-ov-accent" style="background:var(--dly)"></div>
+      <div class="dash-ov-src">⚠ Risk</div>
+      <div class="dash-ov-num" style="color:var(--dly)" id="dov-risk">—</div>
+      <div class="dash-ov-lbl">Tasks Delayed</div>
+      <span class="dash-ov-tag" style="background:var(--dlybg);color:var(--dly);">ต้องดูแลด่วน</span>
+    </div>
+    <div class="dash-ov-card" onclick="pmGoTo('req-overview')">
+      <div class="dash-ov-accent" style="background:var(--pend)"></div>
+      <div class="dash-ov-src">User Request · Notion</div>
+      <div class="dash-ov-num" style="color:var(--pend)" id="dov-req">—</div>
+      <div class="dash-ov-lbl">Total Requests</div>
+      <span class="dash-ov-tag" style="background:var(--pendbg);color:var(--pend);">2026</span>
+    </div>
+    <div class="dash-ov-card" onclick="pmGoTo('team-req')">
+      <div class="dash-ov-accent" style="background:var(--prog)"></div>
+      <div class="dash-ov-src">Team Request · Notion</div>
+      <div class="dash-ov-num" style="color:var(--prog)" id="dov-teamreq">—</div>
+      <div class="dash-ov-lbl">Team Requests</div>
+      <span class="dash-ov-tag" style="background:var(--progbg);color:var(--prog);" id="dov-tr-tag">— รอดำเนินการ</span>
+    </div>
+    <div class="dash-ov-card" onclick="pmGoTo('survey')">
+      <div class="dash-ov-accent" style="background:var(--done)"></div>
+      <div class="dash-ov-src">Survey · Tally</div>
+      <div class="dash-ov-num" style="color:var(--done)" id="dov-survey">—</div>
+      <div class="dash-ov-lbl">Survey Responses</div>
+      <span class="dash-ov-tag" style="background:var(--donebg);color:var(--done);" id="dov-survey-tag">ประเมินรายครั้ง</span>
+    </div>
+  </div>
+
+  <!-- ── QUICK ACCESS STRIP ── -->
+  <div class="dash-qa-strip">
+    <span class="dash-qa-lbl">Quick Access</span>
+    <span class="dash-qa-badge" style="background:var(--cud);color:var(--cus);border-color:var(--cud2);" onclick="filterStatus(null)">📁 Projects</span>
+    <span class="dash-qa-sep">·</span>
+    <span class="dash-qa-badge" style="background:var(--pendbg);color:var(--pend);" onclick="pmGoTo('req-overview')">📥 User Request</span>
+    <span class="dash-qa-sep">·</span>
+    <span class="dash-qa-badge" style="background:var(--progbg);color:var(--prog);" onclick="pmGoTo('team-req')">📋 Team Request</span>
+    <span class="dash-qa-sep">·</span>
+    <span class="dash-qa-badge" style="background:var(--donebg);color:var(--done);" onclick="pmGoTo('survey')">⭐ Survey</span>
+    <span class="dash-qa-sep">·</span>
+    <span class="dash-qa-badge" style="background:var(--riskbg);color:var(--risk);" onclick="pmGoTo('kpi')">📊 KPI</span>
+    <span class="dash-qa-sep">·</span>
+    <span class="dash-qa-badge" style="background:var(--dlybg);color:var(--dly);" onclick="pmGoTo('data-issue')">🔴 Data Issue</span>
+  </div>
+
+  <div class="kpi-row" id="kpi-row" style="display:none;">
     <div class="kpi" id="kpi-total" onclick="filterStatus(null)"><div class="kpi-lbl"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Total Projects</div><div class="kpi-num"><span class="kpi-val mono" id="kv-total">—</span></div><div class="kpi-sub" id="ks-total">ทุก project รวมกัน</div><div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--cu);transform:scaleX(0);transform-origin:left;transition:transform 130ms;" class="kpi-bar"></div></div>
     <div class="kpi" id="kpi-progress" onclick="filterStatus('progress')"><div class="kpi-lbl" style="color:var(--prog)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>In Progress</div><div class="kpi-num"><span class="kpi-val mono" style="color:var(--prog)" id="kv-progress">—</span><span class="kpi-pct" id="kpct-progress"></span></div><div class="kpi-sub" id="ks-progress">กำลังดำเนินการ</div></div>
     <div class="kpi" id="kpi-todo" onclick="filterStatus('todo')"><div class="kpi-lbl"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>Not Started</div><div class="kpi-num"><span class="kpi-val mono" id="kv-todo">—</span><span class="kpi-pct" id="kpct-todo"></span></div><div class="kpi-sub" id="ks-todo">รอเริ่มดำเนินการ</div></div>
@@ -742,12 +860,53 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
     <div class="kpi" id="kpi-pending" onclick="filterStatus('pending')"><div class="kpi-lbl" style="color:var(--pend)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Pending</div><div class="kpi-num"><span class="kpi-val mono" style="color:var(--pend)" id="kv-pending">—</span><span class="kpi-pct" id="kpct-pending"></span></div><div class="kpi-sub" id="ks-pending">รอการตอบรับ / ติด</div></div>
     <div class="kpi" id="kpi-delayed" onclick="filterRisk('delayed')"><div class="kpi-lbl" style="color:var(--dly)"><svg viewBox="0 0 24 24"><polygon points="12 2 22 20 2 20"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Delayed</div><div class="kpi-num"><span class="kpi-val mono" style="color:var(--dly)" id="kv-delayed">—</span><span class="kpi-pct" id="kpct-delayed"></span></div><div class="kpi-sub" id="ks-delayed">เลย deadline แล้ว</div></div>
   </div>
-  <!-- CHARTS -->
-  <div id="insights-wrap" style="margin-top:20px;">
-    <div class="insights-row">
-      <div class="card"><div class="microlabel">Status Breakdown</div><div class="chart-title">สถานะโปรเจกต์</div><div class="donut-wrap"><canvas id="donut-canvas" width="160" height="160" style="cursor:pointer;flex-shrink:0;" onclick="handleDonutClick(event)"></canvas><div class="donut-legend" id="donut-legend"></div></div></div>
-      <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div class="microlabel">Workload by Owner</div><div class="chart-title">จำนวนงานต่อคน</div></div></div><div class="bar-rows" id="owner-bars"></div></div>
-      <div class="card"><div><div class="microlabel">Output Types</div><div class="chart-title">ประเภท Output</div></div><div class="bar-rows" id="output-bars"></div></div>
+  <!-- BENTO ROW 1: Status Donut + Workload + Activity -->
+  <div class="dash-bento dash-bento-r1" id="sec-projects">
+    <div class="card">
+      <div class="microlabel">Status Breakdown</div>
+      <div class="chart-title">สถานะโปรเจกต์</div>
+      <div class="donut-wrap"><canvas id="donut-canvas" width="160" height="160" style="cursor:pointer;flex-shrink:0;" onclick="handleDonutClick(event)"></canvas><div class="donut-legend" id="donut-legend"></div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+        <div><div class="microlabel">People</div><div class="chart-title">Team Workload</div></div>
+        <span id="dov-members-chip" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--sf);border:1px solid var(--lnm);color:var(--f3);">— members</span>
+      </div>
+      <div class="bar-rows" id="owner-bars"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+        <div><div class="microlabel">Activity</div><div class="chart-title">Recent Requests</div></div>
+        <span style="display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--sf);border:1px solid var(--lnm);color:var(--f3);">ล่าสุด</span>
+      </div>
+      <div id="dash-activity-feed"></div>
+    </div>
+  </div>
+
+  <!-- BENTO ROW 2: Output Types + At-Risk Cards + KPI+Survey -->
+  <div class="dash-bento dash-bento-r2" id="sec-kpi">
+    <div class="card">
+      <div style="margin-bottom:4px;"><div class="microlabel">Output</div><div class="chart-title">Output Types</div></div>
+      <div class="bar-rows" id="output-bars"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+        <div><div class="microlabel">Risk</div><div class="chart-title" style="color:var(--dly);">⚠ At-Risk &amp; Delayed</div></div>
+        <span id="dov-delayed-chip" style="display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--dlybg);color:var(--dly);border:1px solid rgba(204,82,82,.2);">— delayed</span>
+      </div>
+      <div id="dash-risk-list"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+        <div><div class="microlabel">KPI</div><div class="chart-title">KPI Health</div></div>
+        <span id="dov-kpi-chip" style="display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--sf);border:1px solid var(--lnm);color:var(--f3);">— KPIs</span>
+      </div>
+      <div id="dash-kpi-panel"></div>
+      <div style="height:1px;background:var(--lnm);margin:12px 0;"></div>
+      <div>
+        <div class="microlabel" style="margin-bottom:6px;">Survey · ประเมินรายครั้ง <span id="dov-survey-chip-count"></span></div>
+        <div id="dash-survey-panel"></div>
+      </div>
     </div>
   </div>
 
@@ -799,14 +958,7 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
   </div>
 
 
-    <!-- AT-RISK (bottom) -->
-  <div id="atrisk-summary" style="margin-top:24px;">
-    <div class="section-header">
-      <div class="section-label" style="color:var(--dly)"><svg viewBox="0 0 24 24"><polygon points="12 2 22 20 2 20"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>At-Risk &amp; Delayed Projects</div>
-      <button class="toggle-btn" onclick="pmGoTo('projects')" style="color:var(--cu);">ดูทั้งหมด →</button>
-    </div>
-    <div id="atrisk-table-wrap"></div>
-  </div>
+
 </div>
 
 
@@ -1651,7 +1803,7 @@ let insightsVisible = true;
 let hoveredDonutSeg = null;
 let activeDonutSeg = null;
 
-const TODAY = '2026-05-26';
+const TODAY = '2026-06-06';
 
 // ============================================================
 // HELPERS
@@ -1680,7 +1832,7 @@ function statusPillClass(s) {
   return {done:'pill-done', progress:'pill-progress', todo:'pill-todo', pending:'pill-pending'}[s] || 'pill-todo';
 }
 function statusDot(s) {
-  return {done:'var(--status-done)', progress:'var(--brand-copper)', todo:'var(--status-todo)', pending:'var(--status-pending)'}[s] || 'var(--fg-4)';
+  return {done:'var(--done)', progress:'var(--prog)', todo:'var(--todo)', pending:'var(--pend)'}[s] || 'var(--f4)';
 }
 
 function escHtml(s) {
@@ -1914,15 +2066,21 @@ function drawDonut() {
   if (!canvas) { console.warn('donut: no canvas'); return; }
   const ctx = canvas.getContext('2d');
   if (!ctx) { console.warn('donut: ctx null'); return; }
+  const css = getComputedStyle(document.documentElement);
+  const cv = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
+  const surfaceColor = cv('--sf', '#FFFFFF');
+  const emptyColor = cv('--s3', '#E2E8F0');
+  const textColor = cv('--f1', '#172033');
+  const mutedColor = cv('--f3', '#6D788C');
   const filtered = getFiltered();
   const total = filtered.length;
 
 
   const segs = [
-    {key:'progress', label:'In Progress', value:filtered.filter(p=>p.status==='progress').length, color:'#B9895C'},
-    {key:'todo',     label:'Not Started', value:filtered.filter(p=>p.status==='todo').length,     color:'#6E6B64'},
-    {key:'done',     label:'Done',        value:filtered.filter(p=>p.status==='done').length,     color:'#5E9C7A'},
-    {key:'pending',  label:'Pending',     value:filtered.filter(p=>p.status==='pending').length,  color:'#8A82C8'},
+    {key:'progress', label:'In Progress', value:filtered.filter(p=>p.status==='progress').length, color:cv('--prog', '#F59E0B')},
+    {key:'todo',     label:'Not Started', value:filtered.filter(p=>p.status==='todo').length,     color:cv('--todo', '#64748B')},
+    {key:'done',     label:'Done',        value:filtered.filter(p=>p.status==='done').length,     color:cv('--done', '#16A34A')},
+    {key:'pending',  label:'Pending',     value:filtered.filter(p=>p.status==='pending').length,  color:cv('--pend', '#7C3AED')},
   ].filter(s => s.value > 0);
 
   window._donutSegs = segs;
@@ -1943,7 +2101,7 @@ function drawDonut() {
     ctx.beginPath();
     ctx.arc(cx, cy, outerR, 0, Math.PI*2);
     ctx.arc(cx, cy, innerR, 0, Math.PI*2, true);
-    ctx.fillStyle = '#2A2825';
+    ctx.fillStyle = emptyColor;
     ctx.fill();
   } else {
     let angle = -Math.PI / 2;
@@ -1974,22 +2132,25 @@ function drawDonut() {
       ctx.beginPath();
       ctx.moveTo(cx + innerR * Math.cos(angle), cy + innerR * Math.sin(angle));
       ctx.lineTo(cx + (outerR+6) * Math.cos(angle), cy + (outerR+6) * Math.sin(angle));
-      ctx.strokeStyle = '#111110';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = surfaceColor;
+      ctx.lineWidth = 3;
       ctx.stroke();
       angle += slice;
     });
   }
 
-  // Center text
+  // Center text — show X% done
+  const doneVal = segs.find(s => s.key === 'done');
+  const doneCount_ = doneVal ? doneVal.value : 0;
+  const donePct_ = total > 0 ? Math.round(doneCount_ / total * 100) : 0;
   ctx.globalAlpha = 1;
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#F0EDEA';
-  ctx.font = `700 ${total >= 100 ? 16 : 18}px 'JetBrains Mono', monospace`;
-  ctx.fillText(total, cx, cy + 5);
-  ctx.fillStyle = '#605C55';
-  ctx.font = '400 9.5px Sarabun, sans-serif';
-  ctx.fillText('tasks', cx, cy + 17);
+  ctx.fillStyle = textColor;
+  ctx.font = `800 ${donePct_ >= 100 ? 16 : 18}px 'Inter', sans-serif`;
+  ctx.fillText(donePct_ + '%', cx, cy + 5);
+  ctx.fillStyle = mutedColor;
+  ctx.font = '400 9.5px Inter, sans-serif';
+  ctx.fillText('done', cx, cy + 17);
 
   // Legend
   const legend = document.getElementById('donut-legend');
@@ -2733,9 +2894,208 @@ function openSheetRowDetail(owner, idx) {
   document.getElementById('drawer').style.display = 'block';
 }
 
+// ============================================================
+// DASHBOARD OVERVIEW STRIP (cross-source)
+// ============================================================
+function updateDashOverview() {
+  const raw = typeof RAW !== 'undefined' ? RAW : [];
+  const total = raw.length;
+  const topLevel = raw.filter(r => !r.parent);
+  const doneCount = topLevel.filter(r => r.status === 'done').length;
+  const delayedCount = topLevel.filter(r => r.risk === 'delayed').length;
+  const totalTop = topLevel.length;
+  const pct = totalTop > 0 ? Math.round(doneCount / totalTop * 100) : 0;
+
+  const nd = window.NOTION_DATA || [];
+  const nd2026 = nd.filter(r => {
+    const d = r.created_at || r.Date || r.date || r['Created time'] || '';
+    return String(d).includes('2026');
+  });
+  const reqCount = nd2026.length || nd.length;
+
+  const tr = window.TEAM_REQ_DATA || [];
+  const trPending = tr.filter(r => {
+    const s = (r.Status || r.status || '').toLowerCase();
+    return s.includes('pending') || s.includes('รอ') || s.includes('new');
+  }).length;
+
+  const sv = window.SURVEY_DATA || [];
+
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('dov-tasks', total);
+  set('dov-done', doneCount);
+  set('dov-risk', delayedCount);
+  set('dov-req', reqCount);
+  set('dov-teamreq', tr.length);
+  set('dov-survey', sv.length);
+  set('dov-projects-tag', totalTop + ' projects');
+  set('dov-done-tag', pct + '% rate');
+  set('dov-tr-tag', trPending + ' รอดำเนินการ');
+  set('dov-survey-tag', sv.length > 0 ? sv.length + ' ตอบแล้ว' : 'ประเมินรายครั้ง');
+
+  // Update bento chips
+  const ownerSet = new Set();
+  raw.forEach(r => { if (r.owners) { (Array.isArray(r.owners)?r.owners:[r.owners]).forEach(o=>o&&ownerSet.add(o)); } });
+  set('dov-members-chip', ownerSet.size + ' members');
+  set('dov-delayed-chip', delayedCount + ' delayed');
+  const kpiTotal = (typeof KPI_DATA !== 'undefined' ? KPI_DATA : []).length;
+  set('dov-kpi-chip', kpiTotal + ' KPIs');
+  set('dov-survey-chip-count', sv.length > 0 ? '(' + sv.length + ' ตอบ)' : '');
+}
+
+// ============================================================
+// BENTO DASHBOARD — ACTIVITY FEED
+// ============================================================
+function renderDashActivityFeed() {
+  const el = document.getElementById('dash-activity-feed');
+  if (!el) return;
+  const nd = (window.NOTION_DATA || []).slice().reverse().slice(0, 7);
+  if (!nd.length) {
+    el.innerHTML = '<div style="color:var(--f4);font-size:11px;padding:12px 0;">ยังไม่มีข้อมูล</div>';
+    return;
+  }
+  const typeMap = {
+    'request': {color:'var(--cu)', label:'Request'},
+    'bug':     {color:'var(--dly)', label:'Issue'},
+    'issue':   {color:'var(--dly)', label:'Issue'},
+    'feature': {color:'var(--prog)', label:'Feature'},
+    'survey':  {color:'var(--done)', label:'Survey'},
+    'team':    {color:'var(--prog)', label:'Team'},
+  };
+  function relTime(ds) {
+    if (!ds) return '';
+    const d = new Date(ds);
+    if (isNaN(d)) return ds.slice(0,10);
+    const diff = Date.now() - d.getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return mins + ' นาทีที่แล้ว';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + ' ชั่วโมงที่แล้ว';
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return days + ' วันที่แล้ว';
+    return d.toLocaleDateString('th-TH', {day:'numeric', month:'short'});
+  }
+  el.innerHTML = nd.map(r => {
+    const title = r.title || r.Name || r.Request || r['คำร้องขอ'] || r.name || '(ไม่มีชื่อ)';
+    const dateStr = r.created_at || r.Date || r.date || r['Created time'] || '';
+    const rawType = (r.type || r.Type || r.status || '').toLowerCase();
+    const cfg = typeMap[rawType] || {color:'var(--cu)', label:'Request'};
+    return `<div class="dash-act-item">
+      <div class="dash-act-dot" style="background:${cfg.color}"></div>
+      <div class="dash-act-body">
+        <div class="dash-act-title">${title}</div>
+        <div class="dash-act-meta">${relTime(dateStr)} · <span style="color:${cfg.color};font-weight:600;">${cfg.label}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// BENTO DASHBOARD — AT-RISK CARDS
+// ============================================================
+function renderDashRiskCards() {
+  const el = document.getElementById('dash-risk-list');
+  if (!el) return;
+  const raw = typeof RAW !== 'undefined' ? RAW : [];
+  const risks = raw.filter(r => !r.parent && (r.risk === 'delayed' || r.risk === 'atrisk')).slice(0, 5);
+  if (!risks.length) {
+    el.innerHTML = '<div style="color:var(--done);font-size:11px;padding:12px 0;">✓ ไม่มี project ที่ล่าช้า</div>';
+    return;
+  }
+  el.innerHTML = risks.map(r => {
+    const isDelayed = r.risk === 'delayed';
+    const badge = isDelayed
+      ? `<span class="dash-risk-badge" style="background:rgba(204,82,82,.12);color:var(--dly);">Delayed</span>`
+      : `<span class="dash-risk-badge" style="background:rgba(196,131,74,.12);color:var(--prog);">At-Risk</span>`;
+    const owner = Array.isArray(r.owners) ? r.owners.join(', ') : (r.owner || r.owners || '—');
+    const deadline = r.deadline ? r.deadline.slice(0,10) : '—';
+    return `<div class="dash-risk-item">
+      <div class="dash-risk-title">${r.title||'—'}</div>
+      <div class="dash-risk-meta">👤 ${owner} · 📅 ${deadline} · ${badge}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// BENTO DASHBOARD — KPI HEALTH PANEL
+// ============================================================
+function renderDashKpiPanel() {
+  const el = document.getElementById('dash-kpi-panel');
+  if (!el) return;
+  const data = typeof KPI_DATA !== 'undefined' ? KPI_DATA : [];
+  if (!data.length) { el.innerHTML = '<div style="color:var(--f4);font-size:11px;">ยังไม่มีข้อมูล KPI</div>'; return; }
+  const onTime = data.filter(k => k.status === 'ตามแผน').length;
+  const late   = data.filter(k => k.status === 'ล่าช้า').length;
+  const na     = data.length - onTime - late;
+  const total  = data.length;
+  const nicks  = [...new Set(data.map(k => k.nick).filter(Boolean))];
+  const groups = [
+    {label:'ตามแผน', count:onTime, color:'var(--done)'},
+    {label:'ล่าช้า',  count:late,   color:'var(--dly)'},
+    {label:'N/A',    count:na,     color:'var(--f4)'},
+  ].filter(g => g.count > 0);
+  const stacked = groups.map(g => `<div style="flex:${g.count};background:${g.color};"></div>`).join('');
+  const legend  = groups.map(g => `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:11.5px;color:var(--f2);">
+    <div style="width:8px;height:8px;border-radius:50%;background:${g.color};flex-shrink:0;"></div>${g.label}
+    <strong style="color:var(--f1);margin-left:auto;font-variant-numeric:tabular-nums;">${g.count}</strong>
+  </div>`).join('');
+  el.innerHTML = `
+    <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">
+      <span style="font-size:22px;font-weight:800;color:var(--f1);font-variant-numeric:tabular-nums;">${total}</span>
+      <span style="font-size:11px;color:var(--f4);">KPIs · ${nicks.length} members</span>
+    </div>
+    <div class="dash-kpi-stacked">${stacked}</div>
+    ${legend}
+    <div style="margin-top:8px;padding:7px 10px;background:var(--s2);border-radius:6px;font-size:10.5px;color:var(--f3);">Finance · Customer · Process · Learning</div>`;
+}
+
+// ============================================================
+// BENTO DASHBOARD — SURVEY PANEL
+// ============================================================
+function renderDashSurveyPanel() {
+  const el = document.getElementById('dash-survey-panel');
+  if (!el) return;
+  const sv = window.SURVEY_DATA || [];
+  if (!sv.length) { el.innerHTML = '<div style="color:var(--f4);font-size:11px;">ยังไม่มีข้อมูล Survey</div>'; return; }
+  function stars(a) { const f=Math.floor(a); return Array.from({length:5},(_,i)=>i<f?'★':'☆').join(''); }
+  // Detect score fields (s_* or numeric fields 1-5)
+  const s0 = sv[0];
+  const SCORE_FIELDS = [
+    {key:'s_output',   label:'Output'},
+    {key:'s_accuracy', label:'ความถูกต้อง'},
+    {key:'s_consult',  label:'คำปรึกษา'},
+    {key:'s_time',     label:'ตรงเวลา'},
+    {key:'s_practical',label:'นำไปใช้ได้'},
+  ].filter(f => s0?.[f.key] !== undefined);
+
+  if (SCORE_FIELDS.length) {
+    const rows = SCORE_FIELDS.slice(0,4).map(f => {
+      const vals = sv.map(r => parseFloat(r[f.key])).filter(v => !isNaN(v) && v > 0);
+      if (!vals.length) return '';
+      const avg = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+      return `<div class="dash-survey-row">
+        <span style="color:var(--f2);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.label}</span>
+        <span><span class="dash-stars">${stars(parseFloat(avg))}</span><span style="color:var(--f3);margin-left:4px;font-size:11px;">${avg}</span></span>
+      </div>`;
+    }).filter(Boolean).join('');
+    el.innerHTML = rows || '<div style="color:var(--f4);font-size:11px;">ยังไม่มีข้อมูล</div>';
+    return;
+  }
+  // Fallback: use score field
+  const rField = ['score','Score','rating','Rating'].find(f => s0?.[f] !== undefined);
+  const ratings = sv.map(r => parseFloat(r?.[rField])).filter(v => !isNaN(v) && v > 0);
+  const avg = ratings.length ? (ratings.reduce((a,b)=>a+b,0)/ratings.length).toFixed(1) : '—';
+  el.innerHTML = `<div class="dash-survey-row"><span style="color:var(--f2);">Overall Score</span><span><span class="dash-stars">${stars(parseFloat(avg)||0)}</span><span style="color:var(--f3);margin-left:5px;font-size:11px;">${avg}</span></span></div><div style="font-size:10.5px;color:var(--f4);margin-top:6px;">${sv.length} responses</div>`;
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   populateFilters();
   applyFilters();
+  updateDashOverview();
+  renderDashActivityFeed();
+  renderDashRiskCards();
+  renderDashKpiPanel();
+  renderDashSurveyPanel();
   // (mobile re-draw handled by goTo dashboard applyFilters)
   setView(localStorage.getItem('pm_view') || 'table');
   const savedPage = localStorage.getItem('pm_page') || 'dashboard';
@@ -5688,5 +6048,6 @@ function tiExportExcel(){
   XLSX.writeFile(wb,'TeamInformation_DataTeam.xlsx');
 }
 </script>
+<script>
 </body>
 </html>
