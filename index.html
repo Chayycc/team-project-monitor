@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <title>Team Project Monitoring — EasyMoney Data Team</title>
-<!-- Last synced: 2026-06-07 04:43 UTC -->
-
+<!-- Last synced: 2026-06-06 14:08 UTC -->
 
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
@@ -2218,7 +2217,7 @@ function renderOwnerBars() {
   const el = document.getElementById('owner-bars');
   el.innerHTML = sorted.map(([name, val]) => {
     const short = name.split(' ')[0];
-    return `<div class="bar-row" onclick="openOwnerDetail('${escHtml(name)}')" title="Click to see ${escHtml(name)}'s detail" style="cursor:pointer;border-radius:4px;transition:background 120ms;" onmouseover="this.style.background='var(--bg-surface-hover)'" onmouseout="this.style.background=''">
+    return `<div class="bar-row" onclick="navigateToMemberInfo('${escHtml(name)}')" title="Click to see ${escHtml(name)}'s info" style="cursor:pointer;border-radius:4px;transition:background 120ms;" onmouseover="this.style.background='var(--bg-surface-hover)'" onmouseout="this.style.background=''">
       <div class="bar-label" style="pointer-events:none;">${escHtml(short)}</div>
       <div class="bar-track" style="pointer-events:none;"><div class="bar-fill" style="width:${val/max*100}%;background:var(--brand-copper)"></div></div>
       <div class="bar-count" style="pointer-events:none;">${val}</div>
@@ -2908,10 +2907,10 @@ function updateDashOverview() {
 
   const nd = window.NOTION_DATA || [];
   const nd2026 = nd.filter(r => {
-    const d = r.created_at || r.Date || r.date || r['Created time'] || '';
+    const d = r.submitted || r.created_at || r.Date || r.date || r['Created time'] || '';
     return String(d).includes('2026');
   });
-  const reqCount = nd2026.length || nd.length;
+  const reqCount = nd2026.length;
 
   const tr = window.TEAM_REQ_DATA || [];
   const trPending = tr.filter(r => {
@@ -2925,7 +2924,7 @@ function updateDashOverview() {
   set('dov-tasks', total);
   set('dov-done', doneCount);
   set('dov-risk', delayedCount);
-  set('dov-req', reqCount);
+  set('dov-req', nd2026.length);
   set('dov-teamreq', tr.length);
   set('dov-survey', sv.length);
   set('dov-projects-tag', totalTop + ' projects');
@@ -2975,16 +2974,36 @@ function renderDashActivityFeed() {
     if (days < 7) return days + ' วันที่แล้ว';
     return d.toLocaleDateString('th-TH', {day:'numeric', month:'short'});
   }
+  const statusColor = s => {
+    const sl = (s||'').toLowerCase();
+    if (sl.includes('done') || sl.includes('เสร็จ') || sl.includes('complete')) return 'var(--done)';
+    if (sl.includes('progress') || sl.includes('กำลัง')) return 'var(--prog)';
+    if (sl.includes('pending') || sl.includes('รอ')) return 'var(--pend)';
+    if (sl.includes('cancel') || sl.includes('ยกเลิก')) return 'var(--dly)';
+    return 'var(--f4)';
+  };
+  const priorityColor = p => {
+    const pl = (p||'').toLowerCase();
+    if (pl.includes('high') || pl.includes('urgent') || pl.includes('สูง')) return 'var(--dly)';
+    if (pl.includes('medium') || pl.includes('กลาง')) return 'var(--prog)';
+    return 'var(--f4)';
+  };
   el.innerHTML = nd.map(r => {
     const title = r.title || r.Name || r.Request || r['คำร้องขอ'] || r.name || '(ไม่มีชื่อ)';
-    const dateStr = r.created_at || r.Date || r.date || r['Created time'] || '';
-    const rawType = (r.type || r.Type || r.status || '').toLowerCase();
+    const dateStr = r.submitted || r.created_at || r.Date || r.date || r['Created time'] || '';
+    const rawType = (r.type || r.Type || '').toLowerCase();
     const cfg = typeMap[rawType] || {color:'var(--cu)', label:'Request'};
+    const owner = r.owner || r.staff || r.requester || '';
+    const dept = r.dept || r.department || '';
+    const status = r.status || r.Status || '';
+    const priority = r.priority || r.Priority || '';
+    const metaParts = [owner, dept].filter(Boolean);
     return `<div class="dash-act-item">
       <div class="dash-act-dot" style="background:${cfg.color}"></div>
-      <div class="dash-act-body">
-        <div class="dash-act-title">${title}</div>
-        <div class="dash-act-meta">${relTime(dateStr)} · <span style="color:${cfg.color};font-weight:600;">${cfg.label}</span></div>
+      <div class="dash-act-body" style="min-width:0;flex:1">
+        <div class="dash-act-title">${escHtml(title)}</div>
+        ${metaParts.length ? `<div class="dash-act-meta" style="margin-bottom:2px">${escHtml(metaParts.join(' · '))}</div>` : ''}
+        <div class="dash-act-meta">${relTime(dateStr)}${status ? ` · <span style="color:${statusColor(status)};font-weight:600;">${escHtml(status)}</span>` : ''}${priority ? ` · <span style="color:${priorityColor(priority)}">${escHtml(priority)}</span>` : ''}</div>
       </div>
     </div>`;
   }).join('');
@@ -3139,6 +3158,16 @@ function renderAtRiskSummary() {
 // ============================================================
 // OWNER DETAIL DRAWER
 // ============================================================
+function navigateToMemberInfo(name) {
+  pmGoTo('team-info');
+  setTimeout(() => {
+    if (typeof tiOpenDrawer === 'function' && typeof TI_MEMBERS !== 'undefined') {
+      const m = TI_MEMBERS.find(x => x.nick === name || x.nick.toLowerCase() === name.split(' ')[0].toLowerCase());
+      if (m) tiOpenDrawer(m.nick);
+    }
+  }, 350);
+}
+
 function openOwnerDetail(name) {
   // Try RAW first (individuals), fall back to SHEET_DATA (teams like AE Team)
   const rawProjects = RAW.filter(p => p.owners.split(',').map(o=>o.trim()).includes(name));
