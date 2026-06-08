@@ -4493,35 +4493,38 @@ function rovMsToggle(ns) {
 
 function rovMsBuildList(ns, months) {
   // ns = 'rov' or 'rovt'
+  // Checkboxes use pointer-events:none — all clicks handled at div level to avoid double-fire
   const list = document.getElementById(ns+'-month-list');
   if (!list) return;
   const sel = ns === 'rov' ? _rovSelMonths : _rovtSelMonths;
-  const allChecked = sel.size === 0;
-  list.innerHTML = `
-    <div class="ms-item" onclick="rovMsAll('${ns}')">
-      <input type="checkbox" id="${ns}-ms-all" ${allChecked ? 'checked' : ''} onclick="event.stopPropagation();rovMsAll('${ns}')">
-      <label for="${ns}-ms-all" style="cursor:pointer;font-weight:600;color:var(--f1);">All Months</label>
+  const CB_STYLE = 'pointer-events:none;width:13px;height:13px;accent-color:var(--cu);flex-shrink:0;';
+  list.innerHTML =
+    `<div class="ms-item" onclick="rovMsAll('${ns}')">
+      <input type="checkbox" data-val="__all__" class="ms-cb" ${sel.size===0?'checked':''} style="${CB_STYLE}">
+      <span style="font-weight:600;color:var(--f1);">All Months</span>
     </div>
-    <div class="ms-sep"></div>
-    ${months.map(m => {
+    <div class="ms-sep"></div>` +
+    months.map(m => {
       const [y, mo] = m.split('-');
       const label = _TH_MO[+mo] + ' ' + (+y + 543 - 2500);
-      const chk = sel.has(m);
       return `<div class="ms-item" onclick="rovMsCheck('${ns}','${m}')">
-        <input type="checkbox" id="${ns}-ms-${m}" ${chk ? 'checked' : ''} onclick="event.stopPropagation();rovMsCheck('${ns}','${m}')">
-        <label for="${ns}-ms-${m}" style="cursor:pointer;">${label}</label>
+        <input type="checkbox" data-val="${m}" class="ms-cb" ${sel.has(m)?'checked':''} style="${CB_STYLE}">
+        <span>${label}</span>
       </div>`;
-    }).join('')}`;
+    }).join('');
 }
 
 function rovMsCheck(ns, val) {
   const sel = ns === 'rov' ? _rovSelMonths : _rovtSelMonths;
   if (sel.has(val)) sel.delete(val); else sel.add(val);
-  // Sync checkbox state
-  const cb = document.getElementById(ns+'-ms-'+val);
-  if (cb) cb.checked = sel.has(val);
-  const allCb = document.getElementById(ns+'-ms-all');
-  if (allCb) allCb.checked = sel.size === 0;
+  // Update just the affected checkboxes (no full rebuild = dropdown stays open)
+  const list = document.getElementById(ns+'-month-list');
+  if (list) {
+    list.querySelectorAll('input.ms-cb').forEach(cb => {
+      if (cb.dataset.val === '__all__') cb.checked = sel.size === 0;
+      else if (cb.dataset.val === val) cb.checked = sel.has(val);
+    });
+  }
   rovMsUpdateLabel(ns);
   if (ns === 'rov') rovFilterChange(); else renderROVTable();
 }
@@ -4529,10 +4532,12 @@ function rovMsCheck(ns, val) {
 function rovMsAll(ns) {
   const sel = ns === 'rov' ? _rovSelMonths : _rovtSelMonths;
   sel.clear();
-  // Re-check all checkboxes
-  document.querySelectorAll(`#${ns}-month-list input[type=checkbox]`).forEach(cb => {
-    cb.checked = cb.id === ns+'-ms-all';
-  });
+  const list = document.getElementById(ns+'-month-list');
+  if (list) {
+    list.querySelectorAll('input.ms-cb').forEach(cb => {
+      cb.checked = cb.dataset.val === '__all__';
+    });
+  }
   rovMsUpdateLabel(ns);
   if (ns === 'rov') rovFilterChange(); else renderROVTable();
 }
