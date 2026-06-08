@@ -1014,6 +1014,10 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
       <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
       Table
     </button>
+    <button class="seg-btn" id="req-tab-output" onclick="reqTab('output')">
+      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Table by output type
+    </button>
   </div>
 
   <!-- VISUALIZE PANEL -->
@@ -1129,6 +1133,33 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
     </div>
     <div id="rovt-pag"></div>
   </div>
+
+  <!-- OUTPUT TABLE PANEL -->
+  <div id="rov-output-table" style="display:none;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+      <div style="position:relative;">
+        <svg viewBox="0 0 24 24" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:var(--f4);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="rovot-search" type="text" placeholder="ค้นหา…" oninput="renderROVOutputTable()" style="height:26px;padding:0 8px 0 26px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f1);font-size:12px;outline:none;width:180px;font-family:inherit;" onfocus="this.style.borderColor='var(--cu)'" onblur="this.style.borderColor='var(--lnm)'"/>
+      </div>
+      <select id="rovot-year" onchange="renderROVOutputTable()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;">
+        <option value="">All Years</option>
+        <option value="2026">2026</option>
+        <option value="2025">2025</option>
+      </select>
+      <select id="rovot-status" onchange="renderROVOutputTable()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;">
+        <option value="">All Status</option>
+        <option value="done">Done</option>
+        <option value="progress">In Progress</option>
+        <option value="pending">Pending</option>
+        <option value="todo">Not Started</option>
+        <option value="cancel">Cancel</option>
+      </select>
+      <button onclick="rovotClear()" style="height:26px;padding:0 10px;background:transparent;border:1px solid var(--lnm);border-radius:7px;color:var(--f3);font-size:12px;cursor:pointer;font-family:inherit;transition:all 100ms;" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background='transparent'">Clear</button>
+      <span id="rovot-info" style="font-size:11.5px;color:var(--f4);margin-left:4px;"></span>
+    </div>
+    <div id="rovot-body"></div>
+  </div>
+
 </div>
 
 
@@ -4390,11 +4421,14 @@ async function syncNotion() {
 let _rovPg = 1;
 
 function reqTab(tab) {
-  document.getElementById('rov-viz').style.display   = tab==='viz'   ? 'block' : 'none';
-  document.getElementById('rov-table').style.display = tab==='table' ? 'block' : 'none';
-  document.getElementById('req-tab-viz').classList.toggle('active',   tab==='viz');
-  document.getElementById('req-tab-table').classList.toggle('active', tab==='table');
-  if (tab==='table') renderROVTable();
+  document.getElementById('rov-viz').style.display          = tab==='viz'    ? 'block' : 'none';
+  document.getElementById('rov-table').style.display        = tab==='table'  ? 'block' : 'none';
+  document.getElementById('rov-output-table').style.display = tab==='output' ? 'block' : 'none';
+  document.getElementById('req-tab-viz').classList.toggle('active',    tab==='viz');
+  document.getElementById('req-tab-table').classList.toggle('active',  tab==='table');
+  document.getElementById('req-tab-output').classList.toggle('active', tab==='output');
+  if (tab==='table')  renderROVTable();
+  if (tab==='output') renderROVOutputTable();
 }
 
 function _reqBar(data, colorFn, filterKey) {
@@ -4766,6 +4800,95 @@ function renderROVTable() {
     </tr>`;
   }).join('');
   pmPag(total,_rovPg,'rovt-pag',function(p){_rovPg=p;renderROVTable();});
+}
+
+function rovotClear() {
+  const f = ['rovot-search','rovot-year','rovot-status'];
+  f.forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  renderROVOutputTable();
+}
+
+function renderROVOutputTable() {
+  const nd = (window.NOTION_DATA||[]);
+  const q   = (document.getElementById('rovot-search')?.value||'').toLowerCase();
+  const yf  = document.getElementById('rovot-year')?.value||'';
+  const sf  = document.getElementById('rovot-status')?.value||'';
+  const el  = document.getElementById('rovot-body');
+  if (!el) return;
+
+  // Apply filters
+  let rows = nd.filter(r => {
+    if (q && !(r.title||'').toLowerCase().includes(q) && !(r.owner||'').toLowerCase().includes(q) && !(r.desc||'').toLowerCase().includes(q)) return false;
+    if (yf && !String(r.submitted||'').includes(yf)) return false;
+    if (sf && r.status !== sf) return false;
+    return true;
+  });
+
+  // Group by output
+  const groups = {};
+  rows.forEach(r => {
+    const key = (r.output||'').trim() || '(ไม่ระบุ Output)';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(r);
+  });
+
+  const sortedGroups = Object.entries(groups).sort((a,b) => b[1].length - a[1].length);
+  document.getElementById('rovot-info').textContent = `${rows.length} requests · ${sortedGroups.length} output types`;
+
+  if (!sortedGroups.length) {
+    el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><div class="empty-state-title">ไม่พบข้อมูล</div></div>`;
+    return;
+  }
+
+  el.innerHTML = sortedGroups.map(([output, items]) => {
+    const done  = items.filter(r => r.status==='done').length;
+    const prog  = items.filter(r => r.status==='progress').length;
+    const pend  = items.filter(r => r.status==='pending').length;
+    const other = items.length - done - prog - pend;
+
+    const pills = [
+      done  ? `<span style="font-size:10px;padding:1px 8px;border-radius:10px;background:rgba(82,153,110,0.15);color:var(--done);font-weight:600;">Done ${done}</span>` : '',
+      prog  ? `<span style="font-size:10px;padding:1px 8px;border-radius:10px;background:rgba(196,131,74,0.15);color:var(--prog);font-weight:600;">In Progress ${prog}</span>` : '',
+      pend  ? `<span style="font-size:10px;padding:1px 8px;border-radius:10px;background:rgba(138,130,200,0.15);color:var(--pend);font-weight:600;">Pending ${pend}</span>` : '',
+      other > 0 ? `<span style="font-size:10px;padding:1px 8px;border-radius:10px;background:var(--s3);color:var(--f4);">Other ${other}</span>` : '',
+    ].filter(Boolean).join('');
+
+    const gid = 'rovot-g-' + output.replace(/[^a-zA-Z0-9ก-๙]/g,'_');
+
+    const tableRows = items.map(r => {
+      const owIni = (r.owner||'?').split(',')[0].trim().split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+      const dShort = (r.dept||'—').split(':')[0].trim();
+      return `<tr onclick="window.open('https://www.notion.so/${r.id}','_blank')" style="cursor:pointer;">
+        <td class="td-title"><div class="td-title-text">${escHtml(r.title||'—')}</div>${r.desc?`<div class="td-parent">${escHtml(r.desc.slice(0,55))}${r.desc.length>55?'…':''}</div>`:''}</td>
+        <td><span class="pill ${_reqStatusClass(r.status)}"><span class="pill-dot" style="background:${_reqStatusDot(r.status)}"></span>${_reqStatusLabel(r.status)}</span></td>
+        <td style="font-size:11px;font-weight:600;color:${_reqPriorityColor(r.priority)}">${_reqPriorityShort(r.priority)}</td>
+        <td><div class="ow-c"><div class="ow-av">${escHtml(owIni)}</div><span style="font-size:12px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(r.owner||'—')}</span></div></td>
+        <td style="font-size:11px;color:var(--f3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(dShort)}</td>
+        <td style="font-size:11px;color:var(--f4);white-space:nowrap;">${_fmtDateTH(r.submitted)}</td>
+      </tr>`;
+    }).join('');
+
+    return `
+    <div class="card" style="margin-bottom:10px;padding:0;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;background:var(--s2);border-bottom:1px solid var(--lnm);user-select:none;"
+           onclick="(function(id){var t=document.getElementById(id);t.style.display=t.style.display==='none'?'block':'none';}('${gid}'))">
+        <span style="font-size:13px;font-weight:700;color:var(--f1);flex:1;">${escHtml(output)}</span>
+        <span style="font-size:11.5px;font-weight:600;color:var(--cu);margin-right:6px;">${items.length}</span>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">${pills}</div>
+        <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--f4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-left:4px;"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div id="${gid}">
+        <div class="table-wrap" style="margin:0;">
+          <table>
+            <thead><tr>
+              <th>Request</th><th>Status</th><th>Priority</th><th>Owner</th><th>Dept</th><th>Submitted</th>
+            </tr></thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function initROVPage() {
