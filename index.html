@@ -5187,19 +5187,22 @@ function initTeamReq() {
   renderTeamReq();
 }
 
+function renderTRKpi(nd) {
+  const kpiEl=document.getElementById('tr-kpi');
+  if(!kpiEl) return;
+  const done=nd.filter(r=>r.status==='done').length;
+  const prog=nd.filter(r=>r.status==='progress').length;
+  const todo=nd.filter(r=>r.status==='todo').length;
+  kpiEl.innerHTML=[{l:'Total',v:nd.length,c:'var(--cu)'},{l:'Done',v:done,c:'var(--done)'},
+    {l:'In Progress',v:prog,c:'var(--prog)'},{l:'Not Started',v:todo,c:'var(--f3)'}]
+    .map(s=>`<div class="pkpi"><div class="pkpi-val" style="color:${s.c}">${s.v}</div><div class="pkpi-lbl">${s.l}</div></div>`).join('');
+}
+
 function renderTeamReqCharts() {
   const nd=(window.TEAM_REQ_DATA||[]).filter(r=>r.title&&r.title.trim());
   const COLS=['var(--pend)','var(--prog)','var(--done)','var(--cu)','var(--dly)','#6AAFB2','#B89C4F'];
   // KPI
-  const kpiEl=document.getElementById('tr-kpi');
-  if(kpiEl){
-    const done=nd.filter(r=>r.status==='done').length;
-    const prog=nd.filter(r=>r.status==='progress').length;
-    const todo=nd.filter(r=>r.status==='todo').length;
-    kpiEl.innerHTML=[{l:'Total',v:nd.length,c:'var(--cu)'},{l:'Done',v:done,c:'var(--done)'},
-      {l:'In Progress',v:prog,c:'var(--prog)'},{l:'Not Started',v:todo,c:'var(--f3)'}]
-      .map(s=>`<div class="pkpi"><div class="pkpi-val" style="color:${s.c}">${s.v}</div><div class="pkpi-lbl">${s.l}</div></div>`).join('');
-  }
+  renderTRKpi(nd);
   // Type chart
   const tm={};nd.forEach(r=>{if(r.type)tm[r.type]=(tm[r.type]||0)+1;});
   const td=Object.entries(tm).sort((a,b)=>b[1]-a[1]);
@@ -5247,6 +5250,7 @@ function renderTeamReq() {
     if(tf&&r.type!==tf)return false;
     return true;
   });
+  renderTRKpi(rows);
   const total=rows.length;
   const pages=Math.max(1,Math.ceil(total/PG)); _trPg=Math.min(_trPg,pages);
   const paged=_paged(rows,_trPg);
@@ -5627,19 +5631,25 @@ function initSurvey() {
   renderSurvey();
 }
 
+function renderSVKpi(nd) {
+  const kpiEl=document.getElementById('sv-kpi');
+  if(!kpiEl) return;
+  const scoreNum=r=>parseInt((r.score||'0').split('-')[0].trim())||0;
+  const avgFn=arr=>arr.length?arr.reduce((s,v)=>s+v,0)/arr.length:0;
+  const scores=nd.map(scoreNum).filter(v=>v>0);
+  const avgScore=avgFn(scores);
+  kpiEl.innerHTML=[
+    {l:'Total',v:nd.length,c:'var(--cu)'},{l:'Avg Score',v:avgScore.toFixed(1),c:'var(--done)'},
+    {l:'10 - ดีเยี่ยม',v:nd.filter(r=>r.score&&r.score.includes('10')).length,c:'var(--done)'},
+  ].map(s=>`<div class="pkpi"><div class="pkpi-val" style="color:${s.c}">${s.v}</div><div class="pkpi-lbl">${s.l}</div></div>`).join('');
+}
+
 function renderSurveyCharts() {
   const nd=window.SURVEY_DATA||[];
   const scoreNum=r=>parseInt((r.score||'0').split('-')[0].trim())||0;
   const avg=arr=>arr.length?arr.reduce((s,v)=>s+v,0)/arr.length:0;
   // KPI
-  const scores=nd.map(scoreNum).filter(v=>v>0);
-  const avgScore=avg(scores);
-  const kpiEl=document.getElementById('sv-kpi');
-  if(kpiEl)kpiEl.innerHTML=[
-    {l:'Total',v:nd.length,c:'var(--cu)'},{l:'Avg Score',v:avgScore.toFixed(1),c:'var(--done)'},
-    {l:'10 - ดีเยี่ยม',v:nd.filter(r=>r.score&&r.score.includes('10')).length,c:'var(--done)'},
-
-  ].map(s=>`<div class="pkpi"><div class="pkpi-val" style="color:${s.c}">${s.v}</div><div class="pkpi-lbl">${s.l}</div></div>`).join('');
+  renderSVKpi(nd);
   // Score cards for each metric
   const metrics=[
     {key:'s_output',label:'Output'},{key:'s_accuracy',label:'ความถูกต้อง'},
@@ -5704,6 +5714,7 @@ function renderSurvey() {
     if(scf&&!(r.score||'').startsWith(scf))return false;
     return true;
   });
+  renderSVKpi(rows);
   const total=rows.length;
   const pages=Math.max(1,Math.ceil(total/PG)); _svPg=Math.min(_svPg,pages);
   const paged=_paged(rows,_svPg);
@@ -5887,23 +5898,26 @@ function initDataIssue() {
   renderDataIssue();
 }
 
+function renderDIKpi(nd) {
+  const kpiEl = document.getElementById('di-kpi');
+  if(!kpiEl) return;
+  const done=nd.filter(r=>r.status==='done').length;
+  const prog=nd.filter(r=>r.status==='progress').length;
+  const pend=nd.filter(r=>r.status==='pending').length;
+  const todo=nd.filter(r=>r.status==='todo').length;
+  kpiEl.innerHTML=[
+    {l:'Total',v:nd.length,c:'var(--cu)'},{l:'Done',v:done,c:'var(--done)'},
+    {l:'In Progress',v:prog,c:'var(--prog)'},{l:'Pending',v:pend,c:'var(--pend)'},
+    {l:'Not Started',v:todo,c:'var(--f3)'},
+  ].map(s=>`<div class="pkpi"><div class="pkpi-val" style="color:${s.c}">${s.v}</div><div class="pkpi-lbl">${s.l}</div></div>`).join('');
+}
+
 function renderDataIssueCharts() {
   const nd = diGetData();
   const COLS = ['#4FB3D9','#C4834A','#52996E','#8A82C8','#D4893A','#6AAFB2','#B89C4F'];
 
   // KPI
-  const kpiEl = document.getElementById('di-kpi');
-  if(kpiEl){
-    const done=nd.filter(r=>r.status==='done').length;
-    const prog=nd.filter(r=>r.status==='progress').length;
-    const pend=nd.filter(r=>r.status==='pending').length;
-    const todo=nd.filter(r=>r.status==='todo').length;
-    kpiEl.innerHTML=[
-      {l:'Total',v:nd.length,c:'var(--cu)'},{l:'Done',v:done,c:'var(--done)'},
-      {l:'In Progress',v:prog,c:'var(--prog)'},{l:'Pending',v:pend,c:'var(--pend)'},
-      {l:'Not Started',v:todo,c:'var(--f3)'},
-    ].map(s=>`<div class="pkpi"><div class="pkpi-val" style="color:${s.c}">${s.v}</div><div class="pkpi-lbl">${s.l}</div></div>`).join('');
-  }
+  renderDIKpi(nd);
 
   // Dept bar
   const dm={};nd.forEach(r=>{const k=r.dept?r.dept.split(':')[0].trim():'—';if(k)dm[k]=(dm[k]||0)+1;});
@@ -5955,6 +5969,7 @@ function renderDataIssue() {
     if(pf && !(r.priority||'').includes(pf)) return false;
     return true;
   });
+  renderDIKpi(rows);
 
   const total=rows.length;
   const pages=Math.max(1,Math.ceil(total/PG)); _diPg=Math.min(_diPg,pages);
