@@ -1114,7 +1114,7 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
         <svg viewBox="0 0 24 24" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:var(--f4);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input id="rovt-search" type="text" placeholder="ค้นหา…" oninput="renderROVTable()" style="height:26px;padding:0 8px 0 26px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f1);font-size:12px;outline:none;width:180px;font-family:inherit;" onfocus="this.style.borderColor='var(--cu)'" onblur="this.style.borderColor='var(--lnm)'"/>
       </div>
-      <div class="ms-wrap" id="rovt-month-wrap">
+      <div class="ms-wrap">
         <button class="ms-btn" id="rovt-month-btn" onclick="rovMsToggle('rovt')">
           <span id="rovt-month-lbl">All Months</span>
           <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -1123,30 +1123,42 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
           <div class="ms-list" id="rovt-month-list"></div>
         </div>
       </div>
-      <select id="rovt-owner" onchange="renderROVTable()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:130px;">
-        <option value="">All Owners</option>
-      </select>
-      <select id="rovt-status" onchange="renderROVTable()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;">
-        <option value="">All Status</option>
-        <option value="done">Done</option>
-        <option value="progress">In Progress</option>
-        <option value="pending">Pending</option>
-        <option value="todo">Not Started</option>
-        <option value="cancel">Cancel</option>
-      </select>
-      <select id="rovt-priority" onchange="renderROVTable()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:110px;">
-        <option value="">All Priority</option>
-        <option value="Urgent">Urgent</option>
-        <option value="High">High</option>
-        <option value="Medium">Medium</option>
-        <option value="Low">Low</option>
-      </select>
-      <select id="rovt-topic" onchange="renderROVTable()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:160px;">
-        <option value="">All Topics</option>
-        <option value="hide-issues">ซ่อน Issue/Report</option>
-        <option value="แจ้งปัญหารายงาน/การใช้งานข้อมูล">แจ้งปัญหา</option>
-        <option value="ต้องการขอ Data Request ">Data Request</option>
-      </select>
+      <div class="ms-wrap">
+        <button class="ms-btn" id="rovt-owner-btn" onclick="rovtMsToggle('owner')">
+          <span id="rovt-owner-lbl">All Owners</span>
+          <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="ms-dd" id="rovt-owner-dd"><div class="ms-list" id="rovt-owner-list"></div></div>
+      </div>
+      <div class="ms-wrap">
+        <button class="ms-btn" id="rovt-status-btn" onclick="rovtMsToggle('status')">
+          <span id="rovt-status-lbl">All Status</span>
+          <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="ms-dd" id="rovt-status-dd"><div class="ms-list" id="rovt-status-list"></div></div>
+      </div>
+      <div class="ms-wrap">
+        <button class="ms-btn" id="rovt-priority-btn" onclick="rovtMsToggle('priority')">
+          <span id="rovt-priority-lbl">All Priority</span>
+          <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="ms-dd" id="rovt-priority-dd"><div class="ms-list" id="rovt-priority-list"></div></div>
+      </div>
+      <div class="ms-wrap">
+        <button class="ms-btn" id="rovt-topic-btn" onclick="rovtMsToggle('topic')">
+          <span id="rovt-topic-lbl">All Topics</span>
+          <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="ms-dd" id="rovt-topic-dd"><div class="ms-list" id="rovt-topic-list"></div></div>
+      </div>
+      <div class="ms-wrap">
+        <button class="ms-btn" id="rovt-output-btn" onclick="rovtMsToggle('output')">
+          <span id="rovt-output-lbl">All Output</span>
+          <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="ms-dd" id="rovt-output-dd"><div class="ms-list" id="rovt-output-list"></div></div>
+      </div>
+      <button onclick="rovtClearAll()" style="height:26px;padding:0 10px;background:transparent;border:1px solid var(--lnm);border-radius:7px;color:var(--f3);font-size:12px;cursor:pointer;font-family:inherit;transition:all 100ms;" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background='transparent'">Clear</button>
       <span id="rovt-info" style="font-size:11.5px;color:var(--f4);margin-left:4px;"></span>
     </div>
     <div class="table-wrap">
@@ -4483,6 +4495,107 @@ const _rovMonths = new Set();
 const _rovSelMonths  = new Set(); // global month multi-select
 const _rovtSelMonths = new Set(); // table-tab month multi-select
 
+// Generic multi-select state for Table tab filters
+const _rovtFilters = { status:new Set(), priority:new Set(), owner:new Set(), topic:new Set(), output:new Set() };
+const _ROVT_LABELS = { status:'All Status', priority:'All Priority', owner:'All Owners', topic:'All Topics', output:'All Output' };
+
+function rovtMsToggle(key) {
+  const dd = document.getElementById('rovt-'+key+'-dd');
+  if (!dd) return;
+  const isOpen = dd.classList.contains('open');
+  document.querySelectorAll('.ms-dd.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) dd.classList.add('open');
+}
+
+function rovtMsBuild(key, items) {
+  // items: [{val, label}]
+  const list = document.getElementById('rovt-'+key+'-list');
+  if (!list) return;
+  const sel = _rovtFilters[key];
+  const allLabel = _ROVT_LABELS[key] || 'All';
+  list.innerHTML =
+    `<div class="ms-item${sel.size===0?' ms-selected':''}" onclick="rovtMsAll('${key}')">
+      <div class="ms-chk${sel.size===0?' checked':''}"></div>
+      <span style="font-weight:600;color:var(--f1);">${allLabel}</span>
+    </div><div class="ms-sep"></div>` +
+    items.map(({val, label}) => {
+      const active = sel.has(val);
+      const safeVal = val.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return `<div class="ms-item${active?' ms-selected':''}" data-fkey="${key}" data-fval="${val}" onclick="rovtMsCheck('${key}','${safeVal}')">
+        <div class="ms-chk${active?' checked':''}"></div>
+        <span>${label}</span>
+      </div>`;
+    }).join('');
+}
+
+function rovtMsCheck(key, val) {
+  const sel = _rovtFilters[key];
+  if (sel.has(val)) sel.delete(val); else sel.add(val);
+  const list = document.getElementById('rovt-'+key+'-list');
+  if (list) {
+    list.querySelectorAll('.ms-item[data-fkey]').forEach(item => {
+      if (item.dataset.fval === val) {
+        item.classList.toggle('ms-selected', sel.has(val));
+        item.querySelector('.ms-chk')?.classList.toggle('checked', sel.has(val));
+      }
+    });
+    const allItem = list.querySelector('.ms-item:first-child');
+    if (allItem) {
+      const isAll = sel.size === 0;
+      allItem.classList.toggle('ms-selected', isAll);
+      allItem.querySelector('.ms-chk')?.classList.toggle('checked', isAll);
+    }
+  }
+  rovtMsLabel(key);
+  renderROVTable();
+}
+
+function rovtMsAll(key) {
+  _rovtFilters[key].clear();
+  const list = document.getElementById('rovt-'+key+'-list');
+  if (list) {
+    list.querySelectorAll('.ms-item').forEach((item, i) => {
+      item.classList.toggle('ms-selected', i === 0);
+      item.querySelector('.ms-chk')?.classList.toggle('checked', i === 0);
+    });
+  }
+  rovtMsLabel(key);
+  renderROVTable();
+}
+
+function rovtMsLabel(key) {
+  const sel = _rovtFilters[key];
+  const btn = document.getElementById('rovt-'+key+'-btn');
+  const lbl = document.getElementById('rovt-'+key+'-lbl');
+  if (!lbl) return;
+  if (sel.size === 0) {
+    lbl.textContent = _ROVT_LABELS[key] || 'All';
+    btn?.classList.remove('has-sel');
+  } else if (sel.size === 1) {
+    const v = [...sel][0];
+    lbl.textContent = v.length > 14 ? v.slice(0,14)+'…' : v;
+    btn?.classList.add('has-sel');
+  } else {
+    lbl.textContent = sel.size + ' selected';
+    btn?.classList.add('has-sel');
+  }
+}
+
+function rovtClearAll() {
+  Object.keys(_rovtFilters).forEach(k => { _rovtFilters[k].clear(); rovtMsLabel(k); });
+  _rovtSelMonths.clear(); rovMsUpdateLabel('rovt');
+  const srch = document.getElementById('rovt-search'); if (srch) srch.value = '';
+  // Rebuild all lists to reset visual state
+  Object.keys(_rovtFilters).forEach(k => {
+    const list = document.getElementById('rovt-'+k+'-list');
+    if (list) list.querySelectorAll('.ms-item').forEach((item, i) => {
+      item.classList.toggle('ms-selected', i === 0);
+      item.querySelector('.ms-chk')?.classList.toggle('checked', i === 0);
+    });
+  });
+  renderROVTable();
+}
+
 // ── Multi-select month dropdown ───────────────────────────────
 const _TH_MO = ['','ม.ค','ก.พ','มี.ค','เม.ย','พ.ค','มิ.ย','ก.ค','ส.ค','ก.ย','ต.ค','พ.ย','ธ.ค'];
 
@@ -4876,46 +4989,72 @@ function populateROVFilters() {
     if (document.getElementById('rov-year')) document.getElementById('rov-year')._moListenerAdded = true;
   }
 
-  // Owner dropdown
+  // Global owner dropdown
   const goSel=document.getElementById('rov-gowner');
   if(goSel&&goSel.options.length<=1){
     const owners=[...new Set(nd.map(r=>r.owner||'').filter(Boolean).flatMap(o=>o.split(',').map(x=>x.trim())))].sort();
     owners.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o.split(' ')[0];goSel.appendChild(op);});
   }
 
-  // Table owner dropdown
-  const owSel=document.getElementById('rovt-owner');
-  if(owSel&&owSel.options.length<=1){
-    const owners=[...new Set(nd.map(r=>r.owner||'').filter(Boolean).flatMap(o=>o.split(',').map(x=>x.trim())))].sort();
-    owners.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;owSel.appendChild(op);});
-  }
+  // Table tab — build all multi-select filter lists
+  const owners = [...new Set(nd.map(r=>r.owner||'').filter(Boolean).flatMap(o=>o.split(',').map(x=>x.trim())))].sort();
+  rovtMsBuild('owner', owners.map(o => ({val:o, label:o})));
+
+  rovtMsBuild('status', [
+    {val:'done',     label:'Done'},
+    {val:'progress', label:'In Progress'},
+    {val:'pending',  label:'Pending'},
+    {val:'todo',     label:'Not Started'},
+    {val:'cancel',   label:'Cancel'},
+  ]);
+
+  rovtMsBuild('priority', [
+    {val:'Urgent', label:'Urgent'},
+    {val:'High',   label:'High'},
+    {val:'Medium', label:'Medium'},
+    {val:'Low',    label:'Low'},
+  ]);
+
+  rovtMsBuild('topic', [
+    {val:'hide-issues',                               label:'ซ่อน Issue/Report'},
+    {val:'แจ้งปัญหารายงาน/การใช้งานข้อมูล',            label:'แจ้งปัญหา'},
+    {val:'ต้องการขอ Data Request ',                   label:'Data Request'},
+  ]);
+
+  const outputs = [...new Set(nd.map(r=>r.output||'').filter(Boolean))].sort();
+  rovtMsBuild('output', outputs.map(o => ({val:o, label:o})));
 }
 
 const ISSUE_TOPICS = ['แจ้งปัญหารายงาน/การใช้งานข้อมูล', 'Data Issue Report', 'แจ้งปัญหา'];
 function renderROVTable() {
   const nd = rovGetFiltered ? rovGetFiltered() : (window.NOTION_DATA||[]);
-  const q    = (document.getElementById('rovt-search')?.value||'').toLowerCase();
-  const sf   = document.getElementById('rovt-status')?.value||'';
-  const pf   = document.getElementById('rovt-priority')?.value||'';
-  const of2  = document.getElementById('rovt-owner')?.value||'';
-  const topf = document.getElementById('rovt-topic')?.value||'';
+  const q   = (document.getElementById('rovt-search')?.value||'').toLowerCase();
+  const {status:sf, priority:pf, owner:of2, topic:topf, output:outf} = _rovtFilters;
 
   let rows = nd.filter(r => {
     if (q && !(r.title||'').toLowerCase().includes(q) && !(r.owner||'').toLowerCase().includes(q) && !(r.dept||'').toLowerCase().includes(q) && !(r.desc||'').toLowerCase().includes(q)) return false;
-    if (sf && r.status!==sf) return false;
-    if (pf && !(r.priority||'').includes(pf)) return false;
-    if (of2 && !(r.owner||'').includes(of2)) return false;
-    // Month multi-select filter
+    // Status multi-select
+    if (sf.size > 0 && !sf.has(r.status||'')) return false;
+    // Priority multi-select
+    if (pf.size > 0 && !pf.has(r.priority||'')) return false;
+    // Owner multi-select
+    if (of2.size > 0) {
+      const ownerList = (r.owner||'').split(',').map(o=>o.trim());
+      if (!ownerList.some(o => of2.has(o))) return false;
+    }
+    // Month multi-select
     if (_rovtSelMonths.size > 0 && r.submitted) {
       const d = new Date(r.submitted);
       const rm = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
       if (!_rovtSelMonths.has(rm)) return false;
     }
-    // Topic filter
-    if (topf === 'hide-issues') {
-      if (ISSUE_TOPICS.some(t => (r.topic||'').includes(t) || (r.type||'').includes(t))) return false;
-    } else if (topf) {
-      if (!(r.topic||'').includes(topf) && !(r.type||'').includes(topf)) return false;
+    // Output multi-select
+    if (outf.size > 0 && !outf.has(r.output||'')) return false;
+    // Topic multi-select (hide-issues = negative filter; others = positive)
+    if (topf.size > 0) {
+      if (topf.has('hide-issues') && ISSUE_TOPICS.some(t => (r.topic||'').includes(t)||(r.type||'').includes(t))) return false;
+      const posTopic = [...topf].filter(t => t !== 'hide-issues');
+      if (posTopic.length > 0 && !posTopic.some(t => (r.topic||'').includes(t)||(r.type||'').includes(t))) return false;
     }
     return true;
   });
