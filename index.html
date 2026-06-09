@@ -4170,20 +4170,87 @@ const _RAW_NICK_MAP = {
 };
 
 window.dashOpenOwnerDrawer = function(name) {
-  if (typeof TI_MEMBERS === 'undefined' || typeof tiOpenDrawer !== 'function') {
-    dashFilterOwner(name); return;
-  }
+  const raw = typeof RAW !== 'undefined' ? RAW : [];
   const firstLow = name.split(' ')[0].toLowerCase();
-  // 1. Try explicit map first
-  const mappedNick = _RAW_NICK_MAP[firstLow];
-  if (mappedNick) { tiOpenDrawer(mappedNick); return; }
-  // 2. Try eng first name match
-  const m = TI_MEMBERS.find(x =>
-    x.eng.split(' ')[0].toLowerCase() === firstLow ||
-    x.nick.toLowerCase() === firstLow
+
+  // Find TI_MEMBERS entry for display name/nick
+  let displayName = name.split(' ')[0];
+  let memberColor = 'var(--cu)';
+  let memberPos = '';
+  if (typeof TI_MEMBERS !== 'undefined') {
+    const mappedNick = _RAW_NICK_MAP[firstLow];
+    const m = mappedNick
+      ? TI_MEMBERS.find(x => x.nick === mappedNick)
+      : TI_MEMBERS.find(x =>
+          x.eng.split(' ')[0].toLowerCase() === firstLow ||
+          x.nick.toLowerCase() === firstLow
+        );
+    if (m) { displayName = m.nick + ' · ' + m.thai; memberColor = m.tc||'var(--cu)'; memberPos = m.pos; }
+  }
+
+  // Filter projects for this owner
+  const projects = raw.filter(p =>
+    p.owners.split(',').map(o=>o.trim()).some(o => o.split(' ')[0].toLowerCase() === firstLow)
   );
-  if (m) tiOpenDrawer(m.nick);
-  else dashFilterOwner(name);
+  const done = projects.filter(p=>p.status==='done').length;
+  const prog = projects.filter(p=>p.status==='progress').length;
+  const pend = projects.filter(p=>p.status==='pending').length;
+  const todo = projects.filter(p=>p.status==='todo').length;
+
+  const kpiCards = [
+    {l:'DONE',        v:done, c:'var(--done)', bg:'rgba(82,153,110,0.12)'},
+    {l:'IN PROGRESS', v:prog, c:'var(--prog)', bg:'rgba(74,164,224,0.12)'},
+    {l:'PENDING',     v:pend, c:'var(--pend)', bg:'rgba(214,161,67,0.12)'},
+    {l:'NOT STARTED', v:todo, c:'var(--f3)',   bg:'var(--s2)'},
+  ];
+
+  const sorted = [...projects].sort((a,b)=>{
+    const order={progress:0,pending:1,todo:2,done:3};
+    return (order[a.status]??9)-(order[b.status]??9);
+  });
+
+  const projectCards = sorted.map(p => {
+    const dl = p.deadline ? fmtDate(p.deadline) : '';
+    const isLate = p.risk==='delayed';
+    const isRisk = p.risk==='atrisk';
+    const statusC = p.status==='done'?'var(--done)':p.status==='progress'?'var(--prog)':p.status==='pending'?'var(--pend)':'var(--f4)';
+    const outputTags = (p.output||'').split(',').map(o=>o.trim()).filter(Boolean).slice(0,2)
+      .map(o=>`<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--s3);color:var(--f3);">${escHtml(o)}</span>`).join('');
+    const deptTag = p.dept ? `<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--s3);color:var(--f4);">${escHtml(p.dept.split(':')[0].trim())}</span>` : '';
+    const riskBadge = isLate
+      ? `<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(204,82,82,0.18);color:var(--dly);font-weight:600;">⚠ Late</span>`
+      : isRisk ? `<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(214,161,67,0.18);color:var(--pend);font-weight:600;">⏰ At Risk</span>` : '';
+    return `<div onclick="openDrawer(${p.no})" style="background:var(--s2);border:1px solid var(--lnm);border-radius:11px;padding:12px 14px;cursor:pointer;transition:background 120ms,border-color 120ms;" onmouseover="this.style.background='var(--s3)';this.style.borderColor='var(--f4)'" onmouseout="this.style.background='var(--s2)';this.style.borderColor='var(--lnm)'">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:600;color:var(--f1);line-height:1.35;flex:1;">${p.parent?'<span style="color:var(--f4);">↳ </span>':''}${escHtml(p.title)}</div>
+        <span style="flex-shrink:0;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(0,0,0,0.15);color:${statusC};">
+          <span style="width:5px;height:5px;border-radius:50%;background:${statusC};"></span>${statusLabel(p.status)}
+        </span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        ${outputTags}${deptTag}${riskBadge}
+        ${dl ? `<span style="font-size:10.5px;color:${isLate?'var(--dly)':'var(--f4)'};margin-left:auto;">${dl}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="drawer-no">OWNER · ${projects.length} projects${memberPos ? ' · ' + memberPos : ''}</div>
+    <div class="drawer-title" style="color:${memberColor};">${escHtml(displayName)}</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 18px;">
+      ${kpiCards.map(k=>`<div style="background:${k.bg};border:1px solid var(--lnm);border-radius:10px;padding:10px 8px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:${k.c};line-height:1;">${k.v}</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--f4);margin-top:4px;">${k.l}</div>
+      </div>`).join('')}
+    </div>
+    <div class="drawer-divider"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${projectCards || '<div style="color:var(--f4);font-size:13px;text-align:center;padding:24px 0;">ไม่มีโปรเจกต์</div>'}
+    </div>
+  `;
+
+  document.getElementById('drawer-overlay').style.display = 'block';
+  document.getElementById('drawer').style.display = 'block';
 };
 
 // ══ DASHBOARD TABLE ═════════════════════════════════════════
