@@ -4151,23 +4151,40 @@ window.renderOwnerBars = function() {
 
 window.renderDeptProgressBars = renderDeptProgressBars;
 
-// Match owner name from RAW to TI_MEMBERS and open person drawer
-function dashOpenOwnerDrawer(name) {
+// Explicit RAW-name → TI_MEMBERS nick mapping (for names that don't match by eng first name)
+const _RAW_NICK_MAP = {
+  'ako':         'เอโกะ',
+  'ohm':         'โอม',
+  'rattanaporn': 'ฟ้าใส',
+  'ratanaporn':  'ฟ้าใส',
+  'chay':        'เชย์',
+  'worapop':     'โตโต้',
+  'nutcha':      'หมิว',
+  'sureeporn':   'ทราย',
+  'ploy':        'พลอย',
+  'kanya':       'โบว์',
+  'pakawadee':   'เอโกะ',
+  'patiwat':     'ต้า',
+  'sivatep':     'เช่',
+  'nattawat':    'โอม',
+};
+
+window.dashOpenOwnerDrawer = function(name) {
   if (typeof TI_MEMBERS === 'undefined' || typeof tiOpenDrawer !== 'function') {
     dashFilterOwner(name); return;
   }
-  const nameLow = name.toLowerCase();
   const firstLow = name.split(' ')[0].toLowerCase();
+  // 1. Try explicit map first
+  const mappedNick = _RAW_NICK_MAP[firstLow];
+  if (mappedNick) { tiOpenDrawer(mappedNick); return; }
+  // 2. Try eng first name match
   const m = TI_MEMBERS.find(x =>
-    x.nick.toLowerCase() === nameLow ||
-    x.nick.toLowerCase() === firstLow ||
-    x.eng.toLowerCase() === nameLow ||
     x.eng.split(' ')[0].toLowerCase() === firstLow ||
-    x.thai.includes(name)
+    x.nick.toLowerCase() === firstLow
   );
   if (m) tiOpenDrawer(m.nick);
   else dashFilterOwner(name);
-}
+};
 
 // ══ DASHBOARD TABLE ═════════════════════════════════════════
 let _dtPg=1, _dtSort='no', _dtDir='asc';
