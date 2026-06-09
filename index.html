@@ -893,27 +893,12 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
       </div>
       <div id="dept-progress-bars"></div>
     </div>
-    <div class="card" style="position:relative;overflow:hidden;">
-      <!-- Team Workload panel (default) -->
-      <div id="workload-panel">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-          <div><div class="microlabel">People</div><div class="chart-title">Team Workload</div></div>
-          <span id="dov-members-chip" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--sf);border:1px solid var(--lnm);color:var(--f3);">— members</span>
-        </div>
-        <div class="bar-rows" id="owner-bars"></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div><div class="microlabel">People</div><div class="chart-title">Team Workload</div></div>
+        <span id="dov-members-chip" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--sf);border:1px solid var(--lnm);color:var(--f3);">— members</span>
       </div>
-      <!-- Dept detail panel (shown on dept click) -->
-      <div id="dept-detail-panel" style="display:none;height:100%;overflow-y:auto;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <div>
-            <div class="microlabel" id="dept-detail-label">By Department</div>
-            <div class="chart-title" id="dept-detail-title" style="font-size:15px;">—</div>
-          </div>
-          <button onclick="clearDashDeptFilter()" style="border:none;background:var(--s3);color:var(--f3);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> ปิด</button>
-        </div>
-        <div id="dept-detail-summary" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
-        <div id="dept-detail-list" style="display:flex;flex-direction:column;gap:5px;"></div>
-      </div>
+      <div class="bar-rows" id="owner-bars"></div>
     </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
@@ -2352,7 +2337,7 @@ function dashFilterDept(dept) {
   renderDeptProgressBars();
   _dtPg = 1;
   renderDashTable();
-  renderDeptDetailPanel(dept);
+  openDeptDrawer(dept);
 }
 
 function clearDashDeptFilter() {
@@ -2360,14 +2345,9 @@ function clearDashDeptFilter() {
   renderDeptProgressBars();
   _dtPg = 1;
   renderDashTable();
-  // Restore workload panel
-  const wp = document.getElementById('workload-panel');
-  const dp = document.getElementById('dept-detail-panel');
-  if (wp) wp.style.display = '';
-  if (dp) dp.style.display = 'none';
 }
 
-function renderDeptDetailPanel(dept) {
+function openDeptDrawer(dept) {
   const raw = typeof RAW !== 'undefined' ? RAW : [];
   const projects = raw.filter(p =>
     (p.dept||'').split(',').map(d=>d.split(':')[0].trim()).includes(dept)
@@ -2377,56 +2357,68 @@ function renderDeptDetailPanel(dept) {
   const pend = projects.filter(p=>p.status==='pending').length;
   const todo = projects.filter(p=>p.status==='todo').length;
 
-  // Switch panels
-  const wp = document.getElementById('workload-panel');
-  const dp = document.getElementById('dept-detail-panel');
-  if (wp) wp.style.display = 'none';
-  if (dp) dp.style.display = '';
+  const kpiCards = [
+    {l:'DONE',        v:done, c:'var(--done)', bg:'rgba(82,153,110,0.12)'},
+    {l:'IN PROGRESS', v:prog, c:'var(--prog)', bg:'rgba(74,164,224,0.12)'},
+    {l:'PENDING',     v:pend, c:'var(--pend)', bg:'rgba(214,161,67,0.12)'},
+    {l:'NOT STARTED', v:todo, c:'var(--f3)',   bg:'var(--s2)'},
+  ];
 
-  const titleEl = document.getElementById('dept-detail-title');
-  const labelEl = document.getElementById('dept-detail-label');
-  if (titleEl) titleEl.textContent = dept;
-  if (labelEl) labelEl.textContent = `${projects.length} projects`;
-
-  // Summary chips
-  const summaryEl = document.getElementById('dept-detail-summary');
-  if (summaryEl) {
-    const chips = [
-      {l:'Done', v:done, bg:'rgba(82,153,110,0.2)', c:'var(--done)'},
-      {l:'In Progress', v:prog, bg:'rgba(74,164,224,0.15)', c:'var(--prog)'},
-      {l:'Pending', v:pend, bg:'rgba(214,161,67,0.15)', c:'var(--pend)'},
-      {l:'Not Started', v:todo, bg:'var(--s3)', c:'var(--f4)'},
-    ].filter(ch=>ch.v>0);
-    summaryEl.innerHTML = chips.map(ch=>
-      `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:${ch.bg};color:${ch.c};">
-        <span style="width:6px;height:6px;border-radius:50%;background:${ch.c};flex-shrink:0;"></span>${ch.v} ${ch.l}
-      </span>`
-    ).join('');
-  }
-
-  // Project list
-  const listEl = document.getElementById('dept-detail-list');
-  if (!listEl) return;
   const sorted = [...projects].sort((a,b)=>{
-    const order = {done:3,progress:0,pending:1,todo:2};
+    const order={progress:0,pending:1,todo:2,done:3};
     return (order[a.status]??9)-(order[b.status]??9);
   });
-  listEl.innerHTML = sorted.map(p => {
-    const ownerShort = (p.owners||'').split(',')[0].trim().split(' ')[0];
+
+  const projectCards = sorted.map(p => {
+    const owners = (p.owners||'').split(',').map(o=>o.trim()).filter(Boolean);
+    const ownerFirst = owners[0]||'';
+    const ini = ownerFirst.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'?';
     const dl = p.deadline ? fmtDate(p.deadline) : '';
     const isLate = p.risk==='delayed';
-    const dotColor = p.status==='done'?'var(--done)':p.status==='progress'?'var(--prog)':p.status==='pending'?'var(--pend)':'var(--f4)';
-    return `<div onclick="openDrawer(${p.no})" style="display:flex;align-items:flex-start;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background 100ms;background:var(--s2);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='var(--s2)'">
-      <span style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0;margin-top:5px;"></span>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;color:var(--f1);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.parent?'↳ ':''}${escHtml(p.title)}</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
-          <span style="font-size:10px;color:var(--f4);">${escHtml(ownerShort)}</span>
-          ${dl ? `<span style="font-size:10px;color:${isLate?'var(--dly)':'var(--f4)'};">${isLate?'⚠ ':''}${dl}</span>` : ''}
+    const isRisk = p.risk==='atrisk';
+    const statusC = p.status==='done'?'var(--done)':p.status==='progress'?'var(--prog)':p.status==='pending'?'var(--pend)':'var(--f4)';
+    const statusTxt = statusLabel(p.status);
+    const outputTags = (p.output||'').split(',').map(o=>o.trim()).filter(Boolean).slice(0,2)
+      .map(o=>`<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--s3);color:var(--f3);">${escHtml(o)}</span>`).join('');
+    const companyTag = p.company ? `<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--s3);color:var(--f4);">${escHtml(p.company)}</span>` : '';
+    const riskBadge = isLate
+      ? `<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(204,82,82,0.18);color:var(--dly);font-weight:600;">⚠ Late</span>`
+      : isRisk ? `<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(214,161,67,0.18);color:var(--pend);font-weight:600;">⏰ At Risk</span>` : '';
+    return `<div onclick="openDrawer(${p.no})" style="background:var(--s2);border:1px solid var(--lnm);border-radius:11px;padding:12px 14px;cursor:pointer;transition:background 120ms,border-color 120ms;" onmouseover="this.style.background='var(--s3)';this.style.borderColor='var(--f4)'" onmouseout="this.style.background='var(--s2)';this.style.borderColor='var(--lnm)'">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:600;color:var(--f1);line-height:1.35;flex:1;">${p.parent?'<span style="color:var(--f4);">↳ </span>':''}${escHtml(p.title)}</div>
+        <span style="flex-shrink:0;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(0,0,0,0.15);color:${statusC};">
+          <span style="width:5px;height:5px;border-radius:50%;background:${statusC};"></span>${statusTxt}
+        </span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--cu);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;">${escHtml(ini)}</div>
+          <span style="font-size:11.5px;color:var(--f3);">${escHtml(ownerFirst.split(' ')[0])}</span>
         </div>
+        ${outputTags}${companyTag}${riskBadge}
+        ${dl ? `<span style="font-size:10.5px;color:${isLate?'var(--dly)':'var(--f4)'};margin-left:auto;">${dl}</span>` : ''}
       </div>
     </div>`;
   }).join('');
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="drawer-no">DEPARTMENT · ${projects.length} projects</div>
+    <div class="drawer-title">${escHtml(dept)}</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 18px;">
+      ${kpiCards.map(k=>`<div style="background:${k.bg};border:1px solid var(--lnm);border-radius:10px;padding:10px 8px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:${k.c};line-height:1;">${k.v}</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--f4);margin-top:4px;">${k.l}</div>
+      </div>`).join('')}
+    </div>
+    <div class="drawer-divider"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${projectCards || '<div style="color:var(--f4);font-size:13px;text-align:center;padding:24px 0;">ไม่มีโปรเจกต์</div>'}
+    </div>
+  `;
+
+  document.getElementById('drawer-overlay').style.display = 'block';
+  document.getElementById('drawer').style.display = 'block';
 }
 
 function renderOutputBars() {
@@ -2877,6 +2869,7 @@ function openDrawer(no) {
 function closeDrawer() {
   document.getElementById('drawer-overlay').style.display = 'none';
   document.getElementById('drawer').style.display = 'none';
+  if (activeDashDeptFilter) { clearDashDeptFilter(); }
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
