@@ -886,13 +886,18 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
       <div class="microlabel">Status Breakdown</div>
       <div class="chart-title">สถานะโปรเจกต์</div>
       <div class="donut-wrap"><canvas id="donut-canvas" width="160" height="160" style="cursor:pointer;flex-shrink:0;" onclick="handleDonutClick(event)"></canvas><div class="donut-legend" id="donut-legend"></div></div>
-    </div>
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
-        <div><div class="microlabel">People</div><div class="chart-title">Team Workload</div></div>
+      <div style="height:1px;background:var(--lnm);margin:14px 0;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div><div class="microlabel">People</div><div class="chart-title" style="font-size:13px;">Team Workload</div></div>
         <span id="dov-members-chip" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--sf);border:1px solid var(--lnm);color:var(--f3);">— members</span>
       </div>
       <div class="bar-rows" id="owner-bars"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div><div class="microlabel">By Department</div><div class="chart-title">ความคืบหน้าแต่ละฝ่าย</div></div>
+      </div>
+      <div id="dept-progress-bars"></div>
     </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
@@ -2279,6 +2284,39 @@ function renderOwnerBars() {
   }).join('');
 }
 
+function renderDeptProgressBars() {
+  const el = document.getElementById('dept-progress-bars');
+  if (!el) return;
+  const raw = typeof RAW !== 'undefined' ? RAW : [];
+  const deptMap = {};
+  raw.forEach(p => {
+    const depts = (p.dept||'').split(',').map(d => d.split(':')[0].trim()).filter(Boolean);
+    depts.forEach(d => {
+      if (!deptMap[d]) deptMap[d] = {done:0,progress:0,pending:0,todo:0,total:0};
+      deptMap[d].total++;
+      if (p.status==='done') deptMap[d].done++;
+      else if (p.status==='progress') deptMap[d].progress++;
+      else if (p.status==='pending') deptMap[d].pending++;
+      else deptMap[d].todo++;
+    });
+  });
+  const sorted = Object.entries(deptMap).sort((a,b)=>b[1].total-a[1].total);
+  const COLORS = ['#4FB3D9','#C4834A','#52996E','#8A82C8','#D4893A','#CC5252','#6AAFB2','#B89C4F','#9CB87A','#C8695C','#7AB887','#5E9C7A'];
+  el.innerHTML = sorted.map(([dept,s],i) => {
+    const avg = s.total>0 ? Math.round((s.done*100+s.progress*50+s.pending*25)/s.total) : 0;
+    const color = COLORS[i % COLORS.length];
+    return `<div style="margin-bottom:11px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+        <span style="font-size:12px;font-weight:600;color:var(--f1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%;">${escHtml(dept)}</span>
+        <span style="font-size:10px;color:var(--f4);white-space:nowrap;margin-left:6px;">${s.done}/${s.total} Done · ${avg}%</span>
+      </div>
+      <div style="height:7px;background:var(--s3);border-radius:4px;overflow:hidden;">
+        <div style="width:${avg}%;min-width:${avg>0?'6px':'0'};height:100%;background:${color};border-radius:4px;transition:width 500ms cubic-bezier(.34,1.56,.64,1);"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderOutputBars() {
   const filtered = getFiltered();
   const counts = {};
@@ -2428,6 +2466,7 @@ function applyFilters() {
   updateKPIs();
   drawDonut();
   renderOwnerBars();
+  renderDeptProgressBars();
   renderOutputBars();
   if (currentView === 'table') renderTable();
   else if (currentView === 'board') renderBoard();
@@ -2508,6 +2547,7 @@ function goTo(page) {
     // Force re-draw charts (canvas now has visible parent)
     drawDonut();
     renderOwnerBars();
+    renderDeptProgressBars();
     renderOutputBars();
     const _nd=window.NOTION_DATA||[];const _el=document.getElementById('sb-req-total');if(_el)_el.textContent=_nd.length;
     const _tr=window.TEAM_REQ_DATA||[];const _te=document.getElementById('sb-teamreq-total');if(_te)_te.textContent=_tr.length;
@@ -4003,6 +4043,8 @@ window.renderOwnerBars = function() {
     </div>`;
   }).join('');
 };
+
+window.renderDeptProgressBars = renderDeptProgressBars;
 
 // ══ DASHBOARD TABLE ═════════════════════════════════════════
 let _dtPg=1, _dtSort='no', _dtDir='asc';
@@ -5872,6 +5914,7 @@ function dashRefresh(btn) {
   updateKPIs();
   drawDonut();
   renderOwnerBars();
+  renderDeptProgressBars();
   renderOutputBars();
 }
 
@@ -6160,6 +6203,7 @@ window.addEventListener('resize', function() {
   if(document.getElementById('dashboard-page')?.style.display !== 'none') {
     drawDonut();
     renderOwnerBars();
+    renderDeptProgressBars();
     renderOutputBars();
   }
 }, {passive:true});
