@@ -3134,7 +3134,7 @@ function updateDashOverview() {
   // Update bento chips
   const ownerSet = new Set();
   raw.forEach(r => { if (r.owners) { (Array.isArray(r.owners)?r.owners:[r.owners]).forEach(o=>o&&ownerSet.add(o)); } });
-  set('dov-members-chip', ownerSet.size + ' members');
+  set('dov-members-chip', (typeof TI_MEMBERS !== 'undefined' ? TI_MEMBERS.length : ownerSet.size) + ' members');
   set('dov-delayed-chip', delayedCount + ' delayed');
   const kpiTotal = (typeof KPI_DATA !== 'undefined' ? KPI_DATA : []).length;
   set('dov-kpi-chip', kpiTotal + ' KPIs');
@@ -4136,7 +4136,7 @@ window.renderOwnerBars = function() {
     const pills = statuses.slice(0,3).filter(st => (s[st.key]||0) > 0)
       .map(st => `<span style="color:${st.color};font-weight:500;">${s[st.key]}</span><span style="color:var(--f4);font-size:9px;">${st.label.split(' ')[0]}</span>`).join('<span style="color:var(--f4);margin:0 3px;">·</span>');
 
-    return `<div onclick="dashFilterOwner('${escHtml(name)}')" style="cursor:pointer;margin-bottom:10px;padding:5px 5px;border-radius:7px;transition:background 100ms;" onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background=''">
+    return `<div onclick="dashOpenOwnerDrawer('${escHtml(name)}')" style="cursor:pointer;margin-bottom:10px;padding:5px 5px;border-radius:7px;transition:background 100ms;" onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background=''">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
         <span style="font-size:12px;color:var(--f2);width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;">${escHtml(short)}</span>
         <div style="flex:1;height:8px;background:var(--s3);border-radius:4px;overflow:hidden;">
@@ -4150,6 +4150,24 @@ window.renderOwnerBars = function() {
 };
 
 window.renderDeptProgressBars = renderDeptProgressBars;
+
+// Match owner name from RAW to TI_MEMBERS and open person drawer
+function dashOpenOwnerDrawer(name) {
+  if (typeof TI_MEMBERS === 'undefined' || typeof tiOpenDrawer !== 'function') {
+    dashFilterOwner(name); return;
+  }
+  const nameLow = name.toLowerCase();
+  const firstLow = name.split(' ')[0].toLowerCase();
+  const m = TI_MEMBERS.find(x =>
+    x.nick.toLowerCase() === nameLow ||
+    x.nick.toLowerCase() === firstLow ||
+    x.eng.toLowerCase() === nameLow ||
+    x.eng.split(' ')[0].toLowerCase() === firstLow ||
+    x.thai.includes(name)
+  );
+  if (m) tiOpenDrawer(m.nick);
+  else dashFilterOwner(name);
+}
 
 // ══ DASHBOARD TABLE ═════════════════════════════════════════
 let _dtPg=1, _dtSort='no', _dtDir='asc';
