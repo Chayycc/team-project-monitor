@@ -1896,6 +1896,10 @@ const TODAY = '2026-06-06';
 // =====================================================
 // HELPERS
 // =====================================================
+function cv(name, fallback) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
+
 function fmtDate(d) {
   if (!d) return '—';
   try {
