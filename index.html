@@ -593,6 +593,20 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
 #team-info-page .pos-bar{flex:1;height:7px;background:var(--s3);border-radius:4px;overflow:hidden}
 #team-info-page .pos-fill{height:100%;border-radius:4px}
 #team-info-page .pos-count{font-size:11px;font-weight:600;color:var(--f3);width:18px;text-align:right;font-family:'JetBrains Mono',monospace}
+#team-info-page .cal-card{display:flex;flex-direction:column;padding:0!important;overflow:hidden}
+#team-info-page .cal-nav-btn{background:var(--s3);border:1px solid var(--ln);border-radius:5px;color:var(--f2);cursor:pointer;font-size:12px;padding:3px 8px;line-height:1.4}
+#team-info-page .cal-nav-btn:hover{background:var(--hv)}
+#team-info-page .cal-today-btn{font-size:10px}
+#team-info-page .cal-grid{flex:1;overflow-y:auto;padding:8px 12px;max-height:220px}
+#team-info-page .cal-day{margin-bottom:8px}
+#team-info-page .cal-day-hd{font-size:10px;font-weight:700;color:var(--f4);text-transform:uppercase;letter-spacing:.5px;padding-bottom:4px;border-bottom:1px solid var(--ln);margin-bottom:4px}
+#team-info-page .cal-day-hd.cal-today-hd{color:var(--cu);border-color:var(--cu)}
+#team-info-page .cal-evt{display:flex;align-items:flex-start;gap:6px;padding:4px 6px;border-radius:5px;margin-bottom:3px}
+#team-info-page .cal-evt.online{background:rgba(59,130,246,.1);border-left:2px solid #3b82f6}
+#team-info-page .cal-evt.onsite{background:rgba(16,185,129,.1);border-left:2px solid #10b981}
+#team-info-page .cal-evt-time{color:var(--f4);font-size:9.5px;white-space:nowrap;margin-top:1px;min-width:34px;font-family:'JetBrains Mono',monospace}
+#team-info-page .cal-evt-name{color:var(--f1);font-size:11px;font-weight:500;line-height:1.3}
+#team-info-page .cal-empty{font-size:10.5px;color:var(--f4);font-style:italic;text-align:center;padding:8px 0}
 #team-info-page .ti-tbl-card{background:var(--sf);border:1px solid var(--ln);border-radius:12px;overflow:hidden}
 #team-info-page .ti-off-table{width:100%;border-collapse:collapse}
 #team-info-page .ti-off-table th{padding:9px 13px;text-align:left;font-size:9.5px;font-weight:700;letter-spacing:.55px;text-transform:uppercase;color:var(--f4);border-bottom:1px solid var(--ln);background:var(--s2);white-space:nowrap}
@@ -1755,11 +1769,20 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
         <div id="ti-attend-grid"></div>
         <div id="ti-attend-footer" style="border-top:1px solid var(--ln);background:var(--s2)"></div>
       </div>
-      <!-- Position chart -->
-      <div class="ti-chart-card">
-        <div class="ti-chart-title">สัดส่วนตาม Position</div>
-        <div class="ti-chart-sub">จำนวนสมาชิกแต่ละตำแหน่ง</div>
-        <div class="pos-rows" id="ti-pos-rows"></div>
+      <!-- Weekly Calendar -->
+      <div class="ti-chart-card cal-card">
+        <div style="padding:10px 14px 8px;border-bottom:1px solid var(--ln);display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div>
+            <div class="ti-chart-title" style="margin-bottom:1px">Team Calendar</div>
+            <div class="ti-chart-sub" id="cal-week-label" style="margin-bottom:0">สัปดาห์นี้</div>
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            <button onclick="calNav(-1)" class="cal-nav-btn">‹</button>
+            <button onclick="calNav(0)" class="cal-nav-btn cal-today-btn">วันนี้</button>
+            <button onclick="calNav(1)" class="cal-nav-btn">›</button>
+          </div>
+        </div>
+        <div id="cal-grid" class="cal-grid"></div>
       </div>
     </div>
     <!-- Info Table -->
@@ -3801,6 +3824,85 @@ function handleImportFile(file) {
   };
   reader.readAsArrayBuffer(file);
 }
+
+// =====================================================
+// CALENDAR DATA (Notion: Meeting & Due project, 2026)
+// =====================================================
+const CALENDAR_DATA = [
+{"d":"2026-01-07","ts":1767751200000,"te":1767762000000,"n":"Weekly - Salestools","tp":"O"},
+{"d":"2026-01-12","ts":1768197600000,"te":1768208400000,"n":"บริหารสาขา #3","tp":"S"},
+{"d":"2026-01-13","ts":1768285800000,"te":1768291200000,"n":"ปรึกษาเรื่องข้อมูลที่ใช้ใน Regular Meeting ฝ่ายขาย","tp":"O"},
+{"d":"2026-01-13","ts":1768291200000,"te":1768298400000,"n":"ปรึกษาเรื่องข้อมูล Inventory และข้อมูลขายเททองของ ","tp":"O"},
+{"d":"2026-01-14","ts":1768370400000,"te":1768384800000,"n":"ขออนุญาตปรึกษางานแบบ Onsite ฝ่ายขาย บริหารสาขา ห้า","tp":"S"},
+{"d":"2026-01-15","ts":1768464000000,"te":1768471200000,"n":"ปรึกษาคุยเรื่องรายละเอียดข้อมูลหลังบ้านกับคุณแมวแล","tp":"O"},
+{"d":"2026-01-16","ts":1768527000000,"te":1768541400000,"n":"N/ Regular Meeting 2026","tp":"O"},
+{"d":"2026-01-21","ts":1768960800000,"te":1768971600000,"n":"Weekly - Salestools","tp":"O"},
+{"d":"2026-01-21","ts":1768964400000,"te":1768971600000,"n":"ขออนุญาตปรึกษางานแบบ Onsite ฝ่ายขาย บริหารสาขา ห้า","tp":"O"},
+{"d":"2026-01-27","ts":1769481000000,"te":1769482800000,"n":"Meeting with Fahsai","tp":"O"},
+{"d":"2026-01-27","ts":1769481000000,"te":1769482800000,"n":"อธิบายเรื่องข้อมูล Risk simulator","tp":"O"},
+{"d":"2026-02-06","ts":1770346800000,"te":1770354000000,"n":"meeting with AKO","tp":"O"},
+{"d":"2026-02-09","ts":1770602400000,"te":1770613200000,"n":"Dashboard ฝ่ายบริหารสาขา","tp":"S"},
+{"d":"2026-02-09","ts":1770624000000,"te":1770631200000,"n":"ร้านทอง ฝ่ายขาย บริหารสาขา","tp":"S"},
+{"d":"2026-02-17","ts":1771293600000,"te":1771297200000,"n":"BD : KPI 2026","tp":"S"},
+{"d":"2026-02-17","ts":1771309800000,"te":1771317000000,"n":"ปรึกษาและข้อมูลของ Inventory ที่อยู่ใน Oracle ของ ","tp":"O"},
+{"d":"2026-02-18","ts":1771380000000,"te":1771390800000,"n":"Weekly - Salestools","tp":"O"},
+{"d":"2026-02-19","ts":1771482600000,"te":1771489800000,"n":"Cut off plan New PawnShop Rollout 5","tp":"O"},
+{"d":"2026-02-20","ts":1771551000000,"te":1771563600000,"n":"N/ Regular Meeting 2026 #2","tp":"O"},
+{"d":"2026-02-23","ts":1771830000000,"te":1771835400000,"n":"Discussion a Competitor tracker","tp":"O"},
+{"d":"2026-02-27","ts":1772161200000,"te":1772168400000,"n":"อัพเดตข้อมูลบน Power BI ที่ได้เก็บ requirement จาก","tp":"S"},
+{"d":"2026-05-20","ts":1779246000000,"te":1779249600000,"n":"Inventory Data : อธิบายรายละเอียด Email เพิ่มเติม","tp":"O"},
+{"d":"2026-05-20","ts":1779267600000,"te":1779273000000,"n":"ปรับปรุงกระบวนการ SRS งาน Data lake","tp":"O"},
+{"d":"2026-05-21","ts":1779332400000,"te":1779336000000,"n":"Weekly update : Ako","tp":"O"},
+{"d":"2026-05-21","ts":1779336000000,"te":1779339600000,"n":"หารือ เรื่อง การทำระบบแสดงข้อมูลกำไรขั้นต้นและค่าใ","tp":"O"},
+{"d":"2026-05-22","ts":1779413400000,"te":1779427800000,"n":"Regular Meeting","tp":"O"},
+{"d":"2026-05-22","ts":1779431400000,"te":1779435000000,"n":"Weekly update : Mew , Sine","tp":"O"},
+{"d":"2026-05-22","ts":1779431400000,"te":1779436800000,"n":"Data - Progress of Work Updating","tp":"S"},
+{"d":"2026-05-25","ts":1779688800000,"te":1779692400000,"n":"Data Weekly Meeting","tp":"S"},
+{"d":"2026-05-26","ts":1779778800000,"te":1779786000000,"n":"N/ การจัดการทรัพย์ 171","tp":"O"},
+{"d":"2026-05-27","ts":1779847200000,"te":1779850800000,"n":"Weekly - Salestools","tp":"O"},
+{"d":"2026-05-28","ts":1779940800000,"te":1779944400000,"n":"นำเสนอและหารือกระบวนการส่ง SMS แจ้งเหตุฉุกเฉินภายใ","tp":"O"},
+{"d":"2026-05-28","ts":1779948900000,"te":1779954300000,"n":"ทีม Data ขออนุญาตนัดประชุมเรื่อง ข้อมูล Mapping ข้","tp":"O"},
+{"d":"2026-05-28","ts":1779955200000,"te":1779962400000,"n":"อัพเดต dashboard ส่วนของบริหารสาขา และ ติดตามการตร","tp":"O"},
+{"d":"2026-05-29","ts":1780023600000,"te":1780030800000,"n":"MKT : CRM","tp":"O"},
+{"d":"2026-06-04","ts":1780545600000,"te":1780549200000,"n":"QPCH : ปรึกษาเรื่อง Business Glossary ของทั้งบริษั","tp":"O"},
+{"d":"2026-06-04","ts":1780556400000,"te":1780561800000,"n":"Data Weekly Meeting","tp":"S"},
+{"d":"2026-06-05","ts":1780646400000,"te":1780650000000,"n":"Draft Dashboard CRM Performance [อัตราการกลับมาใช้","tp":"O"},
+{"d":"2026-06-08","ts":1780884000000,"te":1780887600000,"n":"หารือแนวทางการให้คะแนนพอยท์พิเศษผ่านระบบ CRM","tp":"O"},
+{"d":"2026-06-08","ts":1780884000000,"te":1780887600000,"n":"Data Weekly Meeting","tp":"S"},
+{"d":"2026-06-09","ts":1780974000000,"te":1780981200000,"n":"Easy Money: Data Governance หารือนโยบายการจัดแบ่งช","tp":"S"},
+{"d":"2026-06-09","ts":1780995600000,"te":1781001000000,"n":"Data Team - Progress of Work Updating","tp":"S"},
+{"d":"2026-06-10","ts":1781060400000,"te":1781067600000,"n":"Meeting at Office","tp":"S"},
+{"d":"2026-06-10","ts":1781064000000,"te":1781067600000,"n":"หารือเรื่อง Data Microsoft Fabric และ การกำหนด Tie","tp":"O"},
+{"d":"2026-06-10","ts":1781082000000,"te":1781085600000,"n":"อธิบาย System Requirement Specification  (เรื่องหล","tp":"O"},
+{"d":"2026-06-11","ts":1781146800000,"te":1781154000000,"n":"Team Progress Update : Ako","tp":"O"},
+{"d":"2026-06-12","ts":1781229600000,"te":1781233200000,"n":"Sale : Update Status Project","tp":"O"},
+{"d":"2026-06-12","ts":1781229600000,"te":1781233200000,"n":"เรื่อง KPI ขายฝาก รับซื้อ ออมทอง","tp":"O"},
+{"d":"2026-06-12","ts":1781247600000,"te":1781254800000,"n":"Team Progress Update : AE Team","tp":"O"},
+{"d":"2026-06-15","ts":1781488800000,"te":1781492400000,"n":"Data Weekly Meeting (1)","tp":"S"},
+{"d":"2026-06-16","ts":1781578800000,"te":1781586000000,"n":"Team Progress Update : Mew , Sine","tp":"O"},
+{"d":"2026-06-16","ts":1781600400000,"te":1781605800000,"n":"Data Team - Progress of Work Updating (2)","tp":"S"},
+{"d":"2026-06-17","ts":1781661600000,"te":1781665200000,"n":"การประสานงานระหว่างฝ่ายบัญชีกับฝ่ายไอทีในระบบรายงา","tp":"O"},
+{"d":"2026-06-17","ts":1781665200000,"te":1781672400000,"n":"Meeting at Office (2)","tp":"S"},
+{"d":"2026-06-18","ts":1781751600000,"te":1781758800000,"n":"Team Progress Update : Ako (2)","tp":"O"},
+{"d":"2026-06-19","ts":1781832600000,"te":1781847000000,"n":"N/ Regular Meeting 2026","tp":"O"},
+{"d":"2026-06-19","ts":1781852400000,"te":1781859600000,"n":"Team Progress Update : AE Team (2)","tp":"O"},
+{"d":"2026-06-22","ts":1782093600000,"te":1782097200000,"n":"Data Weekly Meeting (2)","tp":"S"},
+{"d":"2026-06-23","ts":1782183600000,"te":1782190800000,"n":"Team Progress Update : Mew , Sine (2)","tp":"O"},
+{"d":"2026-06-24","ts":1782270000000,"te":1782277200000,"n":"Meeting at Office (2)","tp":"S"},
+{"d":"2026-06-25","ts":1782356400000,"te":1782363600000,"n":"Team Progress Update : Ako (2)","tp":"O"},
+{"d":"2026-06-25","ts":1782356400000,"te":1782363600000,"n":"Team Progress Update : Ako (1)","tp":"O"},
+{"d":"2026-06-26","ts":1782457200000,"te":1782464400000,"n":"Team Progress Update : AE Team (2)","tp":"O"},
+{"d":"2026-06-29","ts":1782698400000,"te":1782702000000,"n":"Data Weekly Meeting","tp":"S"},
+{"d":"2026-06-30","ts":1782788400000,"te":1782795600000,"n":"Team Progress Update : Mew , Sine","tp":"O"},
+{"d":"2026-07-01","ts":1782874800000,"te":1782882000000,"n":"Meeting at Office","tp":"S"},
+{"d":"2026-07-02","ts":1782982800000,"te":1782988200000,"n":"Data Team - Progress of Work Updating","tp":"S"},
+{"d":"2026-07-03","ts":1783062000000,"te":1783069200000,"n":"Team Progress Update : AE Team","tp":"O"},
+{"d":"2026-07-06","ts":1783303200000,"te":1783306800000,"n":"Data Weekly Meeting","tp":"S"},
+{"d":"2026-07-07","ts":1783393200000,"te":1783400400000,"n":"Team Progress Update : Mew , Sine","tp":"O"},
+{"d":"2026-07-08","ts":1783479600000,"te":1783486800000,"n":"Meeting at Office","tp":"S"},
+{"d":"2026-07-09","ts":1783587600000,"te":1783593000000,"n":"Data Team - Progress of Work Updating","tp":"S"},
+{"d":"2026-07-10","ts":1783666800000,"te":1783674000000,"n":"Team Progress Update : AE Team","tp":"O"}
+];
 
 </script>
 <script>
@@ -7543,19 +7645,9 @@ function initTeamInfoPage(){
     ${TI_DAY_KEYS.map((d,i)=>`<div class="at-footer-cell">${dayCounts[i]}</div>`).join('')}
   </div>`;
 
-  // Position chart
-  const posMap = {};
-  TI_MEMBERS.forEach(m=>{ posMap[m.pos]=(posMap[m.pos]||0)+1; });
-  const posSorted = Object.entries(posMap).sort((a,b)=>b[1]-a[1]);
-  const posMax = posSorted[0]?.[1]||1;
-  const POS_COLORS = ['var(--cu)','var(--done)','var(--pend)','var(--prog)','var(--dly)'];
-  const posEl = document.getElementById('ti-pos-rows');
-  if(posEl) posEl.innerHTML = posSorted.map(([k,v],i)=>`
-    <div class="pos-row">
-      <div class="pos-lbl">${k}</div>
-      <div class="pos-bar"><div class="pos-fill" style="width:${v/posMax*100}%;background:${POS_COLORS[i%POS_COLORS.length]}"></div></div>
-      <div class="pos-count">${v}</div>
-    </div>`).join('');
+  // Calendar init (replaces Position chart)
+  if(typeof _calWeekOff==='undefined') window._calWeekOff=0;
+  renderCal();
 
   // Info table
   const infoTbl = document.getElementById('ti-info-tbody');
@@ -7575,6 +7667,65 @@ function initTeamInfoPage(){
       <td style="font-size:11.5px;color:var(--f2);font-family:'JetBrains Mono',monospace;font-weight:500;white-space:nowrap">${m.mobile||'—'}</td>
     </tr>`).join('');
 }
+
+// =====================================================
+// CALENDAR RENDER FUNCTIONS
+// =====================================================
+var _calWeekOff = 0;
+function calNav(delta){
+  if(delta===0) _calWeekOff=0; else _calWeekOff+=delta;
+  renderCal();
+}
+function renderCal(){
+  var TZ_OFF = 7*60*60*1000;
+  var now = new Date();
+  var utcMs = now.getTime();
+  var thaiMs = utcMs + TZ_OFF;
+  var thai = new Date(thaiMs);
+  var dow = thai.getUTCDay(); // 0=Sun
+  var mondayOff = (dow===0 ? -6 : 1-dow);
+  var weekStartMs = Date.UTC(thai.getUTCFullYear(),thai.getUTCMonth(),thai.getUTCDate())
+    + mondayOff*86400000 + _calWeekOff*7*86400000;
+  var todayD = thai.getUTCFullYear()+'-'+pad2(thai.getUTCMonth()+1)+'-'+pad2(thai.getUTCDate());
+  var DAY_TH = ['จ','อ','พ','พฤ','ศ','ส','อา'];
+  var days = [];
+  for(var i=0;i<7;i++){
+    var d = new Date(weekStartMs + i*86400000);
+    var ds = d.getUTCFullYear()+'-'+pad2(d.getUTCMonth()+1)+'-'+pad2(d.getUTCDate());
+    days.push({ds:ds, day:DAY_TH[i], date:d.getUTCDate(), mo:d.getUTCMonth()+1, isToday:ds===todayD});
+  }
+  var lbl = document.getElementById('cal-week-label');
+  if(lbl){
+    if(_calWeekOff===0) lbl.textContent='สัปดาห์นี้';
+    else if(_calWeekOff===-1) lbl.textContent='สัปดาห์ที่แล้ว';
+    else if(_calWeekOff===1) lbl.textContent='สัปดาห์หน้า';
+    else{var s=days[0],e=days[6];lbl.textContent=s.date+'/'+s.mo+' – '+e.date+'/'+e.mo;}
+  }
+  var byDate={};
+  var evts = (typeof CALENDAR_DATA!=='undefined') ? CALENDAR_DATA : [];
+  evts.forEach(function(ev){if(!byDate[ev.d])byDate[ev.d]=[];byDate[ev.d].push(ev);});
+  var html='';
+  days.forEach(function(day){
+    var list=(byDate[day.ds]||[]).slice().sort(function(a,b){return a.ts-b.ts;});
+    if(!list.length && !day.isToday) return;
+    html+='<div class="cal-day"><div class="cal-day-hd'+(day.isToday?' cal-today-hd':'')+'">';
+    html+=day.day+' '+day.date+'/'+day.mo+(day.isToday?' · วันนี้':'')+'</div>';
+    if(!list.length){html+='<div class="cal-empty">ไม่มีกิจกรรม</div>';}
+    else{list.forEach(function(ev){
+      var ts=new Date(ev.ts+TZ_OFF);
+      var te=new Date(ev.te+TZ_OFF);
+      var t=pad2(ts.getUTCHours())+':'+pad2(ts.getUTCMinutes());
+      var cls=ev.tp==='O'?'online':'onsite';
+      html+='<div class="cal-evt '+cls+'"><div class="cal-evt-time">'+t+'</div><div class="cal-evt-name">'+ev.n+'</div></div>';
+    });}
+    html+='</div>';
+  });
+  if(!html) html='<div class="cal-empty" style="padding:20px 0">ไม่มีกิจกรรมในสัปดาห์นี้</div>';
+  var grid=document.getElementById('cal-grid');
+  if(grid) grid.innerHTML=html;
+}
+function pad2(n){return n<10?'0'+n:String(n);}
+
 
 function tiOpenDrawer(nick){
   const m = TI_MEMBERS.find(x=>x.nick===nick); if(!m) return;
