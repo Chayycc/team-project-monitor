@@ -3129,18 +3129,19 @@ let activeSheetOwner = Object.keys(SHEET_DATA)[0];
 
 // =====================================================// RENDER SHEET VIEW
 // =====================================================function getSheetRowsFor(owner) {
+  const hasTitle = r => (r.title || '').trim() !== '';
   if (owner === '__BI_SHEET__') {
     const biLow = BI_TEAM_OWNERS.map(x => x.toLowerCase());
     const seen = new Set();
     const rows = [];
     Object.keys(SHEET_DATA).forEach(o => {
       if (biLow.includes(o.toLowerCase())) {
-        SHEET_DATA[o].forEach(r => { if (!seen.has(r.no+r.title)) { seen.add(r.no+r.title); rows.push(r); } });
+        SHEET_DATA[o].forEach(r => { if (hasTitle(r) && !seen.has(r.no+r.title)) { seen.add(r.no+r.title); rows.push(r); } });
       }
     });
     return rows;
   }
-  return SHEET_DATA[owner] || [];
+  return (SHEET_DATA[owner] || []).filter(hasTitle);
 }
 
 function renderSheet() {
