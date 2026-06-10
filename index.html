@@ -4028,6 +4028,21 @@ const CALENDAR_DATA = [
 {"d":"2026-07-09","ts":1783587600000,"te":1783593000000,"n":"Data Team - Progress of Work Updating","tp":"S"},
 {"d":"2026-07-10","ts":1783666800000,"te":1783674000000,"n":"Team Progress Update : AE Team","tp":"O"}
 ];
+const CALENDAR_META = [
+  {ts:1780884000000,nf:"หารือแนวทาง",          loc:"Ms Teams",            persons:["เชย์"]},
+  {ts:1780884000000,nf:"Data Weekly",            loc:"ห้อง BD",             persons:["เชย์","เช่"]},
+  {ts:1780974000000,nf:"Data Governance",                                   persons:["เชย์","เช่"]},
+  {ts:1780995600000,nf:"Progress of Work",       loc:"Ms Teams",            persons:["เชย์"]},
+  {ts:1781060400000,nf:"Meeting at Office",      loc:"ชั้น 3 ทีม Data",    persons:["เชย์","ทราย","หมิว"]},
+  {ts:1781064000000,nf:"Microsoft Fabric",       loc:"Ms Teams",            persons:["เชย์","เช่"]},
+  {ts:1781082000000,nf:"System Requirement",     loc:"Ms Teams",            persons:["เชย์"]},
+  {ts:1781146800000,nf:"Ako",                    loc:"Slack",               persons:["เชย์","เอโกะ"]},
+  {ts:1781229600000,nf:"Sale",                   loc:"Ms Teams",            persons:["เชย์"]},
+  {ts:1781229600000,nf:"KPI",                    loc:"Ms Teams",            persons:["เชย์"]},
+  {ts:1781247600000,nf:"AE Team",                loc:"Slack",               persons:["เชย์","เช่"]},
+  {ts:1781661600000,nf:"การประสานงาน",          loc:"Ms Teams",            persons:["เชย์"]},
+  {ts:1781665200000,nf:"Meeting at Office (2)",  loc:"ชั้น 3 ทีม Data",    persons:["เชย์","ทราย","หมิว"]},
+];
 
 </script>
 <script>
@@ -7936,7 +7951,6 @@ function renderCal(){
 function calOpenEvt(idx){
   var item=window._CALEVTS[idx]; if(!item) return;
   var ev=item.ev, day=item.day, ts=item.tsObj, te=item.teObj;
-  var TZ_OFF=7*60*60*1000;
   var tStart=pad2(ts.getUTCHours())+':'+pad2(ts.getUTCMinutes());
   var tEnd=pad2(te.getUTCHours())+':'+pad2(te.getUTCMinutes());
   var durMin=Math.round((ev.te-ev.ts)/60000);
@@ -7947,14 +7961,43 @@ function calOpenEvt(idx){
   var typeBg=isOnline?'var(--cud)':'var(--donebg)';
   var monthTH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   var dateStr='วัน'+day.dayFull+'ที่ '+day.date+' '+monthTH[day.mo-1]+' '+(day.yr+543);
+  var meta=typeof CALENDAR_META!=='undefined'
+    ?CALENDAR_META.find(function(m){return m.ts===ev.ts&&ev.n.indexOf(m.nf)!==-1;})
+    :null;
+  var locHtml='';
+  if(meta&&meta.loc){
+    locHtml='<div class="drawer-field">'+
+      '<div class="drawer-field-label">สถานที่</div>'+
+      '<div class="drawer-field-value">'+
+        '<span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:rgba(138,82,196,.12);color:var(--pend);">'+escHtml(meta.loc)+'</span>'+
+      '</div></div>';
+  }
+  var personsHtml='';
+  if(meta&&meta.persons&&meta.persons.length){
+    personsHtml='<div class="drawer-field">'+
+      '<div class="drawer-field-label">ผู้เข้าร่วม</div>'+
+      '<div class="drawer-field-value" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">'+
+        meta.persons.map(function(p){return tiAvChip(p);}).join('')+
+      '</div></div>';
+  }
   document.getElementById('drawer-content').innerHTML=
     '<div class="drawer-no">Team Calendar</div>'+
     '<div class="drawer-title">'+escHtml(ev.n)+'</div>'+
-    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'+
-      '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+typeBg+';color:'+typeColor+';">'+typeLabel+'</span>'+
-      (day.isToday?'<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:rgba(204,131,74,.18);color:var(--prog);">วันนี้</span>':'')+'</div>'+
     '<div class="drawer-divider"></div>'+
-    '<div class="drawer-field"><div class="drawer-field-label">วันที่</div><div class="drawer-field-value">'+dateStr+'</div></div>'+
+    '<div class="drawer-field">'+
+      '<div class="drawer-field-label">วันที่</div>'+
+      '<div class="drawer-field-value">'+dateStr+
+        ' &nbsp;<span style="color:var(--f2);font-weight:600;">'+tStart+' → '+tEnd+'</span>'+
+        ' &nbsp;<span style="font-size:11px;color:var(--f4);">('+durStr+')</span>'+
+        (day.isToday?' <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:rgba(204,131,74,.18);color:var(--prog);">วันนี้</span>':'')+
+      '</div></div>'+
+    '<div class="drawer-field">'+
+      '<div class="drawer-field-label">ประเภท</div>'+
+      '<div class="drawer-field-value">'+
+        '<span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:'+typeBg+';color:'+typeColor+';">'+typeLabel+'</span>'+
+      '</div></div>'+
+    locHtml+personsHtml+
+    '<div class="drawer-divider"></div>'+
     '<div class="drawer-field" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">'+
       '<div><div class="drawer-field-label">เริ่ม</div><div class="drawer-field-value mono" style="font-size:18px;font-weight:700;color:var(--f1);">'+tStart+'</div></div>'+
       '<div><div class="drawer-field-label">สิ้นสุด</div><div class="drawer-field-value mono" style="font-size:18px;font-weight:700;color:var(--f3);">'+tEnd+'</div></div>'+
