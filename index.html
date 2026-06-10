@@ -2873,6 +2873,66 @@ function closeDrawer() {
   if (activeDashDeptFilter) { clearDashDeptFilter(); }
 }
 
+function openRequestDrawer(id) {
+  const nd = window.NOTION_DATA || [];
+  const r = nd.find(x => x.id === id);
+  if (!r) return;
+
+  const priorityLevel = (r.priority || '').split(':')[0].trim();
+  const priorityColor = (() => {
+    const pl = priorityLevel.toLowerCase();
+    if (pl.includes('urgent')) return 'var(--dly)';
+    if (pl.includes('high')) return 'var(--dly)';
+    if (pl.includes('medium')) return 'var(--prog)';
+    return 'var(--f4)';
+  })();
+
+  const statusMap = {
+    done:     {label:'Done',        cls:'pill-done'},
+    progress: {label:'In Progress', cls:'pill-prog'},
+    pending:  {label:'Pending',     cls:'pill-pend'},
+    todo:     {label:'To Do',       cls:'pill-todo'},
+  };
+  const sc = statusMap[(r.status||'').toLowerCase()] || {label: r.statusRaw || r.status || '—', cls:'pill-todo'};
+
+  const fmtDt = ds => {
+    if (!ds) return '—';
+    const d = new Date(ds);
+    if (isNaN(d)) return ds.slice(0,10);
+    return d.toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'2-digit'});
+  };
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="drawer-no">${escHtml(r.company||'')}${r.dept ? ' · '+escHtml(r.dept) : ''}</div>
+    <div class="drawer-title">${escHtml(r.title||'(ไม่มีชื่อ)')}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <span class="pill ${sc.cls}" style="display:inline-flex;">
+        <span class="pill-dot" style="background:${sc.cls==='pill-done'?'var(--done)':sc.cls==='pill-prog'?'var(--prog)':sc.cls==='pill-pend'?'var(--pend)':'var(--f4)'}"></span>${sc.label}
+      </span>
+      ${priorityLevel ? `<span style="font-size:11px;font-weight:700;color:${priorityColor};background:rgba(0,0,0,.18);padding:2px 8px;border-radius:20px;">${escHtml(priorityLevel)}</span>` : ''}
+    </div>
+    <div class="drawer-divider"></div>
+    <div class="drawer-field"><div class="drawer-field-label">ผู้รับผิดชอบ (Staff)</div><div class="drawer-field-value">${escHtml(r.owner||'—')}</div></div>
+    <div class="drawer-field"><div class="drawer-field-label">ประเภทคำขอ</div><div class="drawer-field-value">${escHtml(r.type||'—')}</div></div>
+    ${r.output ? `<div class="drawer-field"><div class="drawer-field-label">Output</div><div><span class="output-tag" style="font-size:12px;padding:2px 8px;">${escHtml(r.output)}</span></div></div>` : ''}
+    <div class="drawer-divider"></div>
+    <div class="drawer-field" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div><div class="drawer-field-label">Submitted</div><div class="drawer-field-value mono">${fmtDt(r.submitted)}</div></div>
+      <div><div class="drawer-field-label">Deadline</div><div class="drawer-field-value mono">${fmtDt(r.deadline)}</div></div>
+    </div>
+    ${r.actual ? `<div class="drawer-field"><div class="drawer-field-label">Actual Completion</div><div class="drawer-field-value mono">${fmtDt(r.actual)}</div></div>` : ''}
+    ${r.desc ? `<div class="drawer-divider"></div><div class="drawer-field"><div class="drawer-field-label">รายละเอียด</div><div class="drawer-note">${escHtml(r.desc)}</div></div>` : ''}
+    ${r.note ? `<div class="drawer-field" style="margin-top:8px;"><div class="drawer-field-label">Note</div><div class="drawer-note">${escHtml(r.note)}</div></div>` : ''}
+    ${r.link ? `<div class="drawer-divider"></div><a href="${escHtml(r.link)}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--cu);text-decoration:none;font-weight:600;">
+      <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      เปิด Notion
+    </a>` : ''}
+  `;
+
+  document.getElementById('drawer-overlay').style.display = 'block';
+  document.getElementById('drawer').style.display = 'block';
+}
+
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 
 // ============================================================
@@ -3198,13 +3258,15 @@ function renderDashActivityFeed() {
     const status = r.status || r.Status || '';
     const priority = r.priority || r.Priority || '';
     const metaParts = [owner, dept].filter(Boolean);
-    return `<div class="dash-act-item">
+    const rid = r.id ? r.id.replace(/'/g,'') : '';
+    return `<div class="dash-act-item" onclick="openRequestDrawer('${rid}')" style="cursor:pointer;transition:background 100ms;" onmouseenter="this.style.background='var(--hv)'" onmouseleave="this.style.background=''">
       <div class="dash-act-dot" style="background:${cfg.color}"></div>
       <div class="dash-act-body" style="min-width:0;flex:1">
         <div class="dash-act-title">${escHtml(title)}</div>
         ${metaParts.length ? `<div class="dash-act-meta" style="margin-bottom:2px">${escHtml(metaParts.join(' · '))}</div>` : ''}
         <div class="dash-act-meta">${relTime(dateStr)}${status ? ` · <span style="color:${statusColor(status)};font-weight:600;">${escHtml(status)}</span>` : ''}${priority ? ` · <span style="color:${priorityColor(priority)}">${escHtml(priority)}</span>` : ''}</div>
       </div>
+      <svg style="width:13px;height:13px;stroke:var(--f4);fill:none;stroke-width:1.75;flex-shrink:0;margin-top:2px;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
     </div>`;
   }).join('');
 }
