@@ -1918,13 +1918,13 @@ function daysDiff(d) {
 }
 
 function statusLabel(s) {
-  return {done:'Done', progress:'In Progress', todo:'Not Started', pending:'Pending', cancel:'Cancel'}[s] || s;
+  return {done:'Done', progress:'In Progress', todo:'Not Started', pending:'Pending', cancel:'Cancel', 'ตามแผน':'ตามแผน', 'ล่าช้า':'ล่าช้า'}[s] || s;
 }
 function statusPillClass(s) {
-  return {done:'pill-done', progress:'pill-progress', todo:'pill-todo', pending:'pill-pending', cancel:'pill-cancel'}[s] || 'pill-todo';
+  return {done:'pill-done', progress:'pill-progress', todo:'pill-todo', pending:'pill-pending', cancel:'pill-cancel', 'ตามแผน':'pill-done', 'ล่าช้า':'pill-cancel'}[s] || 'pill-todo';
 }
 function statusDot(s) {
-  return {done:'var(--done)', progress:'var(--prog)', todo:'var(--todo)', pending:'var(--pend)', cancel:'var(--dly)'}[s] || 'var(--f4)';
+  return {done:'var(--done)', progress:'var(--prog)', todo:'var(--todo)', pending:'var(--pend)', cancel:'var(--dly)', 'ตามแผน':'var(--done)', 'ล่าช้า':'var(--dly)'}[s] || 'var(--f4)';
 }
 
 function escHtml(s) {
@@ -3296,10 +3296,8 @@ function renderSheetTable(owner) {
     const blockColor = blockColors[statusStr] || blockColors['Not started'];
 
     // Status pill
-    const statusMap = {'Done':'done','In progress':'progress','Not started':'todo','Pending':'pending'};
-    const sKey = statusMap[statusStr] || 'todo';
-    const statusPill = `<span class="pill pill-${sKey}" style="font-size:10.5px;padding:1px 6px;">
-      <span class="pill-dot" style="background:${statusDot(sKey)}"></span>${statusStr||'—'}
+    const statusPill = `<span class="pill ${statusPillClass(statusStr)}" style="font-size:10.5px;padding:1px 6px;">
+      <span class="pill-dot" style="background:${statusDot(statusStr)}"></span>${statusLabel(statusStr)||statusStr||'—'}
     </span>`;
 
     // Truncate long title
