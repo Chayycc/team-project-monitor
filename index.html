@@ -602,8 +602,8 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
 #team-info-page .cal-day-hd{font-size:10px;font-weight:700;color:var(--f4);text-transform:uppercase;letter-spacing:.5px;padding-bottom:4px;border-bottom:1px solid var(--ln);margin-bottom:4px}
 #team-info-page .cal-day-hd.cal-today-hd{color:var(--cu);border-color:var(--cu)}
 #team-info-page .cal-evt{display:flex;align-items:flex-start;gap:6px;padding:4px 6px;border-radius:5px;margin-bottom:3px}
-#team-info-page .cal-evt.online{background:rgba(59,130,246,.1);border-left:2px solid #3b82f6}
-#team-info-page .cal-evt.onsite{background:rgba(16,185,129,.1);border-left:2px solid #10b981}
+#team-info-page .cal-evt.online{background:var(--cud);border-left:2px solid var(--cu)}
+#team-info-page .cal-evt.onsite{background:var(--donebg);border-left:2px solid var(--done)}
 #team-info-page .cal-evt-time{color:var(--f4);font-size:9.5px;white-space:nowrap;margin-top:1px;min-width:34px;font-family:'JetBrains Mono',monospace}
 #team-info-page .cal-evt-name{color:var(--f1);font-size:11px;font-weight:500;line-height:1.3}
 #team-info-page .cal-empty{font-size:10.5px;color:var(--f4);font-style:italic;text-align:center;padding:8px 0}
@@ -2104,10 +2104,10 @@ function renderTimeline() {
   const todayPct = pct(TODAY);
 
   const barColors = {
-    done: 'rgba(94,156,122,0.7)',
-    progress: 'rgba(185,137,92,0.75)',
-    todo: 'rgba(110,107,100,0.5)',
-    pending: 'rgba(138,130,200,0.5)'
+    done: cv('--done','#52996E'),
+    progress: cv('--prog','#C4834A'),
+    todo: cv('--todo','#65625C'),
+    pending: cv('--pend','#8A82C8')
   };
 
   let html = `<div class="gantt-header">
@@ -2335,7 +2335,7 @@ function renderDeptProgressBars() {
     });
   });
   const sorted = Object.entries(deptMap).sort((a,b)=>b[1].total-a[1].total);
-  const COLORS = ['#4FB3D9','#C4834A','#52996E','#8A82C8','#D4893A','#CC5252','#6AAFB2','#B89C4F','#9CB87A','#C8695C','#7AB887','#5E9C7A'];
+  const COLORS = ['#C49A6C','#D4893A','#52996E','#9A8AB8','#B86848','#6A9EA8','#C4A450','#7A9478','#CC5252','#B89C4F','#8B9A78','#7AB887'];
   el.innerHTML = sorted.map(([dept,s],i) => {
     const avg = s.total>0 ? Math.round((s.done*100+s.progress*50+s.pending*25)/s.total) : 0;
     const color = COLORS[i % COLORS.length];
@@ -2462,7 +2462,7 @@ function renderOutputBars() {
   });
   const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,10);
   const max = sorted[0]?.[1] || 1;
-  const colors = {'Power BI':'#4FB3D9','ML':'#8A82C8','Report':'#7AB887','Presentation':'#D4893A','Data Gov':'#5E9C7A','AI Agent':'#C8695C','ESRI':'#6AAFB2','Data Monitoring':'#B89C4F','Pileline':'#8A7AB8','Form':'#9CB87A'};
+  const colors = {'Power BI':'#C49A6C','ML':'#9A8AB8','Report':'#7AB887','Presentation':'#D4893A','Data Gov':'#52996E','AI Agent':'#B86848','ESRI':'#6A9EA8','Data Monitoring':'#B89C4F','Pileline':'#8A7AB8','Form':'#9CB87A'};
   const el = document.getElementById('output-bars');
   el.innerHTML = sorted.map(([name, val]) => {
     const color = colors[name] || 'var(--brand-copper)';
@@ -2820,7 +2820,7 @@ function renderReports() {
       ${deptSorted.map(([d,v]) => `
         <div class="bar-row" style="margin-bottom:8px;">
           <div class="bar-label" style="width:80px;max-width:80px;font-size:11.5px;" title="${escHtml(d)}">${escHtml(d.slice(0,12))}</div>
-          <div class="bar-track" style="flex:1;"><div class="bar-fill" style="width:${v/maxDept*100}%;background:#8A82C8"></div></div>
+          <div class="bar-track" style="flex:1;"><div class="bar-fill" style="width:${v/maxDept*100}%;background:var(--cu)"></div></div>
           <div class="bar-count">${v}</div>
         </div>
       `).join('')}
@@ -2830,7 +2830,7 @@ function renderReports() {
       <div class="microlabel">Output Types</div>
       <div class="chart-title" style="margin-bottom:14px">Output Distribution</div>
       ${outSorted.map(([o,v]) => {
-        const colors={'Power BI':'#4FB3D9','ML':'#8A82C8','Report':'#7AB887','Presentation':'#D4893A','Data Gov':'#5E9C7A','AI Agent':'#C8695C','Data Monitoring':'#B89C4F','Pileline':'#8A7AB8','Form':'#9CB87A','ESRI':'#6AAFB2'};
+        const colors={'Power BI':'#C49A6C','ML':'#9A8AB8','Report':'#7AB887','Presentation':'#D4893A','Data Gov':'#52996E','AI Agent':'#B86848','Data Monitoring':'#B89C4F','Pileline':'#8A7AB8','Form':'#9CB87A','ESRI':'#6A9EA8'};
         const c = colors[o]||'var(--brand-copper)';
         return `<div class="bar-row" style="margin-bottom:8px;">
           <div class="bar-label" style="width:120px;max-width:120px;font-size:12px;">${escHtml(o)}</div>
@@ -3044,7 +3044,7 @@ function openKpiDrawer(statusLabel) {
     .filter(k => statusLabel === 'N/A' ? (k.status !== 'ตามแผน' && k.status !== 'ล่าช้า') : k.status === statusLabel);
 
   const statusColor = statusLabel === 'ตามแผน' ? 'var(--done)' : statusLabel === 'ล่าช้า' ? 'var(--dly)' : 'var(--f4)';
-  const perspColors = {'Finance':'#4FB3D9','Customer':'#7AB887','Process':'#D4893A','Learning & Growth':'#8A82C8'};
+  const perspColors = {'Finance':'#C49A6C','Customer':'#7AB887','Process':'#D4893A','Learning & Growth':'#9A8AB8'};
 
   // Group by person
   const byNick = {};
@@ -3252,10 +3252,10 @@ function renderSheetTable(owner) {
 
   // Status colors for Gantt blocks
   const blockColors = {
-    'Done':        'rgba(94,156,122,0.75)',
-    'In progress': 'rgba(185,137,92,0.75)',
-    'Not started': 'rgba(110,107,100,0.4)',
-    'Pending':     'rgba(138,130,200,0.6)',
+    'Done':        cv('--done','#52996E'),
+    'In progress': cv('--prog','#C4834A'),
+    'Not started': cv('--todo','#65625C'),
+    'Pending':     cv('--pend','#8A82C8'),
   };
 
   // Build header: info cols + 48 week cols
@@ -4890,7 +4890,7 @@ window.renderReports = function() {
   RAW.forEach(p => { (p.output||'').split(',').map(o=>o.trim()).filter(Boolean).forEach(o=>{ outputs[o]=(outputs[o]||0)+1; }); });
   const outSorted = Object.entries(outputs).sort((a,b)=>b[1]-a[1]);
   const maxOut = outSorted[0]?.[1]||1;
-  const outColors = {'Power BI':'#4FB3D9','ML':'#8A82C8','Report':'#7AB887','Presentation':'#D4893A','Data Gov':'#5E9C7A','AI Agent':'#C8695C','Data Monitoring':'#B89C4F','Pileline':'#8A7AB8','Form':'#9CB87A','ESRI':'#6AAFB2'};
+  const outColors = {'Power BI':'#C49A6C','ML':'#9A8AB8','Report':'#7AB887','Presentation':'#D4893A','Data Gov':'#52996E','AI Agent':'#B86848','Data Monitoring':'#B89C4F','Pileline':'#8A7AB8','Form':'#9CB87A','ESRI':'#6A9EA8'};
 
   // Status legend
   const legend = `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
@@ -5524,7 +5524,7 @@ function renderROVCharts() {
     const k = r.dept ? r.dept.split(':')[0].trim() : 'Other';
     if (k) deptMap[k] = (deptMap[k]||0)+1;
   });
-  const deptColors = ['#4FB3D9','#C4834A','#52996E','#8A82C8','#D4893A','#CC5252','#6AAFB2','#B89C4F','#9CB87A','#C8695C'];
+  const deptColors = ['#C49A6C','#D4893A','#52996E','#9A8AB8','#B86848','#6A9EA8','#C4A450','#7A9478','#CC5252','#B89C4F'];
   const deptData = Object.entries(deptMap).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>({k,v}));
   const deptEl = document.getElementById('rov-dept-chart');
   if (deptEl) deptEl.innerHTML = _reqBar(deptData, (k) => deptColors[deptData.findIndex(d=>d.k===k)%deptColors.length], 'dept');
@@ -5534,14 +5534,14 @@ function renderROVCharts() {
   nd.forEach(r => { const k=r.type||'Not specified'; if(k) typeMap[k]=(typeMap[k]||0)+1; });
   const typeData = Object.entries(typeMap).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>({k,v}));
   const typeEl = document.getElementById('rov-type-chart');
-  const typeColors = ['var(--pend)','var(--prog)','var(--done)','var(--cu)','var(--dly)','#6AAFB2','#B89C4F','#9CB87A','#C8695C','#4FB3D9'];
+  const typeColors = ['var(--pend)','var(--prog)','var(--done)','var(--cu)','var(--dly)','#6A9EA8','#B89C4F','#9CB87A','#B86848','var(--cus)'];
   if (typeEl) typeEl.innerHTML = _reqBar(typeData, (_,i)=>typeColors[typeData.findIndex(d=>d.k===_)%typeColors.length], 'type');
 
   // ── Output donut ──
   const outMap = {};
   nd.forEach(r => { const k=r.output||'Other'; outMap[k]=(outMap[k]||0)+1; });
   const outData = Object.entries(outMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  const outColors = ['#4FB3D9','#8A82C8','#D4893A','#52996E','#6AAFB2','#C8695C'];
+  const outColors = ['#C49A6C','#9A8AB8','#D4893A','#52996E','#6A9EA8','#B86848'];
   const outEl = document.getElementById('rov-output-chart');
   if (outEl) {
     const total = outData.reduce((s,[,v])=>s+v,0);
@@ -6400,7 +6400,7 @@ function renderSurveyCharts() {
   const dm={};nd.forEach(r=>{const k=r.dept?r.dept.split(':')[0].trim():'—';dm[k]=(dm[k]||0)+1;});
   const dd=Object.entries(dm).sort((a,b)=>b[1]-a[1]);
   const dmx=dd[0]?.[1]||1;
-  const COLS=['#4FB3D9','#C4834A','#52996E','#8A82C8','#D4893A','#6AAFB2','#B89C4F'];
+  const COLS=['#C49A6C','#D4893A','#52996E','#9A8AB8','#B86848','#6A9EA8','#B89C4F'];
   const dEl2=document.getElementById('sv-dept-chart');
   if(dEl2)dEl2.innerHTML=dd.map(([k,v],i)=>`
     <div onclick="rovOpenSurveyDrill('dept','${k.replace(/'/g,"\'")}','${k} (${v})')"
@@ -6646,7 +6646,7 @@ function renderDIKpi(nd) {
 
 function renderDataIssueCharts() {
   const nd = diGetData();
-  const COLS = ['#4FB3D9','#C4834A','#52996E','#8A82C8','#D4893A','#6AAFB2','#B89C4F'];
+  const COLS = ['#C49A6C','#D4893A','#52996E','#9A8AB8','#B86848','#6A9EA8','#B89C4F'];
 
   // KPI
   renderDIKpi(nd);
