@@ -2547,20 +2547,22 @@ function filterRisk(r) {
 
 function handleOwnerFilterChange() {
   const owner = document.getElementById('f-owner').value;
+  if (!owner) { applyFilters(); return; }
   if (owner === '__BI_TEAM__') {
     if (currentView !== 'table') setView('table');
     applyFilters();
     return;
   }
-  if (owner) {
-    const inRaw = RAW.some(p => p.owners.split(',').map(o=>o.trim()).includes(owner));
-    if (!inRaw && SHEET_DATA[owner]) {
-      setView('sheet');
-      activeSheetOwner = owner;
-      renderSheet();
-      return;
-    }
+  const inRaw = RAW.some(p => p.owners.split(',').map(o=>o.trim()).includes(owner));
+  if (!inRaw && SHEET_DATA[owner]) {
+    // SHEET_DATA-only owner (e.g. AE Team) → switch to Sheet/Gantt view
+    setView('sheet');
+    activeSheetOwner = owner;
+    renderSheet();
+    return;
   }
+  // RAW owner — show in table view
+  if (currentView !== 'table') setView('table');
   applyFilters();
 }
 
@@ -3097,6 +3099,8 @@ function exportCSV() {
 // POPULATE SELECTS
 // ============================================================
 function populateFilters() {
+  if (populateFilters._done) return;
+  populateFilters._done = true;
   const owners = new Set();
   const outputs = new Set();
   RAW.forEach(p => {
@@ -3109,29 +3113,34 @@ function populateFilters() {
     if (!owners.has(sheetName)) owners.add(sheetName);
   });
 
+  function shortLabel(o) {
+    const parts = o.split(' ');
+    if (parts.length === 1) return parts[0];
+    return parts[0] + ' ' + parts[1].slice(0, 1);
+  }
+
   const ownerSel = document.getElementById('f-owner');
-  // Business Intelligence Team as first group option
+  // Clear existing (keep first "All Owners" option)
+  while (ownerSel.options.length > 1) ownerSel.remove(1);
   const biOpt = document.createElement('option');
   biOpt.value = '__BI_TEAM__';
   biOpt.textContent = '★ Business Intelligence Team';
-  biOpt.title = 'Business Intelligence Team — แสดงงานทั้งหมดของทีม BI';
+  biOpt.title = 'Business Intelligence Team';
   biOpt.style.fontWeight = '700';
   ownerSel.appendChild(biOpt);
-  // Separator
   const sep = document.createElement('option');
   sep.disabled = true; sep.textContent = '──────────────';
   ownerSel.appendChild(sep);
-  // Individual owners
   [...owners].sort().forEach(o => {
     const opt = document.createElement('option');
-    opt.value = o; opt.textContent = o.split(' ')[0] + (o.split(' ').length > 1 ? ' ' + o.split(' ').slice(1).join(' ').slice(0,1) : '');
-    opt.title = o;
+    opt.value = o; opt.textContent = shortLabel(o); opt.title = o;
     ownerSel.appendChild(opt);
   });
 
-  // Also populate dash-owner-f (All Projects table on dashboard)
+  // Also populate dash-owner-f
   const dashOwnerSel = document.getElementById('dash-owner-f');
   if (dashOwnerSel) {
+    while (dashOwnerSel.options.length > 1) dashOwnerSel.remove(1);
     const biOptD = document.createElement('option');
     biOptD.value = '__BI_TEAM__'; biOptD.textContent = '★ BI Team';
     biOptD.title = 'Business Intelligence Team'; biOptD.style.fontWeight = '700';
@@ -3141,14 +3150,13 @@ function populateFilters() {
     dashOwnerSel.appendChild(sepD);
     [...owners].sort().forEach(o => {
       const opt = document.createElement('option');
-      opt.value = o;
-      opt.textContent = o.split(' ')[0] + (o.split(' ').length > 1 ? ' ' + o.split(' ').slice(1,2).join('').slice(0,1) : '');
-      opt.title = o;
+      opt.value = o; opt.textContent = shortLabel(o); opt.title = o;
       dashOwnerSel.appendChild(opt);
     });
   }
 
   const outputSel = document.getElementById('f-output');
+  while (outputSel.options.length > 1) outputSel.remove(1);
   [...outputs].sort().forEach(o => {
     const opt = document.createElement('option');
     opt.value = o; opt.textContent = o;
