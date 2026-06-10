@@ -7791,6 +7791,7 @@ function calNav(delta){
   if(delta===0) _calWeekOff=0; else _calWeekOff+=delta;
   renderCal();
 }
+window._CALEVTS = [];
 function renderCal(){
   var TZ_OFF = 7*60*60*1000;
   var now = new Date();
@@ -7803,11 +7804,12 @@ function renderCal(){
     + mondayOff*86400000 + _calWeekOff*7*86400000;
   var todayD = thai.getUTCFullYear()+'-'+pad2(thai.getUTCMonth()+1)+'-'+pad2(thai.getUTCDate());
   var DAY_TH = ['จ','อ','พ','พฤ','ศ','ส','อา'];
+  var DAY_FULL = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
   var days = [];
   for(var i=0;i<7;i++){
     var d = new Date(weekStartMs + i*86400000);
     var ds = d.getUTCFullYear()+'-'+pad2(d.getUTCMonth()+1)+'-'+pad2(d.getUTCDate());
-    days.push({ds:ds, day:DAY_TH[i], date:d.getUTCDate(), mo:d.getUTCMonth()+1, isToday:ds===todayD});
+    days.push({ds:ds, day:DAY_TH[i], dayFull:DAY_FULL[i], date:d.getUTCDate(), mo:d.getUTCMonth()+1, yr:d.getUTCFullYear(), isToday:ds===todayD});
   }
   var lbl = document.getElementById('cal-week-label');
   if(lbl){
@@ -7819,6 +7821,7 @@ function renderCal(){
   var byDate={};
   var evts = (typeof CALENDAR_DATA!=='undefined') ? CALENDAR_DATA : [];
   evts.forEach(function(ev){if(!byDate[ev.d])byDate[ev.d]=[];byDate[ev.d].push(ev);});
+  window._CALEVTS = [];
   var html='';
   days.forEach(function(day){
     var list=(byDate[day.ds]||[]).slice().sort(function(a,b){return a.ts-b.ts;});
@@ -7831,13 +7834,45 @@ function renderCal(){
       var te=new Date(ev.te+TZ_OFF);
       var t=pad2(ts.getUTCHours())+':'+pad2(ts.getUTCMinutes());
       var cls=ev.tp==='O'?'online':'onsite';
-      html+='<div class="cal-evt '+cls+'"><div class="cal-evt-time">'+t+'</div><div class="cal-evt-name">'+ev.n+'</div></div>';
+      var idx=window._CALEVTS.length;
+      window._CALEVTS.push({ev:ev, day:day, tsObj:ts, teObj:te});
+      html+='<div class="cal-evt '+cls+'" style="cursor:pointer;" onclick="calOpenEvt('+idx+')" onmouseover="this.style.opacity=\'0.82\'" onmouseout="this.style.opacity=\'1\'"><div class="cal-evt-time">'+t+'</div><div class="cal-evt-name">'+ev.n+'</div></div>';
     });}
     html+='</div>';
   });
   if(!html) html='<div class="cal-empty" style="padding:20px 0">ไม่มีกิจกรรมในสัปดาห์นี้</div>';
   var grid=document.getElementById('cal-grid');
   if(grid) grid.innerHTML=html;
+}
+function calOpenEvt(idx){
+  var item=window._CALEVTS[idx]; if(!item) return;
+  var ev=item.ev, day=item.day, ts=item.tsObj, te=item.teObj;
+  var TZ_OFF=7*60*60*1000;
+  var tStart=pad2(ts.getUTCHours())+':'+pad2(ts.getUTCMinutes());
+  var tEnd=pad2(te.getUTCHours())+':'+pad2(te.getUTCMinutes());
+  var durMin=Math.round((ev.te-ev.ts)/60000);
+  var durStr=durMin>=60?(Math.floor(durMin/60)+' ชม.'+(durMin%60?' '+durMin%60+' น.':'')):(durMin+' น.');
+  var isOnline=ev.tp==='O';
+  var typeLabel=isOnline?'Online':'Onsite';
+  var typeColor=isOnline?'var(--cu)':'var(--done)';
+  var typeBg=isOnline?'var(--cud)':'var(--donebg)';
+  var monthTH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var dateStr='วัน'+day.dayFull+'ที่ '+day.date+' '+monthTH[day.mo-1]+' '+(day.yr+543);
+  document.getElementById('drawer-content').innerHTML=
+    '<div class="drawer-no">Team Calendar</div>'+
+    '<div class="drawer-title">'+escHtml(ev.n)+'</div>'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'+
+      '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+typeBg+';color:'+typeColor+';">'+typeLabel+'</span>'+
+      (day.isToday?'<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:rgba(204,131,74,.18);color:var(--prog);">วันนี้</span>':'')+'</div>'+
+    '<div class="drawer-divider"></div>'+
+    '<div class="drawer-field"><div class="drawer-field-label">วันที่</div><div class="drawer-field-value">'+dateStr+'</div></div>'+
+    '<div class="drawer-field" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">'+
+      '<div><div class="drawer-field-label">เริ่ม</div><div class="drawer-field-value mono" style="font-size:18px;font-weight:700;color:var(--f1);">'+tStart+'</div></div>'+
+      '<div><div class="drawer-field-label">สิ้นสุด</div><div class="drawer-field-value mono" style="font-size:18px;font-weight:700;color:var(--f3);">'+tEnd+'</div></div>'+
+      '<div><div class="drawer-field-label">ระยะเวลา</div><div class="drawer-field-value" style="font-size:14px;font-weight:600;color:var(--f2);">'+durStr+'</div></div>'+
+    '</div>';
+  document.getElementById('drawer-overlay').style.display='block';
+  document.getElementById('drawer').style.display='block';
 }
 function pad2(n){return n<10?'0'+n:String(n);}
 
