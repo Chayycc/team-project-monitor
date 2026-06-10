@@ -2436,7 +2436,8 @@ function renderOutputBars() {
   const el = document.getElementById('output-bars');
   el.innerHTML = sorted.map(([name, val]) => {
     const color = colors[name] || 'var(--brand-copper)';
-    return `<div class="bar-row">
+    const safeName = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="bar-row" onclick="openOutputDrawer('${safeName}')" style="cursor:pointer;border-radius:6px;padding:2px 4px;margin:0 -4px;transition:background 100ms;" onmouseenter="this.style.background='var(--hv)'" onmouseleave="this.style.background=''">
       <div class="bar-label" title="${escHtml(name)}">${escHtml(name)}</div>
       <div class="bar-track"><div class="bar-fill" style="width:${val/max*100}%;background:${color}"></div></div>
       <div class="bar-count">${val}</div>
@@ -2936,6 +2937,127 @@ function openRequestDrawer(id) {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 
 // ============================================================
+// OPEN OUTPUT DRAWER — กดแถบ Output Types
+// ============================================================
+function openOutputDrawer(outputName) {
+  const raw = typeof RAW !== 'undefined' ? RAW : [];
+  const projects = raw.filter(p => {
+    const outputs = (p.output || '').split(',').map(o => o.trim());
+    return outputs.some(o => o.toLowerCase() === outputName.toLowerCase());
+  });
+
+  const counts = {done:0, progress:0, pending:0, todo:0};
+  projects.forEach(p => { if (counts[p.status] !== undefined) counts[p.status]++; });
+  const kpiCards = [
+    {l:'Done',        v:counts.done,     c:'var(--done)', bg:'rgba(100,180,100,.06)'},
+    {l:'In Progress', v:counts.progress, c:'var(--prog)', bg:'rgba(196,154,108,.06)'},
+    {l:'Pending',     v:counts.pending,  c:'var(--pend)', bg:'rgba(108,160,196,.06)'},
+    {l:'Not Started', v:counts.todo,     c:'var(--f3)',   bg:'var(--s2)'},
+  ];
+
+  const statusOrder = {progress:0, pending:1, todo:2, done:3};
+  const sorted = [...projects].sort((a,b) => (statusOrder[a.status]??3) - (statusOrder[b.status]??3));
+
+  const cards = sorted.map(p => {
+    const isLate = p.risk === 'delayed';
+    const riskBadge = p.risk === 'delayed'
+      ? `<span class="risk-badge risk-delayed" style="font-size:10px;">Late</span>`
+      : p.risk === 'atrisk'
+        ? `<span class="risk-badge risk-atrisk" style="font-size:10px;">At Risk</span>`
+        : '';
+    const dl = p.deadline ? p.deadline.slice(0,10) : '';
+    return `<div onclick="openDrawer(${p.no})" style="padding:10px 12px;background:var(--s2);border:1px solid var(--lnm);border-radius:9px;cursor:pointer;transition:background 100ms;" onmouseenter="this.style.background='var(--hv)'" onmouseleave="this.style.background='var(--s2)'">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px;">
+        <div style="font-size:12.5px;font-weight:600;color:var(--f1);line-height:1.35;flex:1;">${p.parent?'↳ ':''}${escHtml(p.title||'—')}</div>
+        <svg style="width:12px;height:12px;stroke:var(--f4);fill:none;stroke-width:1.75;flex-shrink:0;margin-top:2px;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span class="pill ${statusPillClass(p.status)}" style="font-size:10px;padding:1px 7px;">
+          <span class="pill-dot" style="background:${statusDot(p.status)}"></span>${statusLabel(p.status)}
+        </span>
+        ${riskBadge}
+        ${p.dept ? `<span style="font-size:10.5px;color:var(--f4);">${escHtml(p.dept)}</span>` : ''}
+        ${dl ? `<span style="font-size:10.5px;color:${isLate?'var(--dly)':'var(--f4)'};margin-left:auto;">${dl}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="drawer-no">OUTPUT TYPE · ${projects.length} projects</div>
+    <div class="drawer-title">${escHtml(outputName)}</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 18px;">
+      ${kpiCards.map(k=>`<div style="background:${k.bg};border:1px solid var(--lnm);border-radius:10px;padding:10px 8px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:${k.c};line-height:1;">${k.v}</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--f4);margin-top:4px;">${k.l}</div>
+      </div>`).join('')}
+    </div>
+    <div class="drawer-divider"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${cards || '<div style="color:var(--f4);font-size:13px;text-align:center;padding:24px 0;">ไม่มีโปรเจกต์</div>'}
+    </div>
+  `;
+  document.getElementById('drawer-overlay').style.display = 'block';
+  document.getElementById('drawer').style.display = 'block';
+}
+
+// ============================================================
+// OPEN KPI DRAWER — กดแถว legend KPI Health
+// ============================================================
+function openKpiDrawer(statusLabel) {
+  const data = (typeof KPI_DATA !== 'undefined' ? KPI_DATA : [])
+    .filter(k => statusLabel === 'N/A' ? (k.status !== 'ตามแผน' && k.status !== 'ล่าช้า') : k.status === statusLabel);
+
+  const statusColor = statusLabel === 'ตามแผน' ? 'var(--done)' : statusLabel === 'ล่าช้า' ? 'var(--dly)' : 'var(--f4)';
+  const perspColors = {'Finance':'#4FB3D9','Customer':'#7AB887','Process':'#D4893A','Learning & Growth':'#8A82C8'};
+
+  // Group by person
+  const byNick = {};
+  data.forEach(k => {
+    const key = k.nick || k.name || '—';
+    if (!byNick[key]) byNick[key] = {nick: k.nick, name: k.name, pos: k.pos, items: []};
+    byNick[key].items.push(k);
+  });
+
+  const personBlocks = Object.values(byNick).map(person => {
+    const kpiRows = person.items.map(k => {
+      const pColor = perspColors[k.persp] || 'var(--f4)';
+      const progBar = k.prog > 0
+        ? `<div style="height:3px;background:var(--s3);border-radius:2px;margin-top:5px;"><div style="height:100%;width:${Math.min(k.prog,100)}%;background:${statusColor};border-radius:2px;"></div></div>`
+        : '';
+      return `<div style="padding:8px 0;border-bottom:1px solid var(--lnm);">
+        <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;">
+          <span style="font-size:9.5px;font-weight:700;color:${pColor};background:rgba(0,0,0,.18);padding:1px 5px;border-radius:10px;white-space:nowrap;flex-shrink:0;">${escHtml(k.persp||'')}</span>
+          <span style="font-size:12px;color:var(--f1);line-height:1.4;">${escHtml(k.kname||'—')}</span>
+        </div>
+        <div style="font-size:10.5px;color:var(--f4);">เป้าหมาย: ${escHtml(k.tgt||'—')}${k.prog>0?` · ${k.prog}%`:''}</div>
+        ${progBar}
+      </div>`;
+    }).join('');
+
+    return `<div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--s3);border:1px solid var(--lnm);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--f2);flex-shrink:0;">${escHtml((person.nick||'?').slice(0,2))}</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--f1);">${escHtml(person.nick||'—')}</div>
+          <div style="font-size:10.5px;color:var(--f4);">${escHtml(person.pos||'')}</div>
+        </div>
+        <span style="margin-left:auto;font-size:11px;font-weight:600;color:${statusColor};">${person.items.length} KPI</span>
+      </div>
+      ${kpiRows}
+    </div>`;
+  }).join('');
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="drawer-no">KPI HEALTH · ${data.length} รายการ</div>
+    <div class="drawer-title" style="color:${statusColor};">${escHtml(statusLabel)}</div>
+    <div class="drawer-divider"></div>
+    ${personBlocks || '<div style="color:var(--f4);font-size:13px;text-align:center;padding:24px 0;">ไม่มีข้อมูล</div>'}
+  `;
+  document.getElementById('drawer-overlay').style.display = 'block';
+  document.getElementById('drawer').style.display = 'block';
+}
+
+// ============================================================
 // INSIGHTS TOGGLE
 // ============================================================
 function toggleInsights() {
@@ -3290,8 +3412,11 @@ function renderDashRiskCards() {
       : `<span class="dash-risk-badge" style="background:rgba(196,131,74,.12);color:var(--prog);">At-Risk</span>`;
     const owner = Array.isArray(r.owners) ? r.owners.join(', ') : (r.owner || r.owners || '—');
     const deadline = r.deadline ? r.deadline.slice(0,10) : '—';
-    return `<div class="dash-risk-item">
-      <div class="dash-risk-title">${r.title||'—'}</div>
+    return `<div class="dash-risk-item" onclick="openDrawer(${r.no})" style="cursor:pointer;transition:background 100ms;" onmouseenter="this.style.background='rgba(204,82,82,.1)'" onmouseleave="this.style.background='rgba(204,82,82,.05)'">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div class="dash-risk-title" style="flex:1;">${r.title||'—'}</div>
+        <svg style="width:12px;height:12px;stroke:var(--f4);fill:none;stroke-width:1.75;flex-shrink:0;margin-top:2px;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
       <div class="dash-risk-meta">👤 ${owner} · 📅 ${deadline} · ${badge}</div>
     </div>`;
   }).join('');
@@ -3316,9 +3441,10 @@ function renderDashKpiPanel() {
     {label:'N/A',    count:na,     color:'var(--f4)'},
   ].filter(g => g.count > 0);
   const stacked = groups.map(g => `<div style="flex:${g.count};background:${g.color};"></div>`).join('');
-  const legend  = groups.map(g => `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:11.5px;color:var(--f2);">
+  const legend  = groups.map(g => `<div onclick="openKpiDrawer('${g.label}')" style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:11.5px;color:var(--f2);cursor:pointer;padding:3px 6px;margin-left:-6px;border-radius:6px;transition:background 100ms;" onmouseenter="this.style.background='var(--hv)'" onmouseleave="this.style.background=''">
     <div style="width:8px;height:8px;border-radius:50%;background:${g.color};flex-shrink:0;"></div>${g.label}
     <strong style="color:var(--f1);margin-left:auto;font-variant-numeric:tabular-nums;">${g.count}</strong>
+    <svg style="width:11px;height:11px;stroke:var(--f4);fill:none;stroke-width:1.75;flex-shrink:0;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
   </div>`).join('');
   el.innerHTML = `
     <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">
