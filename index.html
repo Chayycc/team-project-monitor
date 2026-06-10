@@ -3566,6 +3566,9 @@ function renderDashSurveyPanel() {
 
 window.addEventListener('DOMContentLoaded', () => {
   populateFilters();
+  // Default: filter to BI Team on All Projects page
+  const ownerSel = document.getElementById('f-owner');
+  if (ownerSel) ownerSel.value = '__BI_TEAM__';
   applyFilters();
   updateDashOverview();
   renderDashActivityFeed();
