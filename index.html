@@ -2876,7 +2876,7 @@ function renderReports() {
 // DRAWER
 // =====================================================
 function openDrawer(no) {
-  const p = RAW.find(r => r.no === no);
+  const p = RAW.find(r => String(r.no) === String(no));
   if (!p) return;
   const dl = p.deadline;
   const diff = daysDiff(dl);
