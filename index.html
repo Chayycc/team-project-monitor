@@ -1625,8 +1625,9 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
         <th>Owner</th>
         <th>Output</th>
         <th>Dept</th>
-        <th>Deadline</th>
-        <th>Submitted</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Actual</th>
       </tr></thead>
       <tbody id="req-body"></tbody>
     </table>
@@ -1673,10 +1674,12 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
           <th onclick="sortBy('no')" id="th-no">#</th>
           <th onclick="sortBy('title')" id="th-title">Project / Activity</th>
           <th onclick="sortBy('status')" id="th-status">Status</th>
+          <th onclick="sortBy('start')" id="th-start">Start</th>
           <th onclick="sortBy('owner')" id="th-owner">Owner</th>
           <th onclick="sortBy('company')" id="th-company">Company</th>
           <th onclick="sortBy('output')" id="th-output">Output</th>
-          <th onclick="sortBy('deadline')" id="th-deadline">Deadline</th>
+          <th onclick="sortBy('deadline')" id="th-deadline">End Date</th>
+          <th onclick="sortBy('actual')" id="th-actual">Actual</th>
           <th onclick="sortBy('risk')" id="th-risk">Risk</th>
           <th>Progress</th>
           <th></th>
@@ -1975,7 +1978,9 @@ function getSorted(arr) {
       case 'owner':    av = a.owners;   bv = b.owners;   break;
       case 'company':  av = a.company;  bv = b.company;  break;
       case 'output':   av = a.output;   bv = b.output;   break;
+      case 'start':    av = a.start||'9999';    bv = b.start||'9999';    break;
       case 'deadline': av = a.deadline||'9999'; bv = b.deadline||'9999'; break;
+      case 'actual':   av = a.actual||'9999';   bv = b.actual||'9999';   break;
       case 'risk':     av = ['delayed','atrisk','ontrack'].indexOf(a.risk); bv = ['delayed','atrisk','ontrack'].indexOf(b.risk); break;
       default:         av = a.no; bv = b.no;
     }
@@ -2030,10 +2035,12 @@ function renderTable() {
         ${p.parent ? `<div class="td-parent">↳ ${escHtml(p.parent)}</div>` : ''}
       </td>
       <td><span class="pill ${statusPillClass(p.status)}"><span class="pill-dot" style="background:${statusDot(p.status)}"></span>${statusLabel(p.status)}</span></td>
+      <td class="mono" style="font-size:11px;color:var(--f3);white-space:nowrap;">${fmtDate(p.start)}</td>
       <td class="td-owner" title="${escHtml(p.owners)}">${escHtml(ownerShort)}</td>
       <td style="font-size:12.5px;color:var(--fg-3)">${escHtml(p.company)}</td>
       <td>${outputTags}</td>
       <td class="td-deadline ${dlClass}">${fmtDate(dl)}</td>
+      <td class="mono" style="font-size:11px;color:${p.actual?'var(--done)':'var(--f4)'};white-space:nowrap;">${fmtDate(p.actual)}</td>
       <td>${riskHtml}</td>
     </tr>`;
   }).join('');
@@ -5078,6 +5085,78 @@ function populateReqOwners() {
   owners.forEach(o => { const op=document.createElement('option'); op.value=o; op.textContent=o; sel.appendChild(op); });
 }
 
+function _reqEditStatus(id, cell) {
+  const rec = (window.NOTION_DATA||[]).find(r=>r.id===id);
+  if (!rec) return;
+  const cur = rec.status;
+  const sel = document.createElement('select');
+  sel.style.cssText = 'font-size:11.5px;padding:3px 6px;border-radius:6px;background:var(--s2);color:var(--f1);border:1.5px solid var(--cu);outline:none;cursor:pointer;';
+  ['done','progress','pending','todo','cancel'].forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = _reqStatusLabel(s);
+    if (s === cur) o.selected = true;
+    sel.appendChild(o);
+  });
+  cell.innerHTML = ''; cell.appendChild(sel); sel.focus();
+  const restore = (nv) => {
+    const ov = _ov2()[id]||{};
+    const rs = nv || (ov.status || cur);
+    cell.innerHTML = `<span class="pill ${_reqStatusClass(rs)}"><span class="pill-dot" style="background:${_reqStatusDot(rs)}"></span>${_reqStatusLabel(rs)}<svg viewBox="0 0 24 24" style="width:8px;height:8px;stroke:currentColor;opacity:.4;margin-left:2px;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg></span>`;
+    cell.onclick = (e)=>{ e.stopPropagation(); _reqEditStatus(id, cell); };
+  };
+  sel.addEventListener('change', () => { _reqSave(id,'status',sel.value); restore(sel.value); });
+  sel.addEventListener('blur', () => restore(null));
+}
+
+function _reqEditDate(id, field, cell, cur) {
+  const inp = document.createElement('input');
+  inp.type = 'date'; inp.value = cur || '';
+  inp.style.cssText = 'font-size:11px;padding:2px 5px;border-radius:5px;background:var(--s2);color:var(--f1);border:1.5px solid var(--cu);outline:none;width:118px;';
+  cell.innerHTML = ''; cell.appendChild(inp); inp.focus();
+  const save = () => {
+    const nv = inp.value;
+    if (nv !== cur) _reqSave(id, field, nv);
+    const isActual = field === 'actual';
+    cell.style.color = (nv && isActual) ? 'var(--done)' : '';
+    cell.classList.toggle('delayed', !isActual && !!nv && new Date(nv) < new Date());
+    cell.innerHTML = nv ? _fmtDateTH(nv) : '<span style="color:var(--f4)">—</span>';
+    cell.onclick = (e) => { e.stopPropagation(); _reqEditDate(id, field, cell, nv || cur); };
+  };
+  inp.addEventListener('blur', save);
+  inp.addEventListener('keydown', e => { if (e.key==='Enter') inp.blur(); if (e.key==='Escape') { cell.innerHTML = cur ? _fmtDateTH(cur) : '<span style="color:var(--f4)">—</span>'; cell.onclick=(ev)=>{ev.stopPropagation();_reqEditDate(id,field,cell,cur);}; } });
+}
+
+function _ov2() { return JSON.parse(localStorage.getItem('req_ov')||'{}'); }
+
+function _reqSave(id, field, val) {
+  const rec = (window.NOTION_DATA||[]).find(r=>r.id===id);
+  if (rec) rec[field] = val;
+  const ov = _ov2();
+  if (!ov[id]) ov[id] = {};
+  ov[id][field] = val;
+  localStorage.setItem('req_ov', JSON.stringify(ov));
+  _reqNotionPatch(id, field, val);
+}
+
+async function _reqNotionPatch(id, field, val) {
+  if (!NOTION_TOKEN || NOTION_TOKEN === 'NOTION_TOKEN_HERE') return;
+  const pid = id.replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5');
+  const props = {};
+  if (field === 'status') {
+    const nm = {done:'Done',progress:'In progress',pending:'Pending',todo:'Not started',cancel:'Cancel'};
+    props['Status'] = {status:{name: nm[val]||val}};
+  } else {
+    const pn = {deadline:'Deadline',submitted:'Submitted',actual:'Actual'};
+    if (pn[field]) props[pn[field]] = {date: val ? {start:val} : null};
+  }
+  try {
+    await fetch(`https://api.notion.com/v1/pages/${pid}`, {
+      method:'PATCH', headers:{'Authorization':'Bearer '+NOTION_TOKEN,'Notion-Version':'2022-06-28','Content-Type':'application/json'},
+      body: JSON.stringify({properties: props})
+    });
+  } catch(e) {}
+}
+
 function renderRequests() {
   const nd = window.NOTION_DATA || [];
   const q  = (document.getElementById('req-search')?.value||'').toLowerCase();
@@ -5121,18 +5200,25 @@ function renderRequests() {
   if (!paged.length) { body.innerHTML=''; empty?.classList.remove('hidden'); return; }
   empty?.classList.add('hidden');
 
-  body.innerHTML = paged.map(r => {
+  const _ov = JSON.parse(localStorage.getItem('req_ov')||'{}');
+  body.innerHTML = paged.map(rawR => {
+    const r = Object.assign({}, rawR, _ov[rawR.id]||{});
     const ownerIni = (r.owner||'?').split(',')[0].trim().split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
     const deptShort = r.dept ? r.dept.split(':')[0].trim() : '—';
-    return `<tr onclick="window.open('https://www.notion.so/${r.id.replace(/-/g,'')}','_blank')">
+    const rid = rawR.id;
+    const endClass = r.deadline && new Date(r.deadline)<new Date() ? 'delayed' : '';
+    return `<tr onclick="window.open('https://www.notion.so/${rid.replace(/-/g,'')}','_blank')">
       <td class="td-title"><div class="td-title-text">${escHtml(r.title||'—')}</div>${r.desc?`<div class="td-parent">${escHtml(r.desc.slice(0,60))}${r.desc.length>60?'…':''}</div>`:''}</td>
-      <td><span class="pill ${_reqStatusClass(r.status)}"><span class="pill-dot" style="background:${_reqStatusDot(r.status)}"></span>${_reqStatusLabel(r.status)}</span></td>
+      <td onclick="event.stopPropagation();_reqEditStatus('${rid}',this)" style="cursor:pointer;min-width:108px;">
+        <span class="pill ${_reqStatusClass(r.status)}"><span class="pill-dot" style="background:${_reqStatusDot(r.status)}"></span>${_reqStatusLabel(r.status)}<svg viewBox="0 0 24 24" style="width:8px;height:8px;stroke:currentColor;opacity:.4;margin-left:2px;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg></span>
+      </td>
       <td style="font-size:11.5px;font-weight:600;color:${_reqPriorityColor(r.priority)}">${_reqPriorityShort(r.priority)}</td>
       <td><div class="ow-c"><div class="ow-av">${escHtml(ownerIni)}</div><span style="font-size:12px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(r.owner||'—')}</span></div></td>
       <td><span style="font-size:10px;padding:1px 5px;border-radius:3px;background:var(--cud);color:var(--cus);">${escHtml(r.output||'—')}</span></td>
       <td style="font-size:11.5px;color:var(--f3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(r.dept)}">${escHtml(deptShort)}</td>
-      <td class="td-deadline ${r.deadline && new Date(r.deadline)<new Date()?'delayed':''}" style="font-size:11.5px;">${_fmtDateTH(r.deadline)}</td>
-      <td style="font-size:11px;color:var(--f4);white-space:nowrap;">${_fmtDateTH(r.submitted)}</td>
+      <td onclick="event.stopPropagation();_reqEditDate('${rid}','submitted',this,'${r.submitted||''}')" style="cursor:pointer;font-size:11.5px;white-space:nowrap;padding-right:10px;" title="คลิกเพื่อแก้ไข Start Date">${_fmtDateTH(r.submitted)||'<span style="color:var(--f4)">—</span>'}</td>
+      <td onclick="event.stopPropagation();_reqEditDate('${rid}','deadline',this,'${r.deadline||''}')" class="td-deadline ${endClass}" style="cursor:pointer;white-space:nowrap;padding-right:10px;" title="คลิกเพื่อแก้ไข End Date">${_fmtDateTH(r.deadline)||'<span style="color:var(--f4)">—</span>'}</td>
+      <td onclick="event.stopPropagation();_reqEditDate('${rid}','actual',this,'${r.actual||''}')" style="cursor:pointer;font-size:11.5px;white-space:nowrap;color:${r.actual?'var(--done)':'var(--f4)'};" title="คลิกเพื่อแก้ไข Actual Date">${_fmtDateTH(r.actual)||'<span style="color:var(--f4)">—</span>'}</td>
     </tr>`;
   }).join('');
   pmPag(total, _reqPg, 'req-pag', function(p){_reqPg=p;renderRequests();});
