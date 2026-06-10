@@ -2547,7 +2547,12 @@ function filterRisk(r) {
 
 function handleOwnerFilterChange() {
   const owner = document.getElementById('f-owner').value;
-  if (owner && owner !== '__BI_TEAM__') {
+  if (owner === '__BI_TEAM__') {
+    if (currentView !== 'table') setView('table');
+    applyFilters();
+    return;
+  }
+  if (owner) {
     const inRaw = RAW.some(p => p.owners.split(',').map(o=>o.trim()).includes(owner));
     if (!inRaw && SHEET_DATA[owner]) {
       setView('sheet');
@@ -3166,12 +3171,32 @@ let activeSheetOwner = Object.keys(SHEET_DATA)[0];
 // ============================================================
 // RENDER SHEET VIEW
 // ============================================================
+function getSheetRowsFor(owner) {
+  if (owner === '__BI_SHEET__') {
+    const biLow = BI_TEAM_OWNERS.map(x => x.toLowerCase());
+    const seen = new Set();
+    const rows = [];
+    Object.keys(SHEET_DATA).forEach(o => {
+      if (biLow.includes(o.toLowerCase())) {
+        SHEET_DATA[o].forEach(r => { if (!seen.has(r.no+r.title)) { seen.add(r.no+r.title); rows.push(r); } });
+      }
+    });
+    return rows;
+  }
+  return SHEET_DATA[owner] || [];
+}
+
 function renderSheet() {
   const owners = Object.keys(SHEET_DATA);
+  const biLow = BI_TEAM_OWNERS.map(x => x.toLowerCase());
+  const biCount = getSheetRowsFor('__BI_SHEET__').length;
 
-  // Render owner tabs
+  // Render owner tabs — BI Team first, then individuals
   const tabsEl = document.getElementById('sheet-owner-tabs');
-  tabsEl.innerHTML = owners.map(o => {
+  const biTab = biCount > 0
+    ? `<button class="sheet-tab ${activeSheetOwner==='__BI_SHEET__' ? 'active' : ''}" onclick="selectSheetOwner('__BI_SHEET__')" style="font-weight:700;">★ BI Team <span style="font-size:10px;opacity:0.6;">(${biCount})</span></button><div style="width:1px;height:20px;background:var(--lnm);align-self:center;margin:0 2px;flex-shrink:0;"></div>`
+    : '';
+  tabsEl.innerHTML = biTab + owners.map(o => {
     const rows = SHEET_DATA[o];
     const isActive = o === activeSheetOwner;
     const shortName = o.split(' ')[0];
@@ -3187,7 +3212,7 @@ function selectSheetOwner(owner) {
 }
 
 function renderSheetTable(owner) {
-  const rows = SHEET_DATA[owner] || [];
+  const rows = getSheetRowsFor(owner);
   const content = document.getElementById('sheet-content');
 
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
