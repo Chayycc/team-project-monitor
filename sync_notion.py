@@ -277,25 +277,24 @@ cal_data.sort(key=lambda x: x['ts'])
 print(f"  → {len(cal_data)} calendar events, {len(cal_meta)} with metadata")
 
 def replace_const(html, var_name, new_data):
-    opn = '[' if isinstance(new_data, list) else '{'
-    clo = ']' if isinstance(new_data, list) else '}'
-    pattern = rf'const {re.escape(var_name)}\s*=\s*[{re.escape(opn)}]'
+    pattern = rf'const {re.escape(var_name)}\s*='
     m = re.search(pattern, html)
     if not m:
         print(f"  WARNING: const {var_name} not found in HTML")
         return html
     start = m.start()
-    depth, i = 0, m.end() - 1
-    while i < len(html):
-        if html[i] == opn:   depth += 1
-        elif html[i] == clo:
-            depth -= 1
-            if depth == 0:
-                end = i + 1
-                if end < len(html) and html[end] == ';':
-                    end += 1
-                break
-        i += 1
+    # Use JSON decoder to find the exact end — handles brackets inside string values
+    json_start = m.end()
+    while json_start < len(html) and html[json_start] in ' \t\n':
+        json_start += 1
+    try:
+        _, consumed = json.JSONDecoder().raw_decode(html[json_start:])
+    except json.JSONDecodeError as e:
+        print(f"  ERROR: could not parse existing {var_name}: {e}")
+        return html
+    end = json_start + consumed
+    if end < len(html) and html[end] == ';':
+        end += 1
     new_json = json.dumps(new_data, ensure_ascii=False, separators=(',', ':'))
     html = html[:start] + f'const {var_name} ={new_json};' + html[end:]
     print(f"  ✓ const {var_name}: {len(new_data)} rows")
