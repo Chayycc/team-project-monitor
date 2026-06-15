@@ -354,6 +354,19 @@ html = html.replace('</title>', f'</title>\n<!-- Last synced: {ts} -->', 1)
 with open('index.html', 'w', encoding='utf-8') as f:
     f.write(html)
 
+# ── Also inject into user-request.html ───────────────────────
+import os as _os
+if _os.path.exists('user-request.html'):
+    print("Updating user-request.html...")
+    with open('user-request.html', 'r', encoding='utf-8') as f:
+        ur_html = f.read()
+    ur_html = replace_var(ur_html, 'NOTION_DATA', user_req)
+    ur_html = re.sub(r'<!-- Last synced:.*?-->', '', ur_html)
+    ur_html = ur_html.replace('</title>', f'</title>\n<!-- Last synced: {ts} -->', 1)
+    with open('user-request.html', 'w', encoding='utf-8') as f:
+        f.write(ur_html)
+    print("  ✓ user-request.html updated")
+
 print(f"\n✅ Done! Synced at {ts}")
 print(f"   User Request:  {len(user_req)} rows")
 print(f"   Team Request:  {len(team_req)} rows")
