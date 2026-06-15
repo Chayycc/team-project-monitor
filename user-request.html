@@ -244,16 +244,11 @@ tr:hover td{background:var(--hv);}
         <div id="rov-type-chart"></div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
       <div class="card">
         <div class="microlabel">By Output Type</div>
         <div class="chart-title" style="margin-bottom:10px;">ประเภท Output</div>
         <div id="rov-output-chart"></div>
-      </div>
-      <div class="card">
-        <div class="microlabel">By Project Owner</div>
-        <div class="chart-title" style="margin-bottom:10px;">Workload ต่อคน</div>
-        <div id="rov-owner-chart"></div>
       </div>
       <div class="card">
         <div class="microlabel">Monthly Trend</div>
@@ -613,50 +608,6 @@ function renderROVCharts() {
           <div style="width:${v/max*100}%;height:100%;background:${outColors[i%outColors.length]};border-radius:3px;"></div>
         </div>
       </div>`).join('');
-  }
-
-  // Owner stacked bar
-  const owMap = {};
-  nd.forEach(r => {
-    const owners = (r.owner||'').split(',').map(o=>o.trim()).filter(Boolean);
-    if (!owners.length) return;
-    const k = owners[0];
-    if (!owMap[k]) owMap[k]={total:0,done:0,progress:0,pending:0,todo:0};
-    owMap[k].total++;
-    owMap[k][r.status]=(owMap[k][r.status]||0)+1;
-  });
-  const owData = Object.entries(owMap).sort((a,b)=>b[1].total-a[1].total).slice(0,8);
-  const owMax  = owData[0]?.[1].total||1;
-  const owEl   = document.getElementById('rov-owner-chart');
-  if (owEl) {
-    owEl.innerHTML = owData.map(([name,s])=>{
-      const short = name.split(' ')[0];
-      const barPct = s.total/owMax*100;
-      const segs = [
-        {k:'done',c:'var(--done)'},{k:'progress',c:'var(--prog)'},
-        {k:'pending',c:'var(--pend)'},{k:'todo',c:'rgba(255,255,255,0.1)'},
-      ].map(st=>{
-        const pct=s.total?(s[st.k]||0)/s.total*100:0;
-        return pct>0?`<div style="width:${pct.toFixed(1)}%;height:100%;background:${st.c};"></div>`:'';
-      }).join('');
-      const pills=[
-        s.done?`<span style="color:var(--done);font-size:10px;">${s.done}</span>`:'',
-        s.progress?`<span style="color:var(--prog);font-size:10px;">${s.progress}</span>`:'',
-        s.pending?`<span style="color:var(--pend);font-size:10px;">${s.pending}</span>`:'',
-      ].filter(Boolean).join('<span style="color:var(--f4);font-size:10px;margin:0 2px;">·</span>');
-      return `<div onclick="rovOpenDrill('owner','${escHtml(name)}')" style="margin-bottom:8px;cursor:pointer;border-radius:6px;padding:3px 4px;transition:background 80ms;"
-               onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background=''">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-          <span style="font-size:11px;color:var(--f2);width:70px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(short)}</span>
-          <div style="flex:1;height:7px;background:var(--s3);border-radius:4px;overflow:hidden;">
-            <div style="width:${barPct.toFixed(1)}%;height:100%;display:flex;">${segs}</div>
-          </div>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--f3);min-width:20px;text-align:right;">${s.total}</span>
-          <svg viewBox="0 0 24 24" style="width:9px;height:9px;stroke:var(--f4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div style="padding-left:76px;display:flex;align-items:center;gap:4px;">${pills}</div>
-      </div>`;
-    }).join('');
   }
 
   // Monthly trend
