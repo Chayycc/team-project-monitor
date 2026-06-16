@@ -15,11 +15,12 @@ HEADERS = {
     'Content-Type': 'application/json',
 }
 
-DB_USER_REQUEST  = '817d901464a84f24bffe480ed2158983'
-DB_TEAM_REQUEST  = '2b68fd87ee6e804f88f8f252850ed099'
-DB_SURVEY        = '30a8fd87ee6e80d48e10d227ebfcc0a4'
-DB_CALENDAR      = '1c18fd87ee6e8112940df29c43a1aca0'
-DB_TEAM_LEARNING = '3818fd87ee6e80abb1e6c00115ffbc1e'
+DB_USER_REQUEST   = '817d901464a84f24bffe480ed2158983'
+DB_TEAM_REQUEST   = '2b68fd87ee6e804f88f8f252850ed099'
+DB_SURVEY         = '30a8fd87ee6e80d48e10d227ebfcc0a4'
+DB_CALENDAR       = '1c18fd87ee6e8112940df29c43a1aca0'
+DB_TEAM_LEARNING  = '3818fd87ee6e80abb1e6c00115ffbc1e'
+DB_TEAM_SKILL_PATH= '37b8fd87ee6e806d8df5f90799061182'
 
 # Notion user UUID prefix → team nick
 USER_NICK_MAP = {
@@ -64,6 +65,51 @@ def gp(p):
     if t == 'multi_select': return ', '.join(s.get('name', '') for s in p.get('multi_select', []))
     if t == 'url':         return p.get('url', '') or ''
     return ''
+
+
+def gp_list(p):
+    """Return a multi_select (or comma-rich_text) property as a list of strings."""
+    if not p: return []
+    t = p.get('type', '')
+    if t == 'multi_select':
+        return [s.get('name', '') for s in p.get('multi_select', []) if s.get('name')]
+    if t == 'rich_text':
+        raw = ''.join(x['plain_text'] for x in p.get('rich_text', []))
+        return [x.strip() for x in raw.split(',') if x.strip()]
+    return []
+
+
+# Typo / variant normalisation for Notion skill values
+_SKILL_NORM = {
+    'Business Comminication': 'Business Communication',
+    'Stakeholder Mangement': 'Stakeholder Management',
+    'Business Deverlopment': 'Business Development',
+    'Analysis Engeneering': 'Analysis Engineering',
+    'Power BI': 'PowerBI',
+}
+_EDU_NORM = {
+    "King Mongkut's Ladkrabang /BA":  "KMITL / BA",
+    "King Mongkut's Ladkrabang / BA": "KMITL / BA",
+    "Chulalongkorn University/ BA":   "Chulalongkorn / BA",
+    "Chulalongkorn University/ MBA":  "Chulalongkorn / MBA",
+    "Chulalongkorn University / BA":  "Chulalongkorn / BA",
+    "Chulalongkorn University / MBA": "Chulalongkorn / MBA",
+    "Thonburi University / BA":       "Thonburi / BA",
+    "Thammasat University / BA":      "Thammasat / BA",
+    "Mahidol University / MBA":       "Mahidol / MBA",
+    "Khon Kaen University / BA":      "Khon Kaen / BA",
+    "Lancaster University / MBA":     "Lancaster / MBA",
+    "Burapha University / BA":        "Burapha / BA",
+}
+
+
+def _pos_to_pk(pos):
+    p = (pos or '').lower()
+    if 'head' in p: return 'head'
+    if 'senior data' in p: return 'sds'
+    if 'senior analysis' in p: return 'sae'
+    if 'analysis eng' in p: return 'ae'
+    return 'da'
 
 
 def ms(s):
@@ -199,6 +245,30 @@ for pg in pages_tl:
         cert_map[name] = cert_url
 print(f"  → {len(cert_map)} cert URLs found")
 
+# ── Team Skill Path ───────────────────────────────────────────
+print("Fetching Team Skill Path...")
+pages_sp = fetch_all(DB_TEAM_SKILL_PATH)
+skill_members = []
+for pg in pages_sp:
+    pr = pg['properties']
+    nick = gp(pr.get('Nickname', {})).strip()
+    name = gp(pr.get('Name', {})).strip()
+    pos  = gp(pr.get('Position', {})).strip()
+    edu_raw  = gp_list(pr.get('Education', {}))
+    tech_raw = gp_list(pr.get('Technical Skill', {}))
+    addon_raw= gp_list(pr.get('Skill Add-on from work', {}))
+    if not nick:
+        continue
+    edu   = [_EDU_NORM.get(e, e) for e in edu_raw]
+    tech  = [_SKILL_NORM.get(s, s) for s in tech_raw]
+    addon = [_SKILL_NORM.get(s, s) for s in addon_raw]
+    skill_members.append({
+        'nick': nick, 'name': name, 'pos': pos,
+        'pk': _pos_to_pk(pos),
+        'edu': edu, 'tech': tech, 'addon': addon,
+    })
+print(f"  → {len(skill_members)} members")
+
 # ── Inject into HTML ─────────────────────────────────────────
 print("Updating index.html...")
 
@@ -249,9 +319,34 @@ def replace_var(html, var_name, new_data):
     print(f"  ✓ {var_name}: {len(new_data)} rows")
     return html
 
+def replace_td_members(html, members_data):
+    """Replace the members:[...] array inside const TD = {...}."""
+    m = re.search(r'const TD\s*=\s*\{[\s\S]*?members:\s*\[', html)
+    if not m:
+        print("  WARNING: TD.members not found in HTML")
+        return html
+    start = m.end() - 1  # position of opening '['
+    depth, i = 0, start
+    while i < len(html):
+        if html[i] == '[': depth += 1
+        elif html[i] == ']':
+            depth -= 1
+            if depth == 0:
+                end = i + 1
+                break
+        i += 1
+    new_json = json.dumps(members_data, ensure_ascii=False, separators=(',', ':'))
+    html = html[:start] + new_json + html[end:]
+    print(f"  ✓ TD.members: {len(members_data)} members")
+    return html
+
+
 html = replace_var(html, 'NOTION_DATA', user_req)
 html = replace_var(html, 'TEAM_REQ_DATA', team_req)
 html = replace_var(html, 'SURVEY_DATA', survey)
+
+if skill_members:
+    html = replace_td_members(html, skill_members)
 
 # ── Patch gpmCourse cert URLs ─────────────────────────────────
 for module_name, cert_url in cert_map.items():
@@ -417,7 +512,8 @@ if _os.path.exists('user-request.html'):
     print("  ✓ user-request.html updated")
 
 print(f"\n✅ Done! Synced at {ts}")
-print(f"   User Request:  {len(user_req)} rows")
-print(f"   Team Request:  {len(team_req)} rows")
-print(f"   Survey:        {len(survey)} rows")
-print(f"   Calendar:      {len(cal_data)} events")
+print(f"   User Request:   {len(user_req)} rows")
+print(f"   Team Request:   {len(team_req)} rows")
+print(f"   Survey:         {len(survey)} rows")
+print(f"   Calendar:       {len(cal_data)} events")
+print(f"   Team Skill Path:{len(skill_members)} members")
