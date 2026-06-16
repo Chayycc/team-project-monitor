@@ -746,6 +746,24 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
 /* ══ SURVEY ROWS ══ */
 .dash-survey-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--lnm);font-size:12px;}
 .dash-survey-row:last-child{border-bottom:none;}
+.sv-mdd{position:relative;display:inline-block;}
+.sv-mdd-btn{height:26px;padding:0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:inherit;white-space:nowrap;transition:border-color 120ms;}
+.sv-mdd-btn:hover{border-color:var(--cu);}
+.sv-mdd-btn.active{border-color:var(--cu);color:var(--cu);}
+.sv-mdd-panel{position:absolute;top:30px;left:0;z-index:150;background:var(--sf);border:1px solid var(--ln);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.32);min-width:170px;padding:6px 0;display:none;max-height:320px;overflow-y:auto;}
+.sv-mdd-panel.open{display:block;}
+.sv-mdd-item{display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;font-size:13px;color:var(--f2);user-select:none;}
+.sv-mdd-item:hover{background:var(--hv);}
+.sv-mdd-item.all{font-weight:600;border-bottom:1px solid var(--ln);margin-bottom:4px;padding-bottom:10px;}
+.sv-mdd-cb{width:16px;height:16px;border:1.5px solid var(--lnm);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 120ms;}
+.sv-mdd-cb.checked{background:var(--cu);border-color:var(--cu);}
+.sv-month-bar-wrap{margin-bottom:14px;}
+.sv-mbar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.sv-mbar-lbl{font-size:11px;color:var(--f3);width:64px;flex-shrink:0;text-align:right;}
+.sv-mbar-track{flex:1;height:20px;background:var(--s3);border-radius:4px;overflow:hidden;position:relative;cursor:pointer;transition:opacity 120ms;}
+.sv-mbar-track:hover{opacity:.8;}
+.sv-mbar-fill{height:100%;border-radius:4px;transition:width 400ms ease;}
+.sv-mbar-val{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#fff;}
 .dash-stars{color:var(--cu);font-size:12px;letter-spacing:-1px;}
 
 /* ══ DASHBOARD QUICK ACCESS ══ */
@@ -1579,6 +1597,17 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
   <div class="pkpi-row" id="sv-kpi" style="margin-bottom:16px;"></div>
   <!-- Score cards -->
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;" id="sv-score-cards"></div>
+  <!-- Month Chart -->
+  <div class="card sv-month-bar-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div>
+        <div class="microlabel">By Month</div>
+        <div class="chart-title">Responses รายเดือน</div>
+      </div>
+      <div style="font-size:11px;color:var(--f4);" id="sv-month-total-lbl"></div>
+    </div>
+    <div id="sv-month-chart"></div>
+  </div>
   <!-- Charts -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
     <div class="card">
@@ -1607,6 +1636,21 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
       <option value="8">8</option>
       <option value="7">7</option>
     </select>
+    <!-- Month multi-select dropdown -->
+    <div class="sv-mdd" id="sv-mdd">
+      <button class="sv-mdd-btn" id="sv-mdd-btn" onclick="svToggleMonthPanel(event)">
+        <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="sv-mdd-label">All Months</span>
+        <svg viewBox="0 0 24 24" style="width:9px;height:9px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="sv-mdd-panel" id="sv-mdd-panel">
+        <div class="sv-mdd-item all" onclick="svClearMonths()">
+          <div class="sv-mdd-cb" id="sv-mdd-cb-all"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
+          <span>All Months</span>
+        </div>
+        <div id="sv-mdd-list"></div>
+      </div>
+    </div>
     <span id="sv-info" style="font-size:11.5px;color:var(--f4);"></span>
   </div>
   <div class="table-wrap">
@@ -6802,6 +6846,50 @@ function kpiSwitchTab(n,btn){
 
 // ══ SURVEY ═══════════════════════════════════════════════════
 let _svPg=1;
+let _svMonths=new Set(); // selected "YYYY-MM" keys; empty = all
+
+const _SV_MONTH_NAMES=['','ม.ค','ก.พ','มี.ค','เม.ย','พ.ค','มิ.ย','ก.ค','ส.ค','ก.ย','ต.ค','พ.ย','ธ.ค'];
+function _svMonthLabel(ym){
+  if(!ym)return'—';
+  const [y,m]=ym.split('-');
+  const be=(parseInt(y)+543)%100;
+  return (_SV_MONTH_NAMES[parseInt(m)]||'?')+' '+be;
+}
+function _svYM(date){return date?date.slice(0,7):'';}
+
+function svToggleMonthPanel(e){
+  e.stopPropagation();
+  const p=document.getElementById('sv-mdd-panel');
+  if(p)p.classList.toggle('open');
+}
+function svClearMonths(){
+  _svMonths.clear();
+  _svPage=1; _svPg=1;
+  _svUpdateMonthUI();
+  renderSurvey();
+}
+function svToggleMonth(ym){
+  if(_svMonths.has(ym)) _svMonths.delete(ym); else _svMonths.add(ym);
+  _svPg=1;
+  _svUpdateMonthUI();
+  renderSurvey();
+}
+function _svUpdateMonthUI(){
+  const btn=document.getElementById('sv-mdd-btn');
+  const lbl=document.getElementById('sv-mdd-label');
+  const allCb=document.getElementById('sv-mdd-cb-all');
+  const isAll=_svMonths.size===0;
+  if(lbl) lbl.textContent=isAll?'All Months':_svMonths.size+' months';
+  if(btn) btn.classList.toggle('active',!isAll);
+  if(allCb) allCb.style.background=isAll?'var(--cu)':'transparent';
+  if(allCb) allCb.style.borderColor=isAll?'var(--cu)':'var(--lnm)';
+  document.querySelectorAll('.sv-mdd-cb[data-ym]').forEach(cb=>{
+    const ym=cb.dataset.ym;
+    const chk=_svMonths.has(ym);
+    cb.style.background=chk?'var(--cu)':'transparent';
+    cb.style.borderColor=chk?'var(--cu)':'var(--lnm)';
+  });
+}
 
 function initSurvey() {
   const nd=window.SURVEY_DATA||[];
@@ -6810,6 +6898,19 @@ function initSurvey() {
   if(stEl&&stEl.options.length<=1){const staff=[...new Set(nd.map(r=>r.staff).filter(Boolean).flatMap(s=>s.split(',').map(x=>x.trim())))].sort();staff.forEach(s=>{const op=document.createElement('option');op.value=s;op.textContent=s;stEl.appendChild(op);});}
   const dEl=document.getElementById('sv-dept');
   if(dEl&&dEl.options.length<=1){const depts=[...new Set(nd.map(r=>r.dept).filter(Boolean))].sort();depts.forEach(d=>{const op=document.createElement('option');op.value=d;op.textContent=d.split(':')[0].trim();dEl.appendChild(op);});}
+  // Build month list (sorted newest first)
+  const months=[...new Set(nd.map(r=>_svYM(r.date)).filter(Boolean))].sort().reverse();
+  const listEl=document.getElementById('sv-mdd-list');
+  if(listEl) listEl.innerHTML=months.map(ym=>`
+    <div class="sv-mdd-item" onclick="svToggleMonth('${ym}')">
+      <div class="sv-mdd-cb" data-ym="${ym}"></div>
+      <span>${_svMonthLabel(ym)}</span>
+    </div>`).join('');
+  // Close panel on outside click
+  document.addEventListener('click',function svMddClose(e){
+    const panel=document.getElementById('sv-mdd-panel');
+    if(panel&&!document.getElementById('sv-mdd')?.contains(e.target))panel.classList.remove('open');
+  },{once:false,capture:false});
   renderSurveyCharts();
   renderSurvey();
 }
@@ -6827,10 +6928,38 @@ function renderSVKpi(nd) {
   ].map(s=>`<div class="pkpi"><div class="pkpi-val" style="color:${s.c}">${s.v}</div><div class="pkpi-lbl">${s.l}</div></div>`).join('');
 }
 
+function renderSvMonthChart(nd) {
+  const mm={};
+  nd.forEach(r=>{const ym=_svYM(r.date);if(ym)mm[ym]=(mm[ym]||0)+1;});
+  const sorted=Object.keys(mm).sort().reverse(); // newest first
+  const mx=Math.max(...Object.values(mm),1);
+  const COLS=['#C49A6C','#D4893A','#52996E','#9A8AB8','#B86848','#6A9EA8','#B89C4F','#8A7A9B'];
+  const el=document.getElementById('sv-month-chart');
+  const lbl=document.getElementById('sv-month-total-lbl');
+  if(lbl) lbl.textContent=sorted.length+' เดือน · '+nd.length+' responses';
+  if(!el)return;
+  if(!sorted.length){el.innerHTML='<div style="font-size:12px;color:var(--f4);padding:8px 0;">ยังไม่มีข้อมูล</div>';return;}
+  el.innerHTML=sorted.map((ym,i)=>{
+    const v=mm[ym]; const pct=Math.round(v/mx*100);
+    const isSelected=_svMonths.has(ym);
+    const barCol=isSelected?'var(--cu)':COLS[i%COLS.length];
+    const selStyle=isSelected?'outline:2px solid var(--cu);outline-offset:1px;':'';
+    return `<div class="sv-mbar-row">
+      <div class="sv-mbar-lbl">${_svMonthLabel(ym)}</div>
+      <div class="sv-mbar-track" onclick="svToggleMonth('${ym}')" style="${selStyle}" title="คลิกเพื่อ filter ${_svMonthLabel(ym)}">
+        <div class="sv-mbar-fill" style="width:${pct}%;background:${barCol};"></div>
+        <div class="sv-mbar-val">${v}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderSurveyCharts() {
   const nd=window.SURVEY_DATA||[];
   const scoreNum=r=>parseInt((r.score||'0').split('-')[0].trim())||0;
   const avg=arr=>arr.length?arr.reduce((s,v)=>s+v,0)/arr.length:0;
+  // Month chart (always uses full dataset)
+  renderSvMonthChart(nd);
   // KPI
   renderSVKpi(nd);
   // Score cards for each metric
@@ -6895,8 +7024,11 @@ function renderSurvey() {
     if(sf&&!(r.staff||'').includes(sf))return false;
     if(df&&r.dept!==df)return false;
     if(scf&&!(r.score||'').startsWith(scf))return false;
+    if(_svMonths.size>0&&!_svMonths.has(_svYM(r.date)))return false;
     return true;
   });
+  // Update month chart selection highlight
+  renderSvMonthChart(nd);
   renderSVKpi(rows);
   const total=rows.length;
   const pages=Math.max(1,Math.ceil(total/PG)); _svPg=Math.min(_svPg,pages);
