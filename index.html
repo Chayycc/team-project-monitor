@@ -776,6 +776,35 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
 .ms-chk.checked::after{content:'✓';font-size:10px;color:#fff;line-height:1;font-weight:700;}
 
 /* ── TEAM DEV DRAWER ── */
+/* People profile drawer */
+#ppl-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
+#ppl-overlay.open{opacity:1;pointer-events:all}
+#ppl-drawer{position:fixed;top:0;right:0;width:520px;height:100vh;background:var(--sf);border-left:1px solid var(--ln);z-index:201;transform:translateX(100%);transition:transform .3s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column;overflow:hidden}
+#ppl-drawer.open{transform:translateX(0)}
+#ppl-drawer .pd-banner{height:80px;position:relative;flex-shrink:0}
+#ppl-drawer .pd-av{width:60px;height:60px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;border:3px solid var(--sf);position:absolute;bottom:-22px;left:20px}
+#ppl-drawer .pd-x{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:7px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;border:none}
+#ppl-drawer .pd-x:hover{background:rgba(0,0,0,.5)}
+#ppl-drawer .pd-head{padding:30px 20px 14px;border-bottom:1px solid var(--ln);flex-shrink:0}
+#ppl-drawer .pd-nick{font-size:20px;font-weight:700;color:var(--f1)}
+#ppl-drawer .pd-fullname{font-size:12px;color:var(--f3);margin-top:3px}
+#ppl-drawer .pd-body{overflow-y:auto;flex:1;padding:14px 20px 32px}
+#ppl-drawer .pd-sec-hd{font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--f4);margin:16px 0 8px;padding-top:2px}
+#ppl-drawer .pd-sec-hd:first-child{margin-top:0}
+#ppl-drawer .pd-score-band{display:flex;align-items:center;gap:14px;padding:12px 14px;background:var(--s2);border-radius:10px;margin-bottom:10px}
+#ppl-drawer .pd-kpi-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--s3)}
+#ppl-drawer .pd-kpi-row:last-child{border-bottom:none}
+#ppl-drawer .pd-kpi-name{font-size:11px;color:var(--f2);flex:1;line-height:1.35}
+#ppl-drawer .pd-proj-row{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--s3)}
+#ppl-drawer .pd-proj-row:last-child{border-bottom:none}
+#ppl-drawer .pd-proj-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+#ppl-drawer .pd-proj-title{font-size:12px;color:var(--f1);line-height:1.35}
+#ppl-drawer .pd-proj-meta{font-size:10px;color:var(--f4);margin-top:2px}
+#ppl-drawer .pd-tag-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+#ppl-drawer .pd-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--s3);color:var(--f3)}
+#ppl-drawer .pd-persp-lbl{font-size:9.5px;font-weight:600;color:var(--f4);text-transform:uppercase;letter-spacing:.4px;margin:8px 0 4px;padding-left:2px}
+.ppl2-card{cursor:pointer;}
+@media(max-width:600px){#ppl-drawer{width:100vw}}
 #td-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
 #td-overlay.open{opacity:1;pointer-events:all}
 #td-drawer{position:fixed;top:0;right:0;width:400px;height:100vh;background:var(--sf);border-left:1px solid var(--ln);z-index:201;transform:translateX(100%);transition:transform .3s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column;overflow:hidden}
@@ -1907,6 +1936,20 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
     </div>
   </div>
 </div>
+<!-- People Profile Drawer -->
+<div id="ppl-overlay" onclick="closePplDrawer()"></div>
+<div id="ppl-drawer">
+  <div class="pd-banner" id="pd-banner">
+    <div class="pd-av" id="pd-av"></div>
+    <button class="pd-x" onclick="closePplDrawer()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="pd-head">
+    <div class="pd-nick" id="pd-nick"></div>
+    <div class="pd-fullname" id="pd-fullname"></div>
+    <div id="pd-pos" style="margin-top:8px;"></div>
+  </div>
+  <div class="pd-body" id="pd-body"></div>
+</div>
 <!-- Team Dev Drawer -->
 <div id="td-overlay" onclick="tdCloseDrawer()"></div>
 <div id="td-drawer">
@@ -2953,6 +2996,153 @@ function goTo(page) {
 // =====================================================
 const PEOPLE_EXCLUDE = ['Chay', 'Data', 'Data & Strategy'];
 
+function openPplDrawer(nick) {
+  const m = TD.members.find(x => x.nick === nick);
+  if (!m) return;
+  const pk  = m.pk;
+  const col = TD.posColor[pk] || '#857D74';
+  const bg  = TD.posBg[pk]   || 'rgba(133,125,116,.15)';
+  const posLbl = TD.posLabel[pk] || m.pos;
+
+  // Header
+  const banner = document.getElementById('pd-banner');
+  banner.style.background = `linear-gradient(135deg,${col}33,${col}11)`;
+  const av = document.getElementById('pd-av');
+  av.textContent = m.nick.slice(0,2);
+  av.style.cssText = `background:${bg};border:3px solid var(--sf);color:${col};width:60px;height:60px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;position:absolute;bottom:-22px;left:20px;`;
+  document.getElementById('pd-nick').textContent = m.nick;
+  document.getElementById('pd-fullname').textContent = m.name;
+  document.getElementById('pd-pos').innerHTML = `<span class="ppl2-pos-tag" style="background:${bg};color:${col};">${posLbl}</span>`;
+
+  // ── KPI ─────────────────────────────────────────────────────
+  const kpis = KPI_DATA.filter(r => r.nick === nick);
+  let kpiW = 0, kpiWTot = 0, kpiLate = 0;
+  kpis.forEach(k => { kpiW += (k.prog/100)*k.w; kpiWTot += k.w; if(k.status==='ล่าช้า') kpiLate++; });
+  const kpiPct = kpiWTot ? Math.round(kpiW/kpiWTot*100) : 0;
+  const kpiCol = kpiLate>0 ? 'var(--pend)' : kpiPct>=60 ? 'var(--done)' : 'var(--cu)';
+  const kpiDash = Math.round(kpiPct/100*100.2);
+
+  const perspOrder = ['Finance','Customer','Process','Learning & Growth'];
+  const perspGroups = {};
+  kpis.forEach(k => { (perspGroups[k.persp] = perspGroups[k.persp]||[]).push(k); });
+
+  const kpiHtml = !kpis.length ? `<div style="font-size:12px;color:var(--f4);padding:12px 0;">ยังไม่มีข้อมูล KPI</div>` : `
+    <div class="pd-score-band">
+      <div style="position:relative;width:52px;height:52px;flex-shrink:0;">
+        <svg viewBox="0 0 36 36" style="width:52px;height:52px;transform:rotate(-90deg);">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--s3)" stroke-width="3.5"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="${kpiCol}" stroke-width="3.5"
+            stroke-dasharray="${kpiDash} ${Math.round(100.2-kpiDash)}" stroke-linecap="round"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:${kpiCol};">${kpiPct}%</div>
+      </div>
+      <div>
+        <div style="font-size:18px;font-weight:700;color:${kpiCol};line-height:1;">${kpiPct}%</div>
+        <div style="font-size:11px;color:var(--f3);margin-top:3px;">${kpis.length} KPI · Weighted Score</div>
+        <div style="font-size:11px;margin-top:3px;color:${kpiLate>0?'var(--pend)':'var(--done)'};">${kpiLate>0?'⚠ '+kpiLate+' รายการล่าช้า':'✓ ตามแผนทุกรายการ'}</div>
+      </div>
+    </div>
+    ${perspOrder.filter(p=>perspGroups[p]).map(persp=>`
+      <div class="pd-persp-lbl">${persp}</div>
+      ${perspGroups[persp].map(k=>{
+        const pc = k.status==='ล่าช้า'?'var(--pend)':k.prog>=60?'var(--done)':'var(--cu)';
+        const d = Math.round(k.prog/100*100.2);
+        return `<div class="pd-kpi-row">
+          <div style="width:28px;height:28px;position:relative;flex-shrink:0;">
+            <svg viewBox="0 0 36 36" style="width:28px;height:28px;transform:rotate(-90deg);">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--s3)" stroke-width="4"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="${pc}" stroke-width="4"
+                stroke-dasharray="${d} ${Math.round(100.2-d)}" stroke-linecap="round"/>
+            </svg>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:700;color:${pc};">${k.prog}</div>
+          </div>
+          <div class="pd-kpi-name">${escHtml(k.kname.length>65?k.kname.slice(0,63)+'…':k.kname)}</div>
+          <div style="font-size:9.5px;color:var(--f4);white-space:nowrap;flex-shrink:0;">${k.w}%w</div>
+          ${k.status==='ล่าช้า'?`<span style="font-size:8.5px;color:var(--pend);background:rgba(224,82,82,.12);border-radius:3px;padding:1px 5px;flex-shrink:0;">ล่าช้า</span>`:''}
+        </div>`;
+      }).join('')}
+    `).join('')}`;
+
+  // ── Projects ──────────────────────────────────────────────────
+  const myProj = RAW.filter(p=>(p.owners||'').split(',').map(o=>o.trim()).some(o=>matchNick(nick,o)));
+  const projHtml = !myProj.length ? `<div style="font-size:12px;color:var(--f4);padding:8px 0;">ไม่มีโปรเจกต์</div>` :
+    myProj.map(p=>`<div class="pd-proj-row">
+      <div class="pd-proj-dot" style="background:${statusDot(p.status)}"></div>
+      <div>
+        <div class="pd-proj-title">${escHtml(p.title||'(ไม่มีชื่อ)')}</div>
+        <div class="pd-proj-meta">${[p.company,p.dept,p.deadline?fmtDate(p.deadline):''].filter(Boolean).join(' · ')}</div>
+      </div>
+    </div>`).join('');
+
+  // ── User Requests ─────────────────────────────────────────────
+  const myUR = (NOTION_DATA||[]).filter(r=>matchNick(nick,r.owner||''));
+  const urHtml = !myUR.length ? `<div style="font-size:12px;color:var(--f4);padding:8px 0;">ไม่มี User Request</div>` :
+    myUR.map(r=>`<div class="pd-proj-row">
+      <div class="pd-proj-dot" style="background:${statusDot(r.status)}"></div>
+      <div>
+        <div class="pd-proj-title">${escHtml(r.title||'(ไม่มีชื่อ)')}</div>
+        <div class="pd-proj-meta">${[r.dept,r.submitted?r.submitted.slice(0,10):''].filter(Boolean).join(' · ')}</div>
+      </div>
+    </div>`).join('');
+
+  // ── Team Requests ─────────────────────────────────────────────
+  const myTR = (TEAM_REQ_DATA||[]).filter(r=>matchNick(nick,(r.owner||'')+' '+(r.member||'')));
+  const trHtml = !myTR.length ? `<div style="font-size:12px;color:var(--f4);padding:8px 0;">ไม่มี Team Request</div>` :
+    myTR.map(r=>`<div class="pd-proj-row">
+      <div class="pd-proj-dot" style="background:${statusDot(r.status)}"></div>
+      <div>
+        <div class="pd-proj-title">${escHtml(r.title||'(ไม่มีชื่อ)')}</div>
+        <div class="pd-proj-meta">${[r.type,r.company].filter(Boolean).map(escHtml).join(' · ')}</div>
+      </div>
+    </div>`).join('');
+
+  // ── Skills ────────────────────────────────────────────────────
+  const skillsHtml = `
+    <div style="font-size:10px;font-weight:600;color:var(--f4);margin-bottom:5px;">Technical Skills</div>
+    <div class="pd-tag-wrap">${m.tech.map(s=>`<span class="pd-tag" style="background:var(--cud2);color:var(--cu);">${escHtml(s)}</span>`).join('')}</div>
+    <div style="font-size:10px;font-weight:600;color:var(--f4);margin:10px 0 5px;">Add-on Skills</div>
+    <div class="pd-tag-wrap">${m.addon.map(s=>`<span class="pd-tag">${escHtml(s)}</span>`).join('')}</div>
+    <div style="font-size:10px;font-weight:600;color:var(--f4);margin:10px 0 5px;">Education</div>
+    <div class="pd-tag-wrap">${m.edu.map(e=>`<span class="pd-tag" style="background:var(--s2);color:var(--f2);">${escHtml(e)}</span>`).join('')}</div>`;
+
+  // ── Learning ──────────────────────────────────────────────────
+  let learnHtml = '';
+  if (TD.gpmCourse && TD.gpmCourse.learner === nick) {
+    const items = TD.gpmCourse.items;
+    const done = items.filter(i=>i.status==='Done').length;
+    const lPct = items.length ? Math.round(done/items.length*100) : 0;
+    learnHtml = `<div class="pd-sec-hd">🎓 ${escHtml(TD.gpmCourse.name)}</div>
+      <div class="ppl2-mbar" style="margin-bottom:5px;"><div class="ppl2-mbar-fill" style="width:${lPct}%;background:var(--cu)"></div></div>
+      <div style="font-size:10px;color:var(--f4);margin-bottom:8px;">${done}/${items.length} courses · ${lPct}%</div>
+      ${items.map(c=>{
+        const isDone=c.status==='Done', dc=isDone?'var(--done)':'var(--f4)';
+        const cert=isDone&&c.certUrl?`<a href="${c.certUrl}" target="_blank" style="font-size:9.5px;color:var(--done);background:var(--donebg);border-radius:4px;padding:1px 6px;text-decoration:none;white-space:nowrap;flex-shrink:0;">🏆 Cert</a>`:'';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--s3);">
+          <div style="width:7px;height:7px;border-radius:50%;background:${dc};flex-shrink:0;"></div>
+          <div style="font-size:11px;color:${isDone?'var(--f2)':'var(--f4)'};flex:1;line-height:1.3;">${escHtml(c.name)}</div>
+          ${cert}
+        </div>`;
+      }).join('')}`;
+  }
+
+  // ── Assemble body ─────────────────────────────────────────────
+  document.getElementById('pd-body').innerHTML = `
+    <div class="pd-sec-hd">🎯 KPI Score</div>${kpiHtml}
+    <div class="pd-sec-hd">📂 Projects (${myProj.length})</div>${projHtml}
+    <div class="pd-sec-hd">📋 User Request (${myUR.length})</div>${urHtml}
+    <div class="pd-sec-hd">📁 Team Request (${myTR.length})</div>${trHtml}
+    <div class="pd-sec-hd">🚀 Skills & Education</div>${skillsHtml}
+    ${learnHtml}`;
+
+  document.getElementById('ppl-overlay').classList.add('open');
+  document.getElementById('ppl-drawer').classList.add('open');
+}
+
+function closePplDrawer() {
+  document.getElementById('ppl-overlay').classList.remove('open');
+  document.getElementById('ppl-drawer').classList.remove('open');
+}
+
 // Nick → keywords found in English/Thai owner strings across data sources
 const NICK_KEYS = {
   'โตโต้': ['worapop','วรภพ'],
@@ -3064,7 +3254,7 @@ function renderPeople() {
       learnHtml = `<div class="ppl2-metric-sub" style="margin-top:6px;">${techN} tech · ${addonN} add-on</div>`;
     }
 
-    return `<div class="ppl2-card">
+    return `<div class="ppl2-card" onclick="openPplDrawer('${m.nick}')" role="button" tabindex="0">
       <div class="ppl2-head">
         <div class="ppl2-av" style="background:${bg};border-color:${col};color:${col};">${m.nick.slice(0,2)}</div>
         <div class="ppl2-info">
