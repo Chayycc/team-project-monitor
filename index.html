@@ -299,6 +299,34 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
 .progress-bar-track{height:3px;background:var(--s3);border-radius:2px;overflow:hidden;margin-top:4px;}
 .progress-bar-fill{height:100%;border-radius:2px;background:var(--done);}
 
+/* People v2 ─ redesigned profile cards */
+.ppl2-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(460px,1fr));gap:12px;margin-top:12px;}
+.ppl2-card{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:16px 18px;transition:border-color 120ms;}
+.ppl2-card:hover{border-color:var(--lnm);}
+.ppl2-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.ppl2-av{width:44px;height:44px;border-radius:11px;border:1.5px solid;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.ppl2-info{flex:1;min-width:0;}
+.ppl2-nick{font-size:15px;font-weight:700;color:var(--f1);}
+.ppl2-fullname{font-size:11.5px;color:var(--f3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ppl2-pos-tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:4px;}
+.ppl2-ring-lbl{font-size:9px;color:var(--f4);text-align:center;margin-top:3px;}
+.ppl2-divider{height:1px;background:var(--ln);margin:0 -18px 14px;}
+.ppl2-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0;}
+.ppl2-metric{padding:0 12px;border-right:1px solid var(--ln);}
+.ppl2-metric:first-child{padding-left:0;}
+.ppl2-metric:last-child{border-right:none;padding-right:0;}
+.ppl2-metric-hd{font-size:9px;font-weight:600;color:var(--f4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.ppl2-metric-big{font-size:22px;font-weight:700;line-height:1;font-family:'JetBrains Mono',monospace;}
+.ppl2-metric-sub{font-size:10px;color:var(--f4);margin-top:4px;line-height:1.4;}
+.ppl2-mbar{height:3px;background:var(--s3);border-radius:2px;margin-top:8px;overflow:hidden;}
+.ppl2-mbar-fill{height:100%;border-radius:2px;transition:width 600ms ease;}
+.ppl2-stat-row{display:flex;gap:0;margin-top:2px;}
+.ppl2-stat-item{text-align:center;flex:1;}
+.ppl2-stat-v{font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.ppl2-stat-k{font-size:9px;color:var(--f4);margin-top:1px;}
+.ppl2-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px;}
+.ppl2-tag{font-size:9px;background:var(--s3);color:var(--f3);border-radius:3px;padding:1px 5px;white-space:nowrap;}
+
 /* Reports */
 #reports-page{display:none;}
 .reports-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
@@ -440,6 +468,10 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
 
   /* People grid */
   .people-grid { grid-template-columns:1fr !important; }
+  .ppl2-grid { grid-template-columns:1fr !important; }
+  .ppl2-metrics { grid-template-columns:repeat(2,1fr) !important; }
+  .ppl2-metric { border-right:none !important; border-bottom:1px solid var(--ln); padding:10px 0 !important; }
+  .ppl2-metric:nth-child(3),.ppl2-metric:nth-child(4) { border-bottom:none; }
 
   /* Reports */
   .reports-grid { grid-template-columns:1fr !important; }
@@ -2920,64 +2952,189 @@ function goTo(page) {
 // PEOPLE PAGE
 // =====================================================
 const PEOPLE_EXCLUDE = ['Chay', 'Data', 'Data & Strategy'];
+
+// Nick → keywords found in English/Thai owner strings across data sources
+const NICK_KEYS = {
+  'โตโต้': ['worapop','วรภพ'],
+  'หมิว':  ['nutcha','ณัชชา','อัญชนา','ns'],
+  'ทราย':  ['sureeporn','ศุรีย์ภรณ์','ทรายทอง'],
+  'พลอย':  ['ploy','พลอย'],
+  'โบว์':  ['kanya','กัญญา','กมลชนก'],
+  'เอโกะ': ['pakawadee','ภควดี','ภัทรวดี','ako'],
+  'ต้า':   ['patiwat','ปฏิวัฒน์','ธีรนาถ'],
+  'เช่':   ['sivatep','ศิวะเทพ','ศิริพร'],
+  'ฟ้าใส': ['rattanaporn','รัตนาภรณ์','ณัฏฐา'],
+  'โอม':   ['ohm','ณัฐวัชร์','อธิษฐาน'],
+};
+function matchNick(nick, str) {
+  const s = (str || '').toLowerCase();
+  return (NICK_KEYS[nick] || []).some(k => s.includes(k));
+}
+
 function renderPeople() {
-  const owners = {};
+  // ── KPI by nick ──────────────────────────────────────────────
+  const kpiByNick = {};
+  KPI_DATA.forEach(r => { (kpiByNick[r.nick] = kpiByNick[r.nick] || []).push(r); });
+
+  // ── Project stats from RAW ───────────────────────────────────
+  const projByNick = {};
   RAW.forEach(p => {
-    p.owners.split(',').map(o=>o.trim()).filter(Boolean).forEach(o => {
-      if (PEOPLE_EXCLUDE.some(ex => o.toLowerCase() === ex.toLowerCase())) return;
-      if (!owners[o]) owners[o] = {name:o, total:0, projects:0, done:0, progress:0, todo:0, pending:0, fromSheet:false};
-      owners[o].total++;
-      if (!p.parent) owners[o].projects++;
-      owners[o][p.status] = (owners[o][p.status]||0) + 1;
+    (p.owners||'').split(',').map(o=>o.trim()).filter(Boolean).forEach(o => {
+      const m = TD.members.find(mb => matchNick(mb.nick, o));
+      if (!m) return;
+      const d = projByNick[m.nick] = projByNick[m.nick] || {done:0,progress:0,todo:0,pending:0,total:0};
+      d.total++;
+      if (p.status in d) d[p.status]++;
     });
   });
 
-  // Add teams/groups from SHEET_DATA that are not in RAW owners
-  const sheetStatusMap = {'done':'done','in progress':'progress','not started':'todo','pending':'pending'};
-  Object.keys(SHEET_DATA).forEach(sheetName => {
-    if (owners[sheetName]) return; // already in RAW
-    if (PEOPLE_EXCLUDE.some(ex => sheetName.toLowerCase() === ex.toLowerCase())) return;
-    const rows = SHEET_DATA[sheetName] || [];
-    if (!rows.length) return;
-    const entry = {name: sheetName, total: rows.length, done:0, progress:0, todo:0, pending:0, fromSheet:true};
-    rows.forEach(r => {
-      const sk = sheetStatusMap[(r.status||'').toLowerCase()] || 'todo';
-      entry[sk] = (entry[sk]||0) + 1;
-    });
-    owners[sheetName] = entry;
+  // ── User request by nick ─────────────────────────────────────
+  const urByNick = {};
+  (NOTION_DATA||[]).forEach(r => {
+    const m = TD.members.find(mb => matchNick(mb.nick, r.owner||''));
+    if (!m) return;
+    const d = urByNick[m.nick] = urByNick[m.nick] || {total:0,done:0,progress:0,pending:0,todo:0};
+    d.total++;
+    if (r.status in d) d[r.status]++;
   });
 
-  const sorted = Object.values(owners).sort((a,b)=>b.total-a.total);
+  // ── Team request by nick ─────────────────────────────────────
+  const trByNick = {};
+  (TEAM_REQ_DATA||[]).forEach(r => {
+    const combined = (r.owner||'')+' '+(r.member||'');
+    const m = TD.members.find(mb => matchNick(mb.nick, combined));
+    if (!m) return;
+    const d = trByNick[m.nick] = trByNick[m.nick] || {total:0,done:0,progress:0,todo:0};
+    d.total++;
+    if (r.status in d) d[r.status]++;
+  });
+
+  // ── Render ───────────────────────────────────────────────────
   const grid = document.getElementById('people-grid');
-  grid.innerHTML = sorted.map(o => {
-    const donePct = o.total ? Math.round(o.done/o.total*100) : 0;
-    const ini = initials(o.name);
-    const badge = o.fromSheet ? `<span style="font-size:9px;background:var(--brand-copper);color:#111;border-radius:3px;padding:1px 5px;margin-left:6px;font-weight:600;letter-spacing:.4px;">TEAM</span>` : '';
-    const clickAction = o.fromSheet
-      ? `openOwnerDetail('${escHtml(o.name)}')`
-      : `setOwnerFilter('${escHtml(o.name)}'); goTo('projects');`;
-    return `<div class="people-card" onclick="${clickAction}" style="cursor:pointer;">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
-        <div class="people-avatar" style="margin-bottom:0;">${ini}</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;">
-          <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--cud2);color:var(--cu);white-space:nowrap;">${o.projects||o.total} projects</span>
-          <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--s3);color:var(--f3);white-space:nowrap;">${o.total} tasks</span>
-          ${o.fromSheet ? `<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;background:var(--cu);color:#0D0D10;">TEAM</span>` : ''}
+  grid.className = 'ppl2-grid';
+
+  const members = TD.members.filter(m => m.nick !== 'เชย์');
+  grid.innerHTML = members.map(m => {
+    const pk = m.pk;
+    const col  = TD.posColor[pk] || '#857D74';
+    const bg   = TD.posBg[pk]   || 'rgba(133,125,116,.15)';
+    const posLbl = TD.posLabel[pk] || m.pos;
+
+    // KPI weighted score
+    const kpis = kpiByNick[m.nick] || [];
+    let kpiW = 0, kpiWTot = 0, kpiLate = 0;
+    kpis.forEach(k => { kpiW += (k.prog/100)*k.w; kpiWTot += k.w; if(k.status==='ล่าช้า') kpiLate++; });
+    const kpiPct = kpiWTot ? Math.round(kpiW/kpiWTot*100) : 0;
+    const kpiCol = kpiLate > 0 ? 'var(--pend)' : kpiPct >= 60 ? 'var(--done)' : 'var(--cu)';
+
+    // Data Issue KPI (item no=5 containing "Data Issue")
+    const diKpi = kpis.find(k => k.no === 5 && (k.kname||'').includes('Data Issue'));
+    const diLate = diKpi && diKpi.status === 'ล่าช้า';
+
+    // Projects
+    const proj = projByNick[m.nick] || {done:0,progress:0,todo:0,pending:0,total:0};
+    const projPct = proj.total ? Math.round(proj.done/proj.total*100) : 0;
+
+    // Requests
+    const ur = urByNick[m.nick] || {total:0,done:0,progress:0,pending:0,todo:0};
+    const tr = trByNick[m.nick] || {total:0,done:0,progress:0,todo:0};
+    const urActive = (ur.progress||0) + (ur.todo||0) + (ur.pending||0);
+    const urDonePct = ur.total ? Math.round(ur.done/ur.total*100) : 0;
+
+    // Team Dev — tech skills
+    const techN  = m.tech.length;
+    const addonN = m.addon.length;
+    const topTech = m.tech.slice(0,4);
+
+    // Overall health = KPI 60% + Projects 40%
+    const health = Math.round(kpiPct * 0.6 + projPct * 0.4);
+    const hCol = health >= 70 ? '#52c87a' : health >= 40 ? '#d4855a' : '#e05252';
+    const circ = 100.2; // 2π×15.9
+    const dash = Math.round(health / 100 * circ);
+
+    // Learning progress from gpmCourse if applicable
+    let learnHtml = '';
+    if (TD.gpmCourse && TD.gpmCourse.learner === m.nick) {
+      const done = TD.gpmCourse.items.filter(i=>i.status==='Done').length;
+      const tot  = TD.gpmCourse.items.length;
+      const lPct = tot ? Math.round(done/tot*100) : 0;
+      learnHtml = `<div class="ppl2-mbar" style="margin-top:6px;"><div class="ppl2-mbar-fill" style="width:${lPct}%;background:var(--cu)"></div></div>
+        <div class="ppl2-metric-sub">${done}/${tot} courses · ${lPct}%</div>`;
+    } else {
+      learnHtml = `<div class="ppl2-metric-sub" style="margin-top:6px;">${techN} tech · ${addonN} add-on</div>`;
+    }
+
+    return `<div class="ppl2-card">
+      <div class="ppl2-head">
+        <div class="ppl2-av" style="background:${bg};border-color:${col};color:${col};">${m.nick.slice(0,2)}</div>
+        <div class="ppl2-info">
+          <div class="ppl2-nick">${m.nick}</div>
+          <div class="ppl2-fullname" title="${escHtml(m.name)}">${escHtml(m.name)}</div>
+          <span class="ppl2-pos-tag" style="background:${bg};color:${col};">${posLbl}</span>
+        </div>
+        <div style="flex-shrink:0;text-align:center;">
+          <div style="position:relative;width:48px;height:48px;margin:0 auto;">
+            <svg viewBox="0 0 36 36" style="width:48px;height:48px;transform:rotate(-90deg);">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--s3)" stroke-width="3"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="${hCol}" stroke-width="3"
+                stroke-dasharray="${dash} ${Math.round(circ-dash)}" stroke-linecap="round"/>
+            </svg>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${hCol};">${health}%</div>
+          </div>
+          <div class="ppl2-ring-lbl">Overall</div>
         </div>
       </div>
-      <div class="people-name">${escHtml(o.name)}</div>
-      <div class="people-count" style="margin-bottom:0;"></div>
-      <div class="people-stat-row">
-        <div class="people-stat"><div class="people-stat-val" style="color:var(--done)">${o.done}</div><div class="people-stat-key">Done</div></div>
-        <div class="people-stat"><div class="people-stat-val" style="color:var(--prog)">${o.progress||0}</div><div class="people-stat-key">In Progress</div></div>
-        <div class="people-stat"><div class="people-stat-val" style="color:var(--f3)">${o.todo||0}</div><div class="people-stat-key">Not Started</div></div>
-        <div class="people-stat"><div class="people-stat-val" style="color:var(--pend)">${o.pending||0}</div><div class="people-stat-key">Pending</div></div>
-      </div>
-      <div class="progress-bar-wrap">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--fg-4);">
-          <span>Completion</span><span class="mono" style="color:var(--fg-2)">${donePct}%</span>
+
+      <div class="ppl2-divider"></div>
+
+      <div class="ppl2-metrics">
+        <!-- Projects -->
+        <div class="ppl2-metric">
+          <div class="ppl2-metric-hd">📂 Projects</div>
+          <div class="ppl2-stat-row">
+            <div class="ppl2-stat-item"><div class="ppl2-stat-v" style="color:var(--done)">${proj.done}</div><div class="ppl2-stat-k">Done</div></div>
+            <div class="ppl2-stat-item"><div class="ppl2-stat-v" style="color:var(--prog)">${proj.progress||0}</div><div class="ppl2-stat-k">Prog</div></div>
+            <div class="ppl2-stat-item"><div class="ppl2-stat-v" style="color:var(--f3)">${proj.todo||0}</div><div class="ppl2-stat-k">Todo</div></div>
+          </div>
+          <div class="ppl2-mbar"><div class="ppl2-mbar-fill" style="width:${projPct}%;background:var(--done)"></div></div>
+          <div class="ppl2-metric-sub">${projPct}% · ${proj.total} tasks</div>
         </div>
-        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${donePct}%"></div></div>
+
+        <!-- KPI -->
+        <div class="ppl2-metric">
+          <div class="ppl2-metric-hd">🎯 KPI Score</div>
+          <div class="ppl2-metric-big" style="color:${kpiCol}">${kpiPct}<span style="font-size:12px;font-weight:400;color:var(--f4)">%</span></div>
+          <div class="ppl2-mbar"><div class="ppl2-mbar-fill" style="width:${kpiPct}%;background:${kpiCol}"></div></div>
+          <div class="ppl2-metric-sub">${kpis.length} KPI${kpiLate>0?` · <span style="color:var(--pend)">${kpiLate} ล่าช้า</span>`:' · ตามแผน'}${diLate?' · <span style="color:var(--pend)">DI⚠</span>':''}</div>
+        </div>
+
+        <!-- Requests -->
+        <div class="ppl2-metric">
+          <div class="ppl2-metric-hd">📋 Requests</div>
+          <div style="display:flex;align-items:baseline;gap:10px;margin-top:2px;">
+            <div style="text-align:center;">
+              <div class="ppl2-stat-v" style="color:var(--f1)">${ur.total}</div>
+              <div class="ppl2-stat-k">User</div>
+            </div>
+            <div style="width:1px;height:22px;background:var(--ln);flex-shrink:0;"></div>
+            <div style="text-align:center;">
+              <div class="ppl2-stat-v" style="color:var(--f1)">${tr.total}</div>
+              <div class="ppl2-stat-k">Team</div>
+            </div>
+          </div>
+          <div class="ppl2-mbar"><div class="ppl2-mbar-fill" style="width:${urDonePct}%;background:var(--done)"></div></div>
+          <div class="ppl2-metric-sub">${urActive} active · ${ur.done} done</div>
+        </div>
+
+        <!-- Skills / Team Dev -->
+        <div class="ppl2-metric">
+          <div class="ppl2-metric-hd">🚀 Team Dev</div>
+          <div class="ppl2-tags">
+            ${topTech.map(s=>`<span class="ppl2-tag">${escHtml(s)}</span>`).join('')}
+            ${techN>4?`<span class="ppl2-tag" style="color:var(--cu);">+${techN-4}</span>`:''}
+          </div>
+          ${learnHtml}
+        </div>
       </div>
     </div>`;
   }).join('');
