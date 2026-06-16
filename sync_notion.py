@@ -15,10 +15,11 @@ HEADERS = {
     'Content-Type': 'application/json',
 }
 
-DB_USER_REQUEST = '817d901464a84f24bffe480ed2158983'
-DB_TEAM_REQUEST = '2b68fd87ee6e804f88f8f252850ed099'
-DB_SURVEY      = '30a8fd87ee6e80d48e10d227ebfcc0a4'
-DB_CALENDAR    = '1c18fd87ee6e8112940df29c43a1aca0'
+DB_USER_REQUEST  = '817d901464a84f24bffe480ed2158983'
+DB_TEAM_REQUEST  = '2b68fd87ee6e804f88f8f252850ed099'
+DB_SURVEY        = '30a8fd87ee6e80d48e10d227ebfcc0a4'
+DB_CALENDAR      = '1c18fd87ee6e8112940df29c43a1aca0'
+DB_TEAM_LEARNING = '3818fd87ee6e80abb1e6c00115ffbc1e'
 
 # Notion user UUID prefix → team nick
 USER_NICK_MAP = {
@@ -164,6 +165,40 @@ for pg in pages_sv:
     })
 print(f"  → {len(survey)} rows")
 
+# ── Team Learning cert URLs ──────────────────────────────────
+print("Fetching Team Learning cert URLs...")
+pages_tl = fetch_all(DB_TEAM_LEARNING)
+cert_map = {}  # module_name → cert_url
+for pg in pages_tl:
+    pr = pg['properties']
+    # Module name: try common field names
+    name = ''
+    for field in ['Name', 'Title', 'Course Name', 'Module', 'ชื่อ']:
+        name = gp(pr.get(field, {}))
+        if name:
+            break
+    if not name:
+        # fallback: any title-type property
+        for v in pr.values():
+            if v.get('type') == 'title':
+                name = gp(v)
+                if name:
+                    break
+    # Cert URL: try common field names, then any url-type property
+    cert_url = ''
+    for field in ['Certificate', 'Cert URL', 'Cert Link', 'Link', 'URL', 'SharePoint']:
+        cert_url = gp(pr.get(field, {}))
+        if cert_url and cert_url.startswith('http'):
+            break
+    if not cert_url:
+        for v in pr.values():
+            if v.get('type') == 'url' and (v.get('url') or '').startswith('http'):
+                cert_url = v['url']
+                break
+    if name and cert_url:
+        cert_map[name] = cert_url
+print(f"  → {len(cert_map)} cert URLs found")
+
 # ── Inject into HTML ─────────────────────────────────────────
 print("Updating index.html...")
 
@@ -217,6 +252,20 @@ def replace_var(html, var_name, new_data):
 html = replace_var(html, 'NOTION_DATA', user_req)
 html = replace_var(html, 'TEAM_REQ_DATA', team_req)
 html = replace_var(html, 'SURVEY_DATA', survey)
+
+# ── Patch gpmCourse cert URLs ─────────────────────────────────
+for module_name, cert_url in cert_map.items():
+    escaped = re.escape(module_name)
+    # Match: {name:'MODULE_NAME',status:'Done',certUrl:'...'}
+    html, n = re.subn(
+        rf"({{name:'{escaped}',status:'Done',certUrl:')([^']*)'",
+        rf"\g<1>{cert_url}'",
+        html
+    )
+    if n:
+        print(f"  ✓ cert patched: {module_name[:50]}")
+    else:
+        print(f"  ⚠ cert not matched: {module_name[:50]}")
 
 # ── Calendar ─────────────────────────────────────────────────
 print("Fetching Calendar...")
