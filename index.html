@@ -1597,16 +1597,16 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
   <div class="pkpi-row" id="sv-kpi" style="margin-bottom:16px;"></div>
   <!-- Score cards -->
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;" id="sv-score-cards"></div>
-  <!-- Month Chart -->
-  <div class="card sv-month-bar-wrap">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+  <!-- Month Column Chart -->
+  <div class="card" style="margin-bottom:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div>
         <div class="microlabel">By Month</div>
         <div class="chart-title">Responses รายเดือน</div>
       </div>
       <div style="font-size:11px;color:var(--f4);" id="sv-month-total-lbl"></div>
     </div>
-    <div id="sv-month-chart"></div>
+    <div id="sv-month-chart" style="display:flex;align-items:flex-end;gap:3px;height:150px;padding-bottom:24px;position:relative;overflow-x:auto;min-width:0;"></div>
   </div>
   <!-- Charts -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
@@ -1636,16 +1636,31 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
       <option value="8">8</option>
       <option value="7">7</option>
     </select>
-    <!-- Month multi-select dropdown -->
-    <div class="sv-mdd" id="sv-mdd">
-      <button class="sv-mdd-btn" id="sv-mdd-btn" onclick="svToggleMonthPanel(event)">
+    <!-- Year multi-select -->
+    <div class="sv-mdd" id="sv-ydd">
+      <button class="sv-mdd-btn" id="sv-ydd-btn" onclick="svTogglePanel(event,'sv-ydd-panel')">
         <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="sv-ydd-label">All Years</span>
+        <svg viewBox="0 0 24 24" style="width:9px;height:9px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="sv-mdd-panel" id="sv-ydd-panel">
+        <div class="sv-mdd-item all" onclick="svClearYears()">
+          <div class="sv-mdd-cb" id="sv-ydd-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
+          <span>All Years</span>
+        </div>
+        <div id="sv-ydd-list"></div>
+      </div>
+    </div>
+    <!-- Month multi-select (1–12) -->
+    <div class="sv-mdd" id="sv-mdd">
+      <button class="sv-mdd-btn" id="sv-mdd-btn" onclick="svTogglePanel(event,'sv-mdd-panel')">
+        <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
         <span id="sv-mdd-label">All Months</span>
         <svg viewBox="0 0 24 24" style="width:9px;height:9px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="sv-mdd-panel" id="sv-mdd-panel">
-        <div class="sv-mdd-item all" onclick="svClearMonths()">
-          <div class="sv-mdd-cb" id="sv-mdd-cb-all"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
+        <div class="sv-mdd-item all" onclick="svClearMonthNums()">
+          <div class="sv-mdd-cb" id="sv-mdd-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
           <span>All Months</span>
         </div>
         <div id="sv-mdd-list"></div>
@@ -1669,6 +1684,22 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
   <div id="sv-pag"></div>
 </div>
 
+
+<!-- Survey Month Drawer -->
+<div id="svm-overlay" onclick="closeSvmDrawer()" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s;"></div>
+<div id="svm-drawer" style="position:fixed;top:0;right:0;width:520px;height:100vh;background:var(--sf);border-left:1px solid var(--ln);z-index:201;transform:translateX(100%);transition:transform .3s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column;overflow:hidden;">
+  <div style="padding:18px 20px 14px;border-bottom:1px solid var(--ln);flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+    <div>
+      <div style="font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--f4);margin-bottom:4px;">Survey Responses</div>
+      <div style="font-size:20px;font-weight:700;color:var(--f1);" id="svm-title">—</div>
+      <div style="font-size:12px;color:var(--f3);margin-top:3px;" id="svm-sub"></div>
+    </div>
+    <button onclick="closeSvmDrawer()" style="background:var(--s2);border:1px solid var(--ln);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--f3);">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding:14px 20px 32px;" id="svm-body"></div>
+</div>
 
 <!-- ══ DATA ISSUE REPORT PAGE ══ -->
 <div id="data-issue-page" style="display:none;">
@@ -6846,49 +6877,140 @@ function kpiSwitchTab(n,btn){
 
 // ══ SURVEY ═══════════════════════════════════════════════════
 let _svPg=1;
-let _svMonths=new Set(); // selected "YYYY-MM" keys; empty = all
+let _svYears=new Set();     // selected year strings e.g. "2025","2026"; empty = all
+let _svMonthNums=new Set(); // selected month numbers "01"–"12"; empty = all
 
 const _SV_MONTH_NAMES=['','ม.ค','ก.พ','มี.ค','เม.ย','พ.ค','มิ.ย','ก.ค','ส.ค','ก.ย','ต.ค','พ.ย','ธ.ค'];
+const _SV_MONTH_FULL=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 function _svMonthLabel(ym){
   if(!ym)return'—';
   const [y,m]=ym.split('-');
   const be=(parseInt(y)+543)%100;
   return (_SV_MONTH_NAMES[parseInt(m)]||'?')+' '+be;
 }
+function _svMonthFull(ym){
+  if(!ym)return'—';
+  const [y,m]=ym.split('-');
+  const be=parseInt(y)+543;
+  return (_SV_MONTH_FULL[parseInt(m)]||'?')+' '+be;
+}
 function _svYM(date){return date?date.slice(0,7):'';}
+function _svYear(date){return date?date.slice(0,4):'';}
+function _svMM(date){return date?date.slice(5,7):'';}
 
-function svToggleMonthPanel(e){
+// Generic panel toggle (close others)
+function svTogglePanel(e,panelId){
   e.stopPropagation();
-  const p=document.getElementById('sv-mdd-panel');
-  if(p)p.classList.toggle('open');
+  const p=document.getElementById(panelId);
+  if(!p)return;
+  const wasOpen=p.classList.contains('open');
+  document.querySelectorAll('.sv-mdd-panel').forEach(x=>x.classList.remove('open'));
+  if(!wasOpen)p.classList.add('open');
 }
-function svClearMonths(){
-  _svMonths.clear();
-  _svPage=1; _svPg=1;
-  _svUpdateMonthUI();
-  renderSurvey();
+// Close on outside click (bound once)
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.sv-mdd'))
+    document.querySelectorAll('.sv-mdd-panel').forEach(x=>x.classList.remove('open'));
+});
+
+function svClearYears(){
+  _svYears.clear(); _svPg=1; _svUpdateFilterUI(); renderSurvey();
 }
-function svToggleMonth(ym){
-  if(_svMonths.has(ym)) _svMonths.delete(ym); else _svMonths.add(ym);
-  _svPg=1;
-  _svUpdateMonthUI();
-  renderSurvey();
+function svToggleYear(y){
+  if(_svYears.has(y))_svYears.delete(y);else _svYears.add(y);
+  _svPg=1; _svUpdateFilterUI(); renderSurvey();
 }
-function _svUpdateMonthUI(){
-  const btn=document.getElementById('sv-mdd-btn');
-  const lbl=document.getElementById('sv-mdd-label');
-  const allCb=document.getElementById('sv-mdd-cb-all');
-  const isAll=_svMonths.size===0;
-  if(lbl) lbl.textContent=isAll?'All Months':_svMonths.size+' months';
-  if(btn) btn.classList.toggle('active',!isAll);
-  if(allCb) allCb.style.background=isAll?'var(--cu)':'transparent';
-  if(allCb) allCb.style.borderColor=isAll?'var(--cu)':'var(--lnm)';
-  document.querySelectorAll('.sv-mdd-cb[data-ym]').forEach(cb=>{
-    const ym=cb.dataset.ym;
-    const chk=_svMonths.has(ym);
-    cb.style.background=chk?'var(--cu)':'transparent';
-    cb.style.borderColor=chk?'var(--cu)':'var(--lnm)';
+function svClearMonthNums(){
+  _svMonthNums.clear(); _svPg=1; _svUpdateFilterUI(); renderSurvey();
+}
+function svToggleMonthNum(mm){
+  if(_svMonthNums.has(mm))_svMonthNums.delete(mm);else _svMonthNums.add(mm);
+  _svPg=1; _svUpdateFilterUI(); renderSurvey();
+}
+
+function _svUpdateFilterUI(){
+  // Year button
+  const yLbl=document.getElementById('sv-ydd-label');
+  const yBtn=document.getElementById('sv-ydd-btn');
+  const yAllCb=document.getElementById('sv-ydd-cb-all');
+  const yIsAll=_svYears.size===0;
+  if(yLbl)yLbl.textContent=yIsAll?'All Years':[..._svYears].sort().join(', ');
+  if(yBtn)yBtn.classList.toggle('active',!yIsAll);
+  if(yAllCb){yAllCb.style.background=yIsAll?'var(--cu)':'transparent';yAllCb.style.borderColor=yIsAll?'var(--cu)':'var(--lnm)';}
+  document.querySelectorAll('.sv-mdd-cb[data-year]').forEach(cb=>{
+    const chk=_svYears.has(cb.dataset.year);
+    cb.style.background=chk?'var(--cu)':'transparent';cb.style.borderColor=chk?'var(--cu)':'var(--lnm)';
   });
+  // Month button
+  const mLbl=document.getElementById('sv-mdd-label');
+  const mBtn=document.getElementById('sv-mdd-btn');
+  const mAllCb=document.getElementById('sv-mdd-cb-all');
+  const mIsAll=_svMonthNums.size===0;
+  if(mLbl)mLbl.textContent=mIsAll?'All Months':[..._svMonthNums].sort().map(mm=>_SV_MONTH_NAMES[parseInt(mm)]).join(', ');
+  if(mBtn)mBtn.classList.toggle('active',!mIsAll);
+  if(mAllCb){mAllCb.style.background=mIsAll?'var(--cu)':'transparent';mAllCb.style.borderColor=mIsAll?'var(--cu)':'var(--lnm)';}
+  document.querySelectorAll('.sv-mdd-cb[data-mm]').forEach(cb=>{
+    const chk=_svMonthNums.has(cb.dataset.mm);
+    cb.style.background=chk?'var(--cu)':'transparent';cb.style.borderColor=chk?'var(--cu)':'var(--lnm)';
+  });
+}
+
+// ── Survey Month Drawer ─────────────────────────────────────
+function openSvmDrawer(ym){
+  const nd=(window.SURVEY_DATA||[]).filter(r=>_svYM(r.date)===ym);
+  const title=document.getElementById('svm-title');
+  const sub=document.getElementById('svm-sub');
+  const body=document.getElementById('svm-body');
+  if(title)title.textContent=_svMonthFull(ym);
+  if(sub)sub.textContent=nd.length+' responses';
+  const scoreColor=s=>{const n=parseFloat(s)||0;return n>=5?'var(--done)':n>=4?'var(--cu)':n>=3?'var(--risk)':'var(--dly)';};
+  const satisfColor=s=>s&&s.includes('10')?'var(--done)':s&&(s.includes('9')||s.includes('8'))?'var(--cu)':'var(--risk)';
+  const avg=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
+  const metrics=[{k:'s_output',l:'Output'},{k:'s_accuracy',l:'ความถูกต้อง'},{k:'s_consult',l:'คำปรึกษา'},{k:'s_time',l:'ระยะเวลา'},{k:'s_practical',l:'ใช้ได้จริง'}];
+  const scores=nd.map(r=>parseInt((r.score||'0').split('-')[0])||0).filter(v=>v>0);
+  const avgScore=avg(scores);
+  const scoreCol=avgScore>=9?'var(--done)':avgScore>=7?'var(--cu)':avgScore>=5?'var(--risk)':'var(--dly)';
+
+  if(body) body.innerHTML=`
+    <!-- Summary band -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      <div style="background:var(--s2);border-radius:10px;padding:10px 16px;flex:1;min-width:80px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:${scoreCol};font-family:'JetBrains Mono',monospace;">${avgScore.toFixed(1)}</div>
+        <div style="font-size:10px;color:var(--f4);margin-top:2px;text-transform:uppercase;letter-spacing:.04em;">Avg Score</div>
+      </div>
+      ${metrics.map(m=>{
+        const vals=nd.map(r=>parseFloat(r[m.k]||0)).filter(v=>v>0);
+        const a=avg(vals); const col=a>=4.5?'var(--done)':a>=3.5?'var(--cu)':'var(--risk)';
+        return `<div style="background:var(--s2);border-radius:10px;padding:10px 12px;flex:1;min-width:70px;text-align:center;">
+          <div style="font-size:18px;font-weight:700;color:${col};font-family:'JetBrains Mono',monospace;">${vals.length?a.toFixed(1):'—'}</div>
+          <div style="font-size:9.5px;color:var(--f4);margin-top:2px;">${m.l}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <!-- Response list -->
+    <div style="font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--f4);margin-bottom:8px;">รายการ (${nd.length})</div>
+    ${nd.length===0?'<div style="font-size:12px;color:var(--f4);padding:12px 0;">ไม่มีข้อมูล</div>':nd.map(r=>`
+      <div onclick="window.open('https://www.notion.so/${r.id}','_blank')" style="padding:10px 12px;background:var(--s2);border-radius:10px;margin-bottom:7px;cursor:pointer;transition:background 100ms;" onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background='var(--s2)'">
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">
+          <div style="flex:1;font-size:12px;color:var(--f1);font-weight:500;line-height:1.4;">${escHtml(r.note||'(ไม่มีหมายเหตุ)')}</div>
+          <span style="font-size:13px;font-weight:700;color:${satisfColor(r.score)};white-space:nowrap;flex-shrink:0;">${escHtml(r.score||'—')}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:10.5px;color:var(--f3);">${escHtml(r.staff||'—')}</span>
+          ${r.dept?`<span style="font-size:10px;background:var(--s3);color:var(--f4);border-radius:3px;padding:1px 5px;">${escHtml(r.dept.split(':')[0].trim())}</span>`:''}
+          ${r.date?`<span style="font-size:10px;color:var(--f4);font-family:'JetBrains Mono',monospace;">${_fmtDateTH(r.date)}</span>`:''}
+        </div>
+        ${metrics.some(m=>r[m.k])?`<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">${metrics.map(m=>r[m.k]?`<div style="text-align:center;"><div style="font-size:12px;font-weight:700;color:${scoreColor(r[m.k])};font-family:'JetBrains Mono',monospace;">${r[m.k]}</div><div style="font-size:8.5px;color:var(--f4);">${m.l}</div></div>`:'').join('')}</div>`:''}
+      </div>`).join('')}`;
+
+  document.getElementById('svm-overlay').style.opacity='1';
+  document.getElementById('svm-overlay').style.pointerEvents='all';
+  document.getElementById('svm-drawer').style.transform='translateX(0)';
+}
+function closeSvmDrawer(){
+  document.getElementById('svm-overlay').style.opacity='0';
+  document.getElementById('svm-overlay').style.pointerEvents='none';
+  document.getElementById('svm-drawer').style.transform='translateX(100%)';
 }
 
 function initSurvey() {
@@ -6898,19 +7020,24 @@ function initSurvey() {
   if(stEl&&stEl.options.length<=1){const staff=[...new Set(nd.map(r=>r.staff).filter(Boolean).flatMap(s=>s.split(',').map(x=>x.trim())))].sort();staff.forEach(s=>{const op=document.createElement('option');op.value=s;op.textContent=s;stEl.appendChild(op);});}
   const dEl=document.getElementById('sv-dept');
   if(dEl&&dEl.options.length<=1){const depts=[...new Set(nd.map(r=>r.dept).filter(Boolean))].sort();depts.forEach(d=>{const op=document.createElement('option');op.value=d;op.textContent=d.split(':')[0].trim();dEl.appendChild(op);});}
-  // Build month list (sorted newest first)
-  const months=[...new Set(nd.map(r=>_svYM(r.date)).filter(Boolean))].sort().reverse();
-  const listEl=document.getElementById('sv-mdd-list');
-  if(listEl) listEl.innerHTML=months.map(ym=>`
-    <div class="sv-mdd-item" onclick="svToggleMonth('${ym}')">
-      <div class="sv-mdd-cb" data-ym="${ym}"></div>
-      <span>${_svMonthLabel(ym)}</span>
+  // Build Year list (newest first)
+  const years=[...new Set(nd.map(r=>_svYear(r.date)).filter(Boolean))].sort().reverse();
+  const yListEl=document.getElementById('sv-ydd-list');
+  if(yListEl) yListEl.innerHTML=years.map(y=>{
+    const be=parseInt(y)+543;
+    return `<div class="sv-mdd-item" onclick="svToggleYear('${y}')">
+      <div class="sv-mdd-cb" data-year="${y}"></div>
+      <span>${be} (${y})</span>
+    </div>`;
+  }).join('');
+  // Build Month list (1–12, only months that have data)
+  const existingMM=[...new Set(nd.map(r=>_svMM(r.date)).filter(Boolean))].sort();
+  const mListEl=document.getElementById('sv-mdd-list');
+  if(mListEl) mListEl.innerHTML=existingMM.map(mm=>`
+    <div class="sv-mdd-item" onclick="svToggleMonthNum('${mm}')">
+      <div class="sv-mdd-cb" data-mm="${mm}"></div>
+      <span>${_SV_MONTH_NAMES[parseInt(mm)]} (เดือน ${parseInt(mm)})</span>
     </div>`).join('');
-  // Close panel on outside click
-  document.addEventListener('click',function svMddClose(e){
-    const panel=document.getElementById('sv-mdd-panel');
-    if(panel&&!document.getElementById('sv-mdd')?.contains(e.target))panel.classList.remove('open');
-  },{once:false,capture:false});
   renderSurveyCharts();
   renderSurvey();
 }
@@ -6928,27 +7055,43 @@ function renderSVKpi(nd) {
   ].map(s=>`<div class="pkpi"><div class="pkpi-val" style="color:${s.c}">${s.v}</div><div class="pkpi-lbl">${s.l}</div></div>`).join('');
 }
 
-function renderSvMonthChart(nd) {
-  const mm={};
-  nd.forEach(r=>{const ym=_svYM(r.date);if(ym)mm[ym]=(mm[ym]||0)+1;});
-  const sorted=Object.keys(mm).sort().reverse(); // newest first
-  const mx=Math.max(...Object.values(mm),1);
-  const COLS=['#C49A6C','#D4893A','#52996E','#9A8AB8','#B86848','#6A9EA8','#B89C4F','#8A7A9B'];
+function renderSvMonthChart() {
+  const nd=window.SURVEY_DATA||[];
+  const counts={};
+  nd.forEach(r=>{const ym=_svYM(r.date);if(ym)counts[ym]=(counts[ym]||0)+1;});
+  const sorted=Object.keys(counts).sort(); // chronological oldest→newest
+  const mx=Math.max(...Object.values(counts),1);
   const el=document.getElementById('sv-month-chart');
   const lbl=document.getElementById('sv-month-total-lbl');
   if(lbl) lbl.textContent=sorted.length+' เดือน · '+nd.length+' responses';
   if(!el)return;
   if(!sorted.length){el.innerHTML='<div style="font-size:12px;color:var(--f4);padding:8px 0;">ยังไม่มีข้อมูล</div>';return;}
-  el.innerHTML=sorted.map((ym,i)=>{
-    const v=mm[ym]; const pct=Math.round(v/mx*100);
-    const isSelected=_svMonths.has(ym);
-    const barCol=isSelected?'var(--cu)':COLS[i%COLS.length];
-    const selStyle=isSelected?'outline:2px solid var(--cu);outline-offset:1px;':'';
-    return `<div class="sv-mbar-row">
-      <div class="sv-mbar-lbl">${_svMonthLabel(ym)}</div>
-      <div class="sv-mbar-track" onclick="svToggleMonth('${ym}')" style="${selStyle}" title="คลิกเพื่อ filter ${_svMonthLabel(ym)}">
-        <div class="sv-mbar-fill" style="width:${pct}%;background:${barCol};"></div>
-        <div class="sv-mbar-val">${v}</div>
+  // Year color map
+  const years=[...new Set(sorted.map(ym=>ym.slice(0,4)))].sort();
+  const YCOLS=['#C49A6C','#52996E','#9A8AB8','#6A9EA8','#B86848'];
+  const yCol={}; years.forEach((y,i)=>yCol[y]=YCOLS[i%YCOLS.length]);
+  const barMinW=38;
+  el.style.minWidth=Math.max(sorted.length*(barMinW+4),300)+'px';
+  el.innerHTML=sorted.map(ym=>{
+    const v=counts[ym];
+    const pctH=Math.max(v/mx*100,2);
+    const yr=ym.slice(0,4);
+    const mm2=ym.slice(5,7);
+    const col=yCol[yr];
+    const be=(parseInt(yr)+543)%100;
+    const yActive=_svYears.size===0||_svYears.has(yr);
+    const mActive=_svMonthNums.size===0||_svMonthNums.has(mm2);
+    const dimmed=!yActive||!mActive;
+    return `<div onclick="openSvmDrawer('${ym}')" title="${_svMonthFull(ym)} · ${v} responses"
+      style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:${barMinW}px;height:100%;cursor:pointer;padding:0 2px;transition:opacity 120ms;"
+      onmouseover="this.querySelector('.svm-bar').style.opacity=dimmed?'.4':'1';this.querySelector('.svm-bar').style.filter='brightness(1.15)'"
+      onmouseout="this.querySelector('.svm-bar').style.filter=''">
+      <div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;">
+        <div style="text-align:center;font-size:9.5px;font-weight:700;color:${col};font-family:'JetBrains Mono',monospace;margin-bottom:2px;opacity:${dimmed?.3:1};">${v}</div>
+        <div class="svm-bar" style="width:100%;height:${pctH}%;background:${col};border-radius:5px 5px 0 0;opacity:${dimmed?.2:.85};transition:opacity 200ms,filter 100ms;"></div>
+      </div>
+      <div style="font-size:8.5px;color:var(--f3);margin-top:5px;white-space:nowrap;text-align:center;line-height:1.3;opacity:${dimmed?.35:1};">
+        ${_SV_MONTH_NAMES[parseInt(mm2)]}<br><span style="font-size:7.5px;color:var(--f4);">'${be}</span>
       </div>
     </div>`;
   }).join('');
@@ -6959,7 +7102,7 @@ function renderSurveyCharts() {
   const scoreNum=r=>parseInt((r.score||'0').split('-')[0].trim())||0;
   const avg=arr=>arr.length?arr.reduce((s,v)=>s+v,0)/arr.length:0;
   // Month chart (always uses full dataset)
-  renderSvMonthChart(nd);
+  renderSvMonthChart();
   // KPI
   renderSVKpi(nd);
   // Score cards for each metric
@@ -7024,11 +7167,11 @@ function renderSurvey() {
     if(sf&&!(r.staff||'').includes(sf))return false;
     if(df&&r.dept!==df)return false;
     if(scf&&!(r.score||'').startsWith(scf))return false;
-    if(_svMonths.size>0&&!_svMonths.has(_svYM(r.date)))return false;
+    if(_svYears.size>0&&!_svYears.has(_svYear(r.date)))return false;
+    if(_svMonthNums.size>0&&!_svMonthNums.has(_svMM(r.date)))return false;
     return true;
   });
-  // Update month chart selection highlight
-  renderSvMonthChart(nd);
+  renderSvMonthChart();
   renderSVKpi(rows);
   const total=rows.length;
   const pages=Math.max(1,Math.ceil(total/PG)); _svPg=Math.min(_svPg,pages);
