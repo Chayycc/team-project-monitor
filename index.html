@@ -3154,15 +3154,19 @@ function openPplDrawer(nick) {
   const projHtml = `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;" id="pd-proj-pills">${_pdPillsHtml}</div><div id="pd-proj-list"></div>`;
 
   // ── User Requests ─────────────────────────────────────────────
-  const myUR = (NOTION_DATA||[]).filter(r=>matchNick(nick,r.owner||''));
-  const urHtml = !myUR.length ? `<div style="font-size:12px;color:var(--f4);padding:8px 0;">ไม่มี User Request</div>` :
-    myUR.map(r=>`<div class="pd-proj-row">
-      <div class="pd-proj-dot" style="background:${statusDot(r.status)}"></div>
-      <div>
-        <div class="pd-proj-title">${escHtml(r.title||'(ไม่มีชื่อ)')}</div>
-        <div class="pd-proj-meta">${[r.dept,r.submitted?r.submitted.slice(0,10):''].filter(Boolean).join(' · ')}</div>
-      </div>
-    </div>`).join('');
+  _pdURData = (NOTION_DATA||[]).filter(r=>matchNick(nick,r.owner||''));
+  _pdURFilter = 'progress';
+  const _pdURCounts = {};
+  _pdURData.forEach(r=>{ _pdURCounts[r.status]=(_pdURCounts[r.status]||0)+1; });
+  if(!_pdURCounts['progress']) _pdURFilter='all';
+  const _PD_ST_ORDER2 = ['progress','pending','todo','done','cancel'];
+  const _PD_ST_LBL2 = {progress:'กำลังดำเนินการ',pending:'Pending',todo:'Not Started',done:'Done',cancel:'Cancel'};
+  const _pdURPillsHtml = [
+    ..._PD_ST_ORDER2.filter(s=>_pdURCounts[s]).map(s=>`<button class="pd-ur-pill" data-s="${s}" onclick="pdFilterUR('${s}')" style="font-size:10px;padding:3px 9px;border-radius:20px;border:0.5px solid var(--ln);cursor:pointer;transition:all .15s;background:${s===_pdURFilter?'var(--cu)':'var(--s2)'};color:${s===_pdURFilter?'#0d0d10':'var(--f3)'};font-weight:${s===_pdURFilter?'600':'400'};">${_PD_ST_LBL2[s]}&nbsp;<span style="opacity:.7">${_pdURCounts[s]}</span></button>`),
+    `<button class="pd-ur-pill" data-s="all" onclick="pdFilterUR('all')" style="font-size:10px;padding:3px 9px;border-radius:20px;border:0.5px solid var(--ln);cursor:pointer;transition:all .15s;background:${_pdURFilter==='all'?'var(--cu)':'var(--s2)'};color:${_pdURFilter==='all'?'#0d0d10':'var(--f3)'};">ทั้งหมด&nbsp;<span style="opacity:.7">${_pdURData.length}</span></button>`
+  ].join('');
+  const urHtml = !_pdURData.length ? `<div style="font-size:12px;color:var(--f4);padding:8px 0;">ไม่มี User Request</div>` :
+    `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;" id="pd-ur-pills">${_pdURPillsHtml}</div><div id="pd-ur-list"></div>`;
 
   // ── Team Requests ─────────────────────────────────────────────
   const myTR = (TEAM_REQ_DATA||[]).filter(r=>matchNick(nick,(r.owner||'')+' '+(r.member||'')));
@@ -3214,6 +3218,7 @@ function openPplDrawer(nick) {
     ${learnHtml}`;
 
   renderPdProjList();
+  renderPdURList();
   document.getElementById('ppl-overlay').classList.add('open');
   document.getElementById('ppl-drawer').classList.add('open');
 }
@@ -3247,6 +3252,32 @@ function renderPdProjList() {
 function pdFilterProj(s) {
   _pdProjFilter = s;
   renderPdProjList();
+}
+
+function renderPdURList() {
+  const list = document.getElementById('pd-ur-list');
+  if (!list) return;
+  const data = _pdURFilter === 'all' ? _pdURData : _pdURData.filter(r=>r.status===_pdURFilter);
+  list.innerHTML = !data.length
+    ? `<div style="font-size:12px;color:var(--f4);padding:8px 0;">ไม่มี User Request ในสถานะนี้</div>`
+    : data.map(r=>`<div class="pd-proj-row">
+        <div class="pd-proj-dot" style="background:${statusDot(r.status)}"></div>
+        <div>
+          <div class="pd-proj-title">${escHtml(r.title||'(ไม่มีชื่อ)')}</div>
+          <div class="pd-proj-meta">${[r.dept,r.submitted?r.submitted.slice(0,10):''].filter(Boolean).join(' · ')}</div>
+        </div>
+      </div>`).join('');
+  document.querySelectorAll('.pd-ur-pill').forEach(btn=>{
+    const active = btn.dataset.s === _pdURFilter;
+    btn.style.background = active ? 'var(--cu)' : 'var(--s2)';
+    btn.style.color = active ? '#0d0d10' : 'var(--f3)';
+    btn.style.fontWeight = active ? '600' : '400';
+  });
+}
+
+function pdFilterUR(s) {
+  _pdURFilter = s;
+  renderPdURList();
 }
 
 // Nick → keywords found in English/Thai owner strings across data sources
@@ -6912,6 +6943,8 @@ let _svYears=new Set();     // selected year strings e.g. "2025","2026"; empty =
 let _svMonthNums=new Set(); // selected month numbers "01"–"12"; empty = all
 let _pdProjData=[];         // projects for current people drawer
 let _pdProjFilter='progress'; // active status filter in people drawer projects
+let _pdURData=[];           // user requests for current people drawer
+let _pdURFilter='progress'; // active status filter in people drawer user requests
 
 const _SV_MONTH_NAMES=['','ม.ค','ก.พ','มี.ค','เม.ย','พ.ค','มิ.ย','ก.ค','ส.ค','ก.ย','ต.ค','พ.ย','ธ.ค'];
 const _SV_MONTH_FULL=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
