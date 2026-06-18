@@ -1668,6 +1668,7 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
         <div id="sv-mdd-list"></div>
       </div>
     </div>
+    <span id="sv-clear-btn" onclick="svClearAllFilters()" style="display:none;cursor:pointer;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--s3);color:var(--f3);border:1px solid var(--lnm);transition:background 100ms,color 100ms;" onmouseover="this.style.background='var(--cud)';this.style.color='var(--cu)'" onmouseout="this.style.background='var(--s3)';this.style.color='var(--f3)'">✕ Clear</span>
     <span id="sv-info" style="font-size:11.5px;color:var(--f4);"></span>
   </div>
   <div class="table-wrap">
@@ -6991,6 +6992,14 @@ function svToggleYear(y){
 function svClearMonthNums(){
   _svMonthNums.clear(); _svPg=1; _svUpdateFilterUI(); renderSurvey();
 }
+function svClearAllFilters(){
+  const s=document.getElementById('sv-search'); if(s) s.value='';
+  const sf=document.getElementById('sv-staff'); if(sf) sf.value='';
+  const df=document.getElementById('sv-dept'); if(df) df.value='';
+  const sc=document.getElementById('sv-score'); if(sc) sc.value='';
+  _svYears.clear(); _svMonthNums.clear(); _svPg=1;
+  _svUpdateFilterUI(); renderSurvey();
+}
 function svToggleMonthNum(mm){
   if(_svMonthNums.has(mm))_svMonthNums.delete(mm);else _svMonthNums.add(mm);
   _svPg=1; _svUpdateFilterUI(); renderSurvey();
@@ -7239,6 +7248,9 @@ function renderSurvey() {
     if(_svMonthNums.size>0&&!_svMonthNums.has(_svMM(r.date)))return false;
     return true;
   });
+  // Show/hide Clear button
+  const _svClearBtn=document.getElementById('sv-clear-btn');
+  if(_svClearBtn) _svClearBtn.style.display=(q||sf||df||scf||_svYears.size>0||_svMonthNums.size>0)?'inline-flex':'none';
   renderSvMonthChart();
   renderSVKpi(rows);
   // Re-render score cards with filtered data
