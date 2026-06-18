@@ -7241,6 +7241,56 @@ function renderSurvey() {
   });
   renderSvMonthChart();
   renderSVKpi(rows);
+  // Re-render score cards with filtered data
+  const _svAvg=arr=>arr.length?arr.reduce((s,v)=>s+v,0)/arr.length:0;
+  const _svMetrics=[
+    {key:'s_output',label:'Output'},{key:'s_accuracy',label:'ความถูกต้อง'},
+    {key:'s_consult',label:'คำปรึกษา'},{key:'s_time',label:'ระยะเวลา'},{key:'s_practical',label:'ใช้ได้จริง'}
+  ];
+  const scEl=document.getElementById('sv-score-cards');
+  if(scEl)scEl.innerHTML=_svMetrics.map(m=>{
+    const vals=rows.map(r=>parseFloat(r[m.key]||0)).filter(v=>v>0);
+    const a=_svAvg(vals);const color=a>=4.5?'var(--done)':a>=3.5?'var(--cu)':a>=2.5?'var(--risk)':'var(--dly)';
+    return `<div class="card" style="text-align:center;padding:14px 10px;">
+      <div style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${color};">${vals.length?a.toFixed(2):'—'}</div>
+      <div style="font-size:10px;color:var(--f4);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;font-weight:600;">${m.label}</div>
+      <div style="font-size:10px;color:var(--f4);margin-top:2px;">/ 5.00</div>
+    </div>`;
+  }).join('');
+  // Re-render dept bar with filtered data
+  const _svDm={};rows.forEach(r=>{const k=r.dept?r.dept.split(':')[0].trim():'—';_svDm[k]=(_svDm[k]||0)+1;});
+  const _svDd=Object.entries(_svDm).sort((a,b)=>b[1]-a[1]);
+  const _svDmx=_svDd[0]?.[1]||1;
+  const _COLS=['#C49A6C','#D4893A','#52996E','#9A8AB8','#B86848','#6A9EA8','#B89C4F'];
+  const dEl2=document.getElementById('sv-dept-chart');
+  if(dEl2)dEl2.innerHTML=_svDd.map(([k,v],i)=>`
+    <div onclick="rovOpenSurveyDrill('dept','${k.replace(/'/g,"\'")}','${k} (${v})')"
+      style="display:flex;align-items:center;gap:8px;margin-bottom:7px;cursor:pointer;border-radius:6px;padding:5px 6px;transition:background 80ms;"
+      onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background=''">
+      <span style="font-size:11px;color:var(--f2);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${k}</span>
+      <div style="flex:1;height:7px;background:var(--s3);border-radius:4px;overflow:hidden;">
+        <div style="width:${v/_svDmx*100}%;height:100%;background:${_COLS[i%_COLS.length]};border-radius:4px;"></div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--f3);min-width:22px;text-align:right;">${v}</span>
+      <svg viewBox="0 0 24 24" style="width:9px;height:9px;stroke:var(--f4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>`).join('');
+  // Re-render staff bar with filtered data
+  const _svSm={};rows.forEach(r=>{(r.staff||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>{_svSm[s]=(_svSm[s]||0)+1;});});
+  const _svSd=Object.entries(_svSm).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const _svSmx=_svSd[0]?.[1]||1;
+  const sEl=document.getElementById('sv-staff-chart');
+  if(sEl)sEl.innerHTML=_svSd.map(([k,v])=>`
+    <div onclick="rovOpenSurveyDrill('staff','${k.replace(/'/g,"\'")}','${k.split('(')[0].trim()} (${v})')"
+      style="display:flex;align-items:center;gap:8px;margin-bottom:7px;cursor:pointer;border-radius:6px;padding:5px 6px;transition:background 80ms;"
+      onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background=''">
+      <div style="width:20px;height:20px;border-radius:50%;background:var(--cud2);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--cu);flex-shrink:0;">${k.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)}</div>
+      <span style="font-size:11px;color:var(--f2);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${k.split('(')[0].trim()}</span>
+      <div style="flex:1;height:7px;background:var(--s3);border-radius:4px;overflow:hidden;">
+        <div style="width:${v/_svSmx*100}%;height:100%;background:var(--cu);border-radius:4px;"></div>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--f3);min-width:18px;text-align:right;">${v}</span>
+      <svg viewBox="0 0 24 24" style="width:9px;height:9px;stroke:var(--f4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>`).join('');
   const total=rows.length;
   const pages=Math.max(1,Math.ceil(total/PG)); _svPg=Math.min(_svPg,pages);
   const paged=_paged(rows,_svPg);
