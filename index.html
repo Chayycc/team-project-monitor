@@ -1453,13 +1453,34 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
       <svg viewBox="0 0 24 24" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:var(--f4);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input id="tr-search" type="text" placeholder="ค้นหา…" oninput="renderTeamReq()" style="height:26px;padding:0 8px 0 26px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f1);font-size:12px;outline:none;width:180px;font-family:inherit;" onfocus="this.style.borderColor='var(--cu)'" onblur="this.style.borderColor='var(--lnm)'"/>
     </div>
-    <select id="tr-status" onchange="renderTeamReq()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;">
-      <option value="">All Status</option>
-      <option value="done">Done</option>
-      <option value="progress">In Progress</option>
-      <option value="todo">Not Started</option>
-    </select>
-    <select id="tr-owner" onchange="renderTeamReq()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:130px;"><option value="">All Owners</option></select>
+    <div class="sv-mdd" id="tr-status-mdd">
+      <button class="sv-mdd-btn" id="tr-status-btn" onclick="svTogglePanel(event,'tr-status-panel')">
+        <span id="tr-status-lbl">All Status</span>
+        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="sv-mdd-panel" id="tr-status-panel">
+        <div class="sv-mdd-item all" onclick="trToggleStatus(null)">
+          <div class="sv-mdd-cb" id="tr-status-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
+          All Status
+        </div>
+        <div class="sv-mdd-item" onclick="trToggleStatus('progress')"><div class="sv-mdd-cb" data-trstatus="progress"></div>In Progress</div>
+        <div class="sv-mdd-item" onclick="trToggleStatus('done')"><div class="sv-mdd-cb" data-trstatus="done"></div>Done</div>
+        <div class="sv-mdd-item" onclick="trToggleStatus('todo')"><div class="sv-mdd-cb" data-trstatus="todo"></div>Not Started</div>
+      </div>
+    </div>
+    <div class="sv-mdd" id="tr-owner-mdd">
+      <button class="sv-mdd-btn" id="tr-owner-btn" onclick="svTogglePanel(event,'tr-owner-panel')">
+        <span id="tr-owner-lbl">All Owners</span>
+        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="sv-mdd-panel" id="tr-owner-panel">
+        <div class="sv-mdd-item all" onclick="trToggleOwner(null)">
+          <div class="sv-mdd-cb" id="tr-owner-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
+          All Owners
+        </div>
+        <div id="tr-owner-list"></div>
+      </div>
+    </div>
     <select id="tr-type" onchange="renderTeamReq()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:130px;"><option value="">All Types</option></select>
     <span id="tr-info" style="font-size:11.5px;color:var(--f4);"></span>
   </div>
@@ -1802,14 +1823,35 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
       <svg viewBox="0 0 24 24" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:var(--f4);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input id="di-search" type="text" placeholder="ค้นหา…" oninput="renderDataIssue()" style="height:26px;padding:0 8px 0 26px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f1);font-size:12px;outline:none;width:180px;font-family:inherit;" onfocus="this.style.borderColor='var(--cu)'" onblur="this.style.borderColor='var(--lnm)'"/>
     </div>
-    <select id="di-status" onchange="renderDataIssue()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;">
-      <option value="">All Status</option>
-      <option value="done">Done</option>
-      <option value="progress">In Progress</option>
-      <option value="pending">Pending</option>
-      <option value="todo">Not Started</option>
-    </select>
-    <select id="di-owner" onchange="renderDataIssue()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:130px;"><option value="">All Owners</option></select>
+    <div class="sv-mdd" id="di-status-mdd">
+      <button class="sv-mdd-btn" id="di-status-btn" onclick="svTogglePanel(event,'di-status-panel')">
+        <span id="di-status-lbl">All Status</span>
+        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="sv-mdd-panel" id="di-status-panel">
+        <div class="sv-mdd-item all" onclick="diToggleStatus(null)">
+          <div class="sv-mdd-cb" id="di-status-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
+          All Status
+        </div>
+        <div class="sv-mdd-item" onclick="diToggleStatus('progress')"><div class="sv-mdd-cb" data-distatus="progress"></div>In Progress</div>
+        <div class="sv-mdd-item" onclick="diToggleStatus('done')"><div class="sv-mdd-cb" data-distatus="done"></div>Done</div>
+        <div class="sv-mdd-item" onclick="diToggleStatus('pending')"><div class="sv-mdd-cb" data-distatus="pending"></div>Pending</div>
+        <div class="sv-mdd-item" onclick="diToggleStatus('todo')"><div class="sv-mdd-cb" data-distatus="todo"></div>Not Started</div>
+      </div>
+    </div>
+    <div class="sv-mdd" id="di-owner-mdd">
+      <button class="sv-mdd-btn" id="di-owner-btn" onclick="svTogglePanel(event,'di-owner-panel')">
+        <span id="di-owner-lbl">All Owners</span>
+        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="sv-mdd-panel" id="di-owner-panel">
+        <div class="sv-mdd-item all" onclick="diToggleOwner(null)">
+          <div class="sv-mdd-cb" id="di-owner-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
+          All Owners
+        </div>
+        <div id="di-owner-list"></div>
+      </div>
+    </div>
     <select id="di-priority" onchange="renderDataIssue()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:110px;">
       <option value="">All Priority</option>
       <option value="Urgent">Urgent</option>
@@ -2387,6 +2429,10 @@ function initials(name) {
 const BI_TEAM_OWNERS = ['worapop wiboonsirichai','Sureeporn Sukaram','Nutcha Suteesukprasert','Ako Pakawadee','Kanya Meekaew','Ploy M','Patiwat Kunpijit','Ohm','Rattanaporn Chaipanya','Sivatep Petcharat','Data Team'];
 const _projSelStatus = new Set();
 const _projSelOwners = new Set();
+const _trSelStatus = new Set();
+const _trSelOwners = new Set();
+const _diSelStatus = new Set();
+const _diSelOwners = new Set();
 
 function getFiltered() {
   const q = document.getElementById('search-input').value.toLowerCase().trim();
@@ -6765,15 +6811,48 @@ function rovCloseDrill() {
 // ══ TEAM REQUEST ═════════════════════════════════════════════
 let _trPg=1;
 
+function trToggleStatus(s) {
+  if (s === null) { _trSelStatus.clear(); } else { _trSelStatus.has(s)?_trSelStatus.delete(s):_trSelStatus.add(s); }
+  _trUpdateFilterUI(); _trPg=1; renderTeamReq();
+}
+function trToggleOwner(o) {
+  if (o === null) { _trSelOwners.clear(); } else { _trSelOwners.has(o)?_trSelOwners.delete(o):_trSelOwners.add(o); }
+  _trUpdateFilterUI(); _trPg=1; renderTeamReq();
+}
+function _trUpdateFilterUI() {
+  const CK=`<svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg>`;
+  const sA=_trSelStatus.size===0;
+  const sLbl=document.getElementById('tr-status-lbl'); const sBtn=document.getElementById('tr-status-btn'); const sAcb=document.getElementById('tr-status-cb-all');
+  if(sLbl) sLbl.textContent=sA?'All Status':[..._trSelStatus].map(s=>_reqStatusLabel(s)).join(', ');
+  if(sBtn) sBtn.classList.toggle('active',!sA);
+  if(sAcb){sAcb.style.background=sA?'var(--cu)':'transparent';sAcb.style.borderColor=sA?'var(--cu)':'var(--lnm)';sAcb.innerHTML=sA?CK:'';}
+  document.querySelectorAll('.sv-mdd-cb[data-trstatus]').forEach(cb=>{const c=_trSelStatus.has(cb.dataset.trstatus);cb.style.background=c?'var(--cu)':'transparent';cb.style.borderColor=c?'var(--cu)':'var(--lnm)';cb.innerHTML=c?CK:'';});
+  const oA=_trSelOwners.size===0;
+  const oLbl=document.getElementById('tr-owner-lbl'); const oBtn=document.getElementById('tr-owner-btn'); const oAcb=document.getElementById('tr-owner-cb-all');
+  if(oLbl) oLbl.textContent=oA?'All Owners':[..._trSelOwners].map(o=>o.split(' ')[0]).join(', ');
+  if(oBtn) oBtn.classList.toggle('active',!oA);
+  if(oAcb){oAcb.style.background=oA?'var(--cu)':'transparent';oAcb.style.borderColor=oA?'var(--cu)':'var(--lnm)';oAcb.innerHTML=oA?CK:'';}
+  document.querySelectorAll('.sv-mdd-cb[data-trowner]').forEach(cb=>{const c=_trSelOwners.has(cb.dataset.trowner);cb.style.background=c?'var(--cu)':'transparent';cb.style.borderColor=c?'var(--cu)':'var(--lnm)';cb.innerHTML=c?CK:'';});
+}
+
 function initTeamReq() {
   const nd=window.TEAM_REQ_DATA||[];
   const el=document.getElementById('sb-teamreq-total'); if(el) el.textContent=nd.length;
-  // Populate filters
-  const ow=document.getElementById('tr-owner');
-  if(ow&&ow.options.length<=1){const owners=[...new Set(nd.map(r=>r.owner).filter(Boolean))].sort();owners.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o.split(' ')[0];ow.appendChild(op);});}
+  // Populate owner list
+  const owList=document.getElementById('tr-owner-list');
+  if(owList&&!owList.dataset.populated){
+    owList.dataset.populated='1';
+    const owners=[...new Set(nd.map(r=>r.owner).filter(Boolean))].sort();
+    owners.forEach(o=>{
+      const item=document.createElement('div'); item.className='sv-mdd-item';
+      item.innerHTML=`<div class="sv-mdd-cb" data-trowner="${o.replace(/"/g,'&quot;')}"></div>${escHtml(o.split(' ')[0])}`;
+      item.title=o; item.onclick=()=>trToggleOwner(o);
+      owList.appendChild(item);
+    });
+  }
+  // Populate type select
   const ty=document.getElementById('tr-type');
   if(ty&&ty.options.length<=1){const types=[...new Set(nd.map(r=>r.type).filter(Boolean))].sort();types.forEach(t=>{const op=document.createElement('option');op.value=t;op.textContent=t;ty.appendChild(op);});}
-  renderTeamReqCharts();
   renderTeamReq();
 }
 
@@ -6788,8 +6867,8 @@ function renderTRKpi(nd) {
     .map(s=>`<div class="pkpi"><div class="pkpi-val" style="color:${s.c}">${s.v}</div><div class="pkpi-lbl">${s.l}</div></div>`).join('');
 }
 
-function renderTeamReqCharts() {
-  const nd=(window.TEAM_REQ_DATA||[]).filter(r=>r.title&&r.title.trim());
+function renderTeamReqCharts(nd) {
+  if(!nd) nd=(window.TEAM_REQ_DATA||[]).filter(r=>r.title&&r.title.trim());
   const COLS=['var(--pend)','var(--prog)','var(--done)','var(--cu)','var(--dly)','#6AAFB2','#B89C4F'];
   // KPI
   renderTRKpi(nd);
@@ -6830,16 +6909,15 @@ function renderTeamReqCharts() {
 function renderTeamReq() {
   const nd=window.TEAM_REQ_DATA||[];
   const q=(document.getElementById('tr-search')?.value||'').toLowerCase();
-  const sf=document.getElementById('tr-status')?.value||'';
-  const of=document.getElementById('tr-owner')?.value||'';
   const tf=document.getElementById('tr-type')?.value||'';
   let rows=nd.filter(r=>r.title&&r.title.trim()).filter(r=>{
     if(q&&!(r.title||'').toLowerCase().includes(q)&&!(r.owner||'').toLowerCase().includes(q)&&!(r.desc||'').toLowerCase().includes(q))return false;
-    if(sf&&r.status!==sf)return false;
-    if(of&&!(r.owner||'').includes(of))return false;
+    if(_trSelStatus.size>0&&!_trSelStatus.has(r.status))return false;
+    if(_trSelOwners.size>0&&!_trSelOwners.has(r.owner||''))return false;
     if(tf&&r.type!==tf)return false;
     return true;
   });
+  renderTeamReqCharts(rows);
   renderTRKpi(rows);
   const total=rows.length;
   const pages=Math.max(1,Math.ceil(total/PG)); _trPg=Math.min(_trPg,pages);
@@ -7734,6 +7812,30 @@ function dashRefresh(btn) {
 const DATA_ISSUE_TOPICS = ['แจ้งปัญหารายงาน/การใช้งานข้อมูล','Data Issue Report','แจ้งปัญหา'];
 let _diPg = 1;
 
+function diToggleStatus(s) {
+  if (s === null) { _diSelStatus.clear(); } else { _diSelStatus.has(s)?_diSelStatus.delete(s):_diSelStatus.add(s); }
+  _diUpdateFilterUI(); _diPg=1; renderDataIssue();
+}
+function diToggleOwner(o) {
+  if (o === null) { _diSelOwners.clear(); } else { _diSelOwners.has(o)?_diSelOwners.delete(o):_diSelOwners.add(o); }
+  _diUpdateFilterUI(); _diPg=1; renderDataIssue();
+}
+function _diUpdateFilterUI() {
+  const CK=`<svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg>`;
+  const sA=_diSelStatus.size===0;
+  const sLbl=document.getElementById('di-status-lbl'); const sBtn=document.getElementById('di-status-btn'); const sAcb=document.getElementById('di-status-cb-all');
+  if(sLbl) sLbl.textContent=sA?'All Status':[..._diSelStatus].map(s=>_reqStatusLabel(s)).join(', ');
+  if(sBtn) sBtn.classList.toggle('active',!sA);
+  if(sAcb){sAcb.style.background=sA?'var(--cu)':'transparent';sAcb.style.borderColor=sA?'var(--cu)':'var(--lnm)';sAcb.innerHTML=sA?CK:'';}
+  document.querySelectorAll('.sv-mdd-cb[data-distatus]').forEach(cb=>{const c=_diSelStatus.has(cb.dataset.distatus);cb.style.background=c?'var(--cu)':'transparent';cb.style.borderColor=c?'var(--cu)':'var(--lnm)';cb.innerHTML=c?CK:'';});
+  const oA=_diSelOwners.size===0;
+  const oLbl=document.getElementById('di-owner-lbl'); const oBtn=document.getElementById('di-owner-btn'); const oAcb=document.getElementById('di-owner-cb-all');
+  if(oLbl) oLbl.textContent=oA?'All Owners':[..._diSelOwners].map(o=>o.split(' ')[0]).join(', ');
+  if(oBtn) oBtn.classList.toggle('active',!oA);
+  if(oAcb){oAcb.style.background=oA?'var(--cu)':'transparent';oAcb.style.borderColor=oA?'var(--cu)':'var(--lnm)';oAcb.innerHTML=oA?CK:'';}
+  document.querySelectorAll('.sv-mdd-cb[data-diowner]').forEach(cb=>{const c=_diSelOwners.has(cb.dataset.diowner);cb.style.background=c?'var(--cu)':'transparent';cb.style.borderColor=c?'var(--cu)':'var(--lnm)';cb.innerHTML=c?CK:'';});
+}
+
 function diGetData() {
   return (window.NOTION_DATA||[]).filter(r =>
     DATA_ISSUE_TOPICS.some(t => (r.topic||'').includes(t) || (r.type||'').includes(t))
@@ -7744,13 +7846,18 @@ function initDataIssue() {
   const nd = diGetData();
   const el = document.getElementById('sb-issue-total');
   if(el) el.textContent = nd.length;
-  // Populate owner dropdown
-  const owSel = document.getElementById('di-owner');
-  if(owSel && owSel.options.length <= 1){
+  // Populate owner list
+  const owList = document.getElementById('di-owner-list');
+  if(owList && !owList.dataset.populated){
+    owList.dataset.populated='1';
     const owners=[...new Set(nd.map(r=>r.owner||'').filter(Boolean).flatMap(o=>o.split(',').map(x=>x.trim())))].sort();
-    owners.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o.split(' ')[0];owSel.appendChild(op);});
+    owners.forEach(o=>{
+      const item=document.createElement('div'); item.className='sv-mdd-item';
+      item.innerHTML=`<div class="sv-mdd-cb" data-diowner="${o.replace(/"/g,'&quot;')}"></div>${escHtml(o.split(' ')[0])}`;
+      item.title=o; item.onclick=()=>diToggleOwner(o);
+      owList.appendChild(item);
+    });
   }
-  renderDataIssueCharts();
   renderDataIssue();
 }
 
@@ -7768,8 +7875,8 @@ function renderDIKpi(nd) {
   ].map(s=>`<div class="pkpi"><div class="pkpi-val" style="color:${s.c}">${s.v}</div><div class="pkpi-lbl">${s.l}</div></div>`).join('');
 }
 
-function renderDataIssueCharts() {
-  const nd = diGetData();
+function renderDataIssueCharts(nd) {
+  if(!nd) nd = diGetData();
   const COLS = ['#C49A6C','#D4893A','#52996E','#9A8AB8','#B86848','#6A9EA8','#B89C4F'];
 
   // KPI
@@ -7814,17 +7921,16 @@ function renderDataIssueCharts() {
 function renderDataIssue() {
   const nd = diGetData();
   const q  = (document.getElementById('di-search')?.value||'').toLowerCase();
-  const sf = document.getElementById('di-status')?.value||'';
-  const of = document.getElementById('di-owner')?.value||'';
   const pf = document.getElementById('di-priority')?.value||'';
 
   let rows = nd.filter(r => {
     if(q && !(r.title||'').toLowerCase().includes(q) && !(r.owner||'').toLowerCase().includes(q) && !(r.dept||'').toLowerCase().includes(q)) return false;
-    if(sf && r.status!==sf) return false;
-    if(of && !(r.owner||'').includes(of)) return false;
+    if(_diSelStatus.size>0 && !_diSelStatus.has(r.status)) return false;
+    if(_diSelOwners.size>0 && !(r.owner||'').split(',').map(x=>x.trim()).some(o=>_diSelOwners.has(o))) return false;
     if(pf && !(r.priority||'').includes(pf)) return false;
     return true;
   });
+  renderDataIssueCharts(rows);
   renderDIKpi(rows);
 
   const total=rows.length;
