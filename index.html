@@ -1933,9 +1933,9 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
         <th>Owner</th>
         <th>Output</th>
         <th>Dept</th>
-        <th>Submitted</th>
+        <th>Start date</th>
         <th>Deadline</th>
-        <th>Actual</th>
+        <th>Complete</th>
       </tr></thead>
       <tbody id="req-body"></tbody>
     </table>
@@ -3966,10 +3966,10 @@ function openRequestDrawer(id) {
     ${r.output ? `<div class="drawer-field"><div class="drawer-field-label">Output</div><div><span class="output-tag" style="font-size:12px;padding:2px 8px;">${escHtml(r.output)}</span></div></div>` : ''}
     <div class="drawer-divider"></div>
     <div class="drawer-field" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div><div class="drawer-field-label">Submitted</div><div class="drawer-field-value mono">${fmtDt(r.submitted)}</div></div>
+      <div><div class="drawer-field-label">Start date</div><div class="drawer-field-value mono">${fmtDt(r.submitted)}</div></div>
       <div><div class="drawer-field-label">Deadline</div><div class="drawer-field-value mono">${fmtDt(r.deadline)}</div></div>
     </div>
-    ${r.actual ? `<div class="drawer-field"><div class="drawer-field-label">Actual Completion</div><div class="drawer-field-value mono">${fmtDt(r.actual)}</div></div>` : ''}
+    ${r.actual ? `<div class="drawer-field"><div class="drawer-field-label">Complete</div><div class="drawer-field-value mono">${fmtDt(r.actual)}</div></div>` : ''}
     ${r.desc ? `<div class="drawer-divider"></div><div class="drawer-field"><div class="drawer-field-label">รายละเอียด</div><div class="drawer-note">${escHtml(r.desc)}</div></div>` : ''}
     ${r.note ? `<div class="drawer-field" style="margin-top:8px;"><div class="drawer-field-label">Note</div><div class="drawer-note">${escHtml(r.note)}</div></div>` : ''}
     ${r.link ? `<div class="drawer-divider"></div><a href="${escHtml(r.link)}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--cu);text-decoration:none;font-weight:600;">
