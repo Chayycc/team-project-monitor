@@ -718,6 +718,38 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
 .dash-bento{display:grid;gap:14px;margin-bottom:14px;}
 .dash-bento-r1{grid-template-columns:300px 1fr 260px;}
 .dash-bento-r2{grid-template-columns:1fr 1fr 1fr;}
+/* Status by Person chart */
+.spb-row{display:grid;grid-template-columns:110px 1fr 36px;align-items:center;gap:8px;padding:5px 4px;border-radius:6px;cursor:pointer;transition:background 100ms;}
+.spb-row:hover{background:var(--hv);}
+.spb-name{font-size:12px;font-weight:600;color:var(--f2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.spb-name.combined{color:var(--cu);font-size:12.5px;}
+.spb-track{height:18px;background:var(--s3);border-radius:5px;overflow:hidden;display:flex;gap:1px;}
+.spb-seg{height:100%;transition:width 380ms cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;overflow:hidden;white-space:nowrap;}
+.spb-total{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--f3);text-align:right;}
+.spb-divider{height:1px;background:var(--lnm);margin:6px 0 10px;}
+.spb-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+.spb-leg-item{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--f3);}
+.spb-leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+/* Person info modal */
+#proj-person-modal{position:fixed;inset:0;z-index:500;display:none;}
+#proj-person-modal.open{display:block;}
+#proj-person-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);}
+#proj-person-panel{position:absolute;top:0;right:0;bottom:0;width:min(520px,100vw);background:var(--bg);border-left:1px solid var(--ln);display:flex;flex-direction:column;transform:translateX(100%);transition:transform 250ms cubic-bezier(.34,1.26,.64,1);}
+#proj-person-modal.open #proj-person-panel{transform:translateX(0);}
+#proj-person-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--ln);flex-shrink:0;}
+#proj-person-title{font-size:16px;font-weight:700;color:var(--f1);}
+#proj-person-close{width:30px;height:30px;border:none;background:var(--s2);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--f2);font-size:16px;line-height:1;}
+#proj-person-body{flex:1;overflow-y:auto;padding:16px 20px;}
+.ppm-kpi-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.ppm-kpi{flex:1;min-width:80px;background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:10px 12px;text-align:center;}
+.ppm-kpi-val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.02em;line-height:1;}
+.ppm-kpi-lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--f4);margin-top:3px;font-weight:600;}
+.ppm-stacked{height:10px;border-radius:5px;overflow:hidden;display:flex;gap:1px;margin-bottom:16px;}
+.ppm-project-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--s3);cursor:pointer;}
+.ppm-project-row:last-child{border-bottom:none;}
+.ppm-project-row:hover .ppm-proj-title{color:var(--cu);}
+.ppm-proj-title{font-size:13px;font-weight:600;color:var(--f1);flex:1;line-height:1.4;transition:color 120ms;}
+.ppm-proj-meta{font-size:10.5px;color:var(--f4);margin-top:2px;}
 @media(max-width:1100px){
   .dash-bento-r1,.dash-bento-r2{grid-template-columns:1fr 1fr!important;}
   .dash-bento-r1>.card:first-child{grid-column:1/-1;}
@@ -1099,6 +1131,32 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
         <div class="microlabel" style="margin-bottom:6px;">Survey · ประเมินรายครั้ง <span id="dov-survey-chip-count"></span></div>
         <div id="dash-survey-panel"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- STATUS BY PERSON CHART -->
+  <div class="card" style="margin-bottom:14px;" id="sec-status-by-person">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+      <div><div class="microlabel">Breakdown</div><div class="chart-title">Status by Person</div></div>
+      <div class="spb-legend">
+        <span class="spb-leg-item"><span class="spb-leg-dot" style="background:var(--prog)"></span>In Progress</span>
+        <span class="spb-leg-item"><span class="spb-leg-dot" style="background:var(--todo)"></span>Not Started</span>
+        <span class="spb-leg-item"><span class="spb-leg-dot" style="background:var(--done)"></span>Done</span>
+        <span class="spb-leg-item"><span class="spb-leg-dot" style="background:var(--pend)"></span>Pending</span>
+      </div>
+    </div>
+    <div id="status-by-person-bars"></div>
+  </div>
+
+  <!-- PERSON INFO MODAL -->
+  <div id="proj-person-modal" onclick="handlePersonModalBgClick(event)">
+    <div id="proj-person-backdrop"></div>
+    <div id="proj-person-panel">
+      <div id="proj-person-header">
+        <div id="proj-person-title">—</div>
+        <button id="proj-person-close" onclick="closePersonModal()">×</button>
+      </div>
+      <div id="proj-person-body"></div>
     </div>
   </div>
 
@@ -2714,12 +2772,151 @@ function renderOwnerBars() {
   }).join('');
 }
 
+// =====================================================
+// STATUS BY PERSON CHART
+// =====================================================
+const _spbStore = {}; // key → projects array
+
+function renderStatusByPersonChart() {
+  const el = document.getElementById('status-by-person-bars');
+  if (!el) return;
+  const topLevel = getFiltered().filter(p => !p.parent);
+
+  // Build per-person map
+  const personMap = {};
+  topLevel.forEach(p => {
+    p.owners.split(',').map(o => o.trim()).filter(Boolean).forEach(o => {
+      if (!personMap[o]) personMap[o] = {progress:0, todo:0, done:0, pending:0, total:0, projects:[]};
+      personMap[o][p.status] = (personMap[o][p.status] || 0) + 1;
+      personMap[o].total++;
+      personMap[o].projects.push(p);
+    });
+  });
+
+  const people = Object.entries(personMap).sort((a,b) => b[1].total - a[1].total).slice(0,12);
+  if (!people.length) { el.innerHTML = '<div style="color:var(--f4);font-size:12px;padding:8px 0;">ไม่มีข้อมูล</div>'; return; }
+
+  const SEGS = [
+    {key:'progress', color:'var(--prog)', label:'In Progress'},
+    {key:'todo',     color:'var(--todo)', label:'Not Started'},
+    {key:'done',     color:'var(--done)', label:'Done'},
+    {key:'pending',  color:'var(--pend)', label:'Pending'},
+  ];
+
+  function buildBar(stats) {
+    const tot = stats.total || 1;
+    return SEGS.map(s => {
+      const count = stats[s.key] || 0;
+      if (!count) return '';
+      const w = Math.round(count / tot * 100);
+      return `<div class="spb-seg" style="width:${w}%;background:${s.color};" title="${s.label}: ${count}">${count > 1 ? count : ''}</div>`;
+    }).join('');
+  }
+
+  // Combined
+  const combinedStats = {progress:0, todo:0, done:0, pending:0, total:topLevel.length, projects:topLevel};
+  topLevel.forEach(p => { if (combinedStats[p.status] !== undefined) combinedStats[p.status]++; });
+  _spbStore['__combined__'] = combinedStats.projects;
+
+  // Store per-person
+  people.forEach(([name, stats]) => { _spbStore[name] = stats.projects; });
+
+  let html = `
+    <div class="spb-row" onclick="_spbClick('__combined__','Combined')">
+      <div class="spb-name combined">Combined</div>
+      <div class="spb-track">${buildBar(combinedStats)}</div>
+      <div class="spb-total">${combinedStats.total}</div>
+    </div>
+    <div class="spb-divider"></div>`;
+
+  people.forEach(([name, stats]) => {
+    const short = name.split(' ').slice(0,2).join(' ');
+    const key = name.replace(/'/g, "\\'");
+    html += `
+      <div class="spb-row" onclick="_spbClick('${key}','${escHtml(short)}')">
+        <div class="spb-name" title="${escHtml(name)}">${escHtml(short)}</div>
+        <div class="spb-track">${buildBar(stats)}</div>
+        <div class="spb-total">${stats.total}</div>
+      </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function _spbClick(storeKey, displayName) {
+  const projects = _spbStore[storeKey] || [];
+  openPersonModal(displayName, projects);
+}
+
+// =====================================================
+// PERSON INFO MODAL
+// =====================================================
+function openPersonModal(name, projects) {
+  const modal = document.getElementById('proj-person-modal');
+  const titleEl = document.getElementById('proj-person-title');
+  const body = document.getElementById('proj-person-body');
+  if (!modal) return;
+  projects = (projects || []).filter(p => !p.parent);
+
+  titleEl.textContent = name;
+
+  // KPI counts
+  const counts = {progress:0, todo:0, done:0, pending:0};
+  projects.forEach(p => { if (counts[p.status] !== undefined) counts[p.status]++; });
+  const total = projects.length;
+
+  const stackSegs = [
+    {key:'progress', color:'var(--prog)'}, {key:'todo', color:'var(--todo)'},
+    {key:'done', color:'var(--done)'}, {key:'pending', color:'var(--pend)'},
+  ].map(s => `<div style="flex:${counts[s.key]};background:${s.color};height:100%;transition:flex 300ms;"></div>`).join('');
+
+  const projectRows = projects.map(p => {
+    const dlText = p.deadline ? fmtDate(p.deadline) : '';
+    const riskDot = p.risk === 'delayed' ? '<span style="color:var(--dly);font-size:10px;margin-left:4px;">● LATE</span>' : p.risk === 'atrisk' ? '<span style="color:var(--pend);font-size:10px;margin-left:4px;">● AT RISK</span>' : '';
+    return `<div class="ppm-project-row" onclick="openDrawer('${escHtml(p.no)}');closePersonModal()">
+      <span class="pill ${statusPillClass(p.status)}" style="flex-shrink:0;margin-top:2px;">${statusLabel(p.status)}</span>
+      <div style="flex:1;min-width:0;">
+        <div class="ppm-proj-title">${escHtml(p.title)}${riskDot}</div>
+        <div class="ppm-proj-meta">${[p.company, p.dept, dlText].filter(Boolean).join(' · ')}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="ppm-kpi-row">
+      <div class="ppm-kpi"><div class="ppm-kpi-val">${total}</div><div class="ppm-kpi-lbl">Total</div></div>
+      <div class="ppm-kpi" style="border-color:var(--prog);"><div class="ppm-kpi-val" style="color:var(--prog)">${counts.progress}</div><div class="ppm-kpi-lbl">In Progress</div></div>
+      <div class="ppm-kpi"><div class="ppm-kpi-val">${counts.todo}</div><div class="ppm-kpi-lbl">Not Started</div></div>
+      <div class="ppm-kpi" style="border-color:var(--done);"><div class="ppm-kpi-val" style="color:var(--done)">${counts.done}</div><div class="ppm-kpi-lbl">Done</div></div>
+      <div class="ppm-kpi" style="border-color:var(--pend);"><div class="ppm-kpi-val" style="color:var(--pend)">${counts.pending}</div><div class="ppm-kpi-lbl">Pending</div></div>
+    </div>
+    <div class="ppm-stacked" style="gap:2px;">${stackSegs}</div>
+    <div style="font-size:11px;font-weight:700;color:var(--f3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Projects (${total})</div>
+    ${projectRows || '<div style="color:var(--f4);font-size:12px;padding:8px 0;">ไม่มีข้อมูล</div>'}`;
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePersonModal() {
+  const modal = document.getElementById('proj-person-modal');
+  if (modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handlePersonModalBgClick(e) {
+  if (e.target === document.getElementById('proj-person-backdrop') || e.target === document.getElementById('proj-person-modal')) {
+    closePersonModal();
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePersonModal(); });
+
 let activeDashDeptFilter = null;
 
 function renderDeptProgressBars() {
   const el = document.getElementById('dept-progress-bars');
   if (!el) return;
-  const raw = typeof RAW !== 'undefined' ? RAW : [];
+  const raw = getFiltered();
   const deptMap = {};
   raw.forEach(p => {
     const depts = (p.dept||'').split(',').map(d => d.split(':')[0].trim()).filter(Boolean);
@@ -3042,6 +3239,7 @@ function applyFilters() {
   drawDonut();
   renderOwnerBars();
   renderDeptProgressBars();
+  renderStatusByPersonChart();
   renderOutputBars();
   if (currentView === 'table') renderTable();
   else if (currentView === 'board') renderBoard();
