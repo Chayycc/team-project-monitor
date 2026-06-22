@@ -1861,10 +1861,37 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
   </div>
   <div class="toolbar" id="toolbar">
     <div class="search-wrap"><div class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><input type="text" id="search-input" placeholder="ค้นหา project, owner, output…" oninput="applyFilters()"/></div>
-    <select class="filter-select" id="f-owner" onchange="handleOwnerFilterChange()"><option value="">All Owners</option></select>
+    <div class="sv-mdd" id="proj-owner-mdd">
+      <button class="sv-mdd-btn" id="proj-owner-btn" onclick="svTogglePanel(event,'proj-owner-panel')">
+        <span id="proj-owner-lbl">All Owners</span>
+        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="sv-mdd-panel" id="proj-owner-panel">
+        <div class="sv-mdd-item all" onclick="projToggleOwner(null)">
+          <div class="sv-mdd-cb" id="proj-owner-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
+          All Owners
+        </div>
+        <div id="proj-owner-list"></div>
+      </div>
+    </div>
     <select class="filter-select" id="f-company" onchange="applyFilters()"><option value="">All Companies</option><option value="Holding">Holding</option><option value="TTS">TTS</option><option value="MCF">MCF</option><option value="PGY">PGY</option></select>
     <select class="filter-select" id="f-output" onchange="applyFilters()"><option value="">All Outputs</option></select>
-    <select class="filter-select" id="f-status" onchange="applyFilters()"><option value="">All Status</option><option value="progress">In Progress</option><option value="todo">Not Started</option><option value="done">Done</option><option value="pending">Pending</option></select>
+    <div class="sv-mdd" id="proj-status-mdd">
+      <button class="sv-mdd-btn" id="proj-status-btn" onclick="svTogglePanel(event,'proj-status-panel')">
+        <span id="proj-status-lbl">All Status</span>
+        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="sv-mdd-panel" id="proj-status-panel">
+        <div class="sv-mdd-item all" onclick="projToggleStatus(null)">
+          <div class="sv-mdd-cb" id="proj-status-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
+          All Status
+        </div>
+        <div class="sv-mdd-item" onclick="projToggleStatus('progress')"><div class="sv-mdd-cb" data-pstatus="progress"></div>In Progress</div>
+        <div class="sv-mdd-item" onclick="projToggleStatus('todo')"><div class="sv-mdd-cb" data-pstatus="todo"></div>Not Started</div>
+        <div class="sv-mdd-item" onclick="projToggleStatus('done')"><div class="sv-mdd-cb" data-pstatus="done"></div>Done</div>
+        <div class="sv-mdd-item" onclick="projToggleStatus('pending')"><div class="sv-mdd-cb" data-pstatus="pending"></div>Pending</div>
+      </div>
+    </div>
     <div class="segmented">
       <button class="seg-btn active" onclick="setView('table')" id="view-table"><svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>Table</button>
       <button class="seg-btn" onclick="setView('board')" id="view-board"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>Board</button>
@@ -2300,25 +2327,27 @@ function initials(name) {
 // FILTER + SORT
 // =====================================================
 const BI_TEAM_OWNERS = ['worapop wiboonsirichai','Sureeporn Sukaram','Nutcha Suteesukprasert','Ako Pakawadee','Kanya Meekaew','Ploy M','Patiwat Kunpijit','Ohm','Rattanaporn Chaipanya','Sivatep Petcharat','Data Team'];
+const _projSelStatus = new Set();
+const _projSelOwners = new Set();
 
 function getFiltered() {
   const q = document.getElementById('search-input').value.toLowerCase().trim();
-  const fOwner = document.getElementById('f-owner').value;
   const fCompany = document.getElementById('f-company').value;
   const fOutput = document.getElementById('f-output').value;
-  const fStatus = document.getElementById('f-status').value || activeStatusFilter;
-  const fRisk = activeRiskFilter;
   const biTeamLow = BI_TEAM_OWNERS.map(x => x.toLowerCase());
 
   return RAW.filter(p => {
     if (activeStatusFilter && p.status !== activeStatusFilter) return false;
+    if (_projSelStatus.size > 0 && !_projSelStatus.has(p.status)) return false;
     if (activeRiskFilter && p.risk !== activeRiskFilter) return false;
-    const selStatus = document.getElementById('f-status').value;
-    if (selStatus && p.status !== selStatus) return false;
-    if (fOwner === '__BI_TEAM__') {
+    if (_projSelOwners.size > 0) {
       const projectOwners = p.owners.split(',').map(o => o.trim().toLowerCase());
-      if (!projectOwners.some(o => biTeamLow.includes(o))) return false;
-    } else if (fOwner && !p.owners.toLowerCase().includes(fOwner.toLowerCase())) return false;
+      const match = [..._projSelOwners].some(sel => {
+        if (sel === '__BI_TEAM__') return projectOwners.some(o => biTeamLow.includes(o));
+        return p.owners.toLowerCase().includes(sel.toLowerCase());
+      });
+      if (!match) return false;
+    }
     if (fCompany && p.company !== fCompany) return false;
     if (fOutput && !p.output.toLowerCase().includes(fOutput.toLowerCase())) return false;
     if (q) {
@@ -2879,17 +2908,21 @@ function updateKPIs() {
 function updateChips() {
   const chips = [];
   const q = document.getElementById('search-input').value.trim();
-  const fOwner = document.getElementById('f-owner').value;
   const fCompany = document.getElementById('f-company').value;
   const fOutput = document.getElementById('f-output').value;
-  const fStatus = document.getElementById('f-status').value;
   if (q) chips.push({label:`"${q}"`, clear: () => { document.getElementById('search-input').value=''; applyFilters(); }});
   if (activeStatusFilter) chips.push({label:`Status: ${statusLabel(activeStatusFilter)}`, clear: () => { activeStatusFilter=null; activeDonutSeg=null; applyFilters(); }});
   if (activeRiskFilter) chips.push({label:`Risk: ${activeRiskFilter}`, clear: () => { activeRiskFilter=null; applyFilters(); }});
-  if (fOwner) chips.push({label:`Owner: ${fOwner.split(' ')[0]}`, clear: () => { document.getElementById('f-owner').value=''; applyFilters(); }});
+  if (_projSelOwners.size > 0) {
+    const ownerLabels = [..._projSelOwners].map(o => o === '__BI_TEAM__' ? 'BI Team' : o.split(' ')[0]).join(', ');
+    chips.push({label:`Owner: ${ownerLabels}`, clear: () => { _projSelOwners.clear(); _projUpdateFilterUI(); applyFilters(); }});
+  }
   if (fCompany) chips.push({label:`Company: ${fCompany}`, clear: () => { document.getElementById('f-company').value=''; applyFilters(); }});
   if (fOutput) chips.push({label:`Output: ${fOutput}`, clear: () => { document.getElementById('f-output').value=''; applyFilters(); }});
-  if (fStatus) chips.push({label:`Status: ${statusLabel(fStatus)}`, clear: () => { document.getElementById('f-status').value=''; applyFilters(); }});
+  if (_projSelStatus.size > 0) {
+    const statusLabels = [..._projSelStatus].map(s => statusLabel(s)).join(', ');
+    chips.push({label:`Status: ${statusLabels}`, clear: () => { _projSelStatus.clear(); _projUpdateFilterUI(); applyFilters(); }});
+  }
 
   const el = document.getElementById('filter-chips');
   if (chips.length === 0) { el.classList.add('hidden'); return; }
@@ -2902,13 +2935,14 @@ function updateChips() {
 function clearChip(i) { window._chipClearFns[i](); }
 function clearAll() {
   document.getElementById('search-input').value = '';
-  document.getElementById('f-owner').value = '';
   document.getElementById('f-company').value = '';
   document.getElementById('f-output').value = '';
-  document.getElementById('f-status').value = '';
+  _projSelOwners.clear();
+  _projSelStatus.clear();
   activeStatusFilter = null;
   activeRiskFilter = null;
   activeDonutSeg = null;
+  _projUpdateFilterUI();
   applyFilters();
 }
 
@@ -2918,7 +2952,8 @@ function clearAll() {
 function filterStatus(s) {
   if (activeStatusFilter === s) { activeStatusFilter = null; activeDonutSeg = null; }
   else { activeStatusFilter = s; activeDonutSeg = s; }
-  document.getElementById('f-status').value = '';
+  _projSelStatus.clear();
+  _projUpdateFilterUI();
   applyFilters();
   // highlight kpi
   ['total','progress','todo','done','pending','delayed'].forEach(k => {
@@ -2938,29 +2973,56 @@ function filterRisk(r) {
   document.getElementById('kpi-delayed')?.classList.toggle('active', activeRiskFilter === 'delayed');
 }
 
+function projToggleStatus(s) {
+  if (s === null) { _projSelStatus.clear(); }
+  else { if (_projSelStatus.has(s)) _projSelStatus.delete(s); else _projSelStatus.add(s); }
+  activeStatusFilter = null; activeDonutSeg = null;
+  _projUpdateFilterUI(); applyFilters();
+}
+
+function projToggleOwner(o) {
+  if (o === null) { _projSelOwners.clear(); }
+  else { if (_projSelOwners.has(o)) _projSelOwners.delete(o); else _projSelOwners.add(o); }
+  _projUpdateFilterUI(); applyFilters();
+}
+
+function _projUpdateFilterUI() {
+  const CHECK_SVG = `<svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg>`;
+  // Status
+  const sIsAll = _projSelStatus.size === 0;
+  const sLbl = document.getElementById('proj-status-lbl');
+  const sBtn = document.getElementById('proj-status-btn');
+  const sAllCb = document.getElementById('proj-status-cb-all');
+  if (sLbl) sLbl.textContent = sIsAll ? 'All Status' : [..._projSelStatus].map(s => statusLabel(s)).join(', ');
+  if (sBtn) sBtn.classList.toggle('active', !sIsAll);
+  if (sAllCb) { sAllCb.style.background = sIsAll ? 'var(--cu)' : 'transparent'; sAllCb.style.borderColor = sIsAll ? 'var(--cu)' : 'var(--lnm)'; sAllCb.innerHTML = sIsAll ? CHECK_SVG : ''; }
+  document.querySelectorAll('.sv-mdd-cb[data-pstatus]').forEach(cb => {
+    const chk = _projSelStatus.has(cb.dataset.pstatus);
+    cb.style.background = chk ? 'var(--cu)' : 'transparent';
+    cb.style.borderColor = chk ? 'var(--cu)' : 'var(--lnm)';
+    cb.innerHTML = chk ? CHECK_SVG : '';
+  });
+  // Owner
+  const oIsAll = _projSelOwners.size === 0;
+  const oLbl = document.getElementById('proj-owner-lbl');
+  const oBtn = document.getElementById('proj-owner-btn');
+  const oAllCb = document.getElementById('proj-owner-cb-all');
+  if (oLbl) oLbl.textContent = oIsAll ? 'All Owners' : [..._projSelOwners].map(o => o === '__BI_TEAM__' ? 'BI Team' : o.split(' ')[0]).join(', ');
+  if (oBtn) oBtn.classList.toggle('active', !oIsAll);
+  if (oAllCb) { oAllCb.style.background = oIsAll ? 'var(--cu)' : 'transparent'; oAllCb.style.borderColor = oIsAll ? 'var(--cu)' : 'var(--lnm)'; oAllCb.innerHTML = oIsAll ? CHECK_SVG : ''; }
+  document.querySelectorAll('.sv-mdd-cb[data-powner]').forEach(cb => {
+    const chk = _projSelOwners.has(cb.dataset.powner);
+    cb.style.background = chk ? 'var(--cu)' : 'transparent';
+    cb.style.borderColor = chk ? 'var(--cu)' : 'var(--lnm)';
+    cb.innerHTML = chk ? CHECK_SVG : '';
+  });
+}
+
 function handleOwnerFilterChange() {
-  const owner = document.getElementById('f-owner').value;
-  if (!owner) { applyFilters(); return; }
-  if (owner === '__BI_TEAM__') {
-    if (currentView !== 'table') setView('table');
-    applyFilters();
-    return;
-  }
-  const inRaw = RAW.some(p => p.owners.split(',').map(o=>o.trim()).includes(owner));
-  if (!inRaw && SHEET_DATA[owner]) {
-    // SHEET_DATA-only owner (e.g. AE Team) → switch to Sheet/Gantt view
-    setView('sheet');
-    activeSheetOwner = owner;
-    renderSheet();
-    return;
-  }
-  // RAW owner — show in table view
-  if (currentView !== 'table') setView('table');
-  applyFilters();
+  // no-op: owner filter now driven by _projSelOwners multi-select
 }
 
 function setOwnerFilter(owner) {
-  // If owner only exists in SHEET_DATA (e.g. AE Team), switch to Sheet view & select their tab
   const inRaw = RAW.some(p => p.owners.split(',').map(o=>o.trim()).includes(owner));
   if (!inRaw && SHEET_DATA[owner]) {
     goTo('projects');
@@ -2969,7 +3031,9 @@ function setOwnerFilter(owner) {
     renderSheet();
     return;
   }
-  document.getElementById('f-owner').value = owner;
+  _projSelOwners.clear();
+  _projSelOwners.add(owner);
+  _projUpdateFilterUI();
   applyFilters();
 }
 
@@ -2992,7 +3056,7 @@ function applyFilters() {
     }
   });
   const totalEl = document.getElementById('kpi-total');
-  if (totalEl) totalEl.classList.toggle('active', !activeStatusFilter && !activeRiskFilter && !document.getElementById('f-status').value);
+  if (totalEl) totalEl.classList.toggle('active', !activeStatusFilter && !activeRiskFilter && _projSelStatus.size === 0);
 }
 
 // =====================================================
@@ -3846,23 +3910,27 @@ function populateFilters() {
     return parts[0] + ' ' + parts[1].slice(0, 1);
   }
 
-  const ownerSel = document.getElementById('f-owner');
-  // Clear existing (keep first "All Owners" option)
-  while (ownerSel.options.length > 1) ownerSel.remove(1);
-  const biOpt = document.createElement('option');
-  biOpt.value = '__BI_TEAM__';
-  biOpt.textContent = '★ Business Intelligence Team';
-  biOpt.title = 'Business Intelligence Team';
-  biOpt.style.fontWeight = '700';
-  ownerSel.appendChild(biOpt);
-  const sep = document.createElement('option');
-  sep.disabled = true; sep.textContent = '──────────────';
-  ownerSel.appendChild(sep);
-  [...owners].sort().forEach(o => {
-    const opt = document.createElement('option');
-    opt.value = o; opt.textContent = shortLabel(o); opt.title = o;
-    ownerSel.appendChild(opt);
-  });
+  const ownerList = document.getElementById('proj-owner-list');
+  if (ownerList) {
+    ownerList.innerHTML = '';
+    const biItem = document.createElement('div');
+    biItem.className = 'sv-mdd-item';
+    biItem.style.fontWeight = '700';
+    biItem.innerHTML = `<div class="sv-mdd-cb" data-powner="__BI_TEAM__"></div>★ BI Team`;
+    biItem.onclick = () => projToggleOwner('__BI_TEAM__');
+    ownerList.appendChild(biItem);
+    const sepItem = document.createElement('div');
+    sepItem.style.cssText = 'border-top:1px solid var(--ln);margin:4px 0';
+    ownerList.appendChild(sepItem);
+    [...owners].sort().forEach(o => {
+      const item = document.createElement('div');
+      item.className = 'sv-mdd-item';
+      item.innerHTML = `<div class="sv-mdd-cb" data-powner="${o.replace(/"/g,'&quot;')}"></div>${escHtml(shortLabel(o))}`;
+      item.title = o;
+      item.onclick = () => projToggleOwner(o);
+      ownerList.appendChild(item);
+    });
+  }
 
   // Also populate dash-owner-f
   const dashOwnerSel = document.getElementById('dash-owner-f');
@@ -4292,8 +4360,8 @@ function renderDashSurveyPanel() {
 window.addEventListener('DOMContentLoaded', () => {
   populateFilters();
   // Default: filter to BI Team on All Projects page
-  const ownerSel = document.getElementById('f-owner');
-  if (ownerSel) ownerSel.value = '__BI_TEAM__';
+  _projSelOwners.add('__BI_TEAM__');
+  _projUpdateFilterUI();
   applyFilters();
   updateDashOverview();
   renderDashActivityFeed();
@@ -5526,8 +5594,8 @@ function sbApplyFilter(type, val, el) {
   pmGoTo('projects');
   setTimeout(() => {
     if (type === 'ownership') {
-      const sel = document.getElementById('f-owner');
-      if (sel) { sel.value = active ? val : ''; handleOwnerFilterChange(); }
+      if (active) { _projSelOwners.add(val); } else { _projSelOwners.delete(val); }
+      _projUpdateFilterUI(); applyFilters();
     } else if (type === 'company') {
       const sel = document.getElementById('f-company');
       if (sel) { sel.value = active ? val : ''; applyFilters(); }
@@ -5535,8 +5603,8 @@ function sbApplyFilter(type, val, el) {
       const sel = document.getElementById('f-output');
       if (sel) { sel.value = active ? val : ''; applyFilters(); }
     } else if (type === 'status') {
-      const sel = document.getElementById('f-status');
-      if (sel) { sel.value = active ? val : ''; applyFilters(); }
+      if (active) { _projSelStatus.add(val); } else { _projSelStatus.delete(val); }
+      activeStatusFilter = null; _projUpdateFilterUI(); applyFilters();
     } else if (type === 'risk') {
       if (active) filterRisk(val);
       else { window.activeRiskFilter = null; applyFilters(); }
