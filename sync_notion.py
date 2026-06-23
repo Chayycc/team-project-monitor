@@ -231,10 +231,33 @@ except Exception as e:
 if kpi_data:
     html = replace_var(html, 'KPI_DATA', kpi_data)
 
-# Add sync timestamp comment
+# Add sync timestamp comment + auto-refresh script
 ts = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
-html = re.sub(r'<!-- Last synced:.*?-->', '', html)
-html = html.replace('</title>', f'</title>\n<!-- Last synced: {ts} -->', 1)
+
+AUTO_REFRESH_SCRIPT = f"""<script>
+(function(){{
+  var SYNC_TS="{ts}";
+  function chk(){{
+    fetch(location.pathname+'?_='+Date.now(),{{cache:'no-store'}})
+      .then(function(r){{return r.text()}})
+      .then(function(h){{
+        var m=h.match(/var _SYNC_TS="([^"]+)"/);
+        if(m&&m[1]!==SYNC_TS)location.reload(true);
+      }}).catch(function(){{}});
+  }}
+  setInterval(chk,5*60*1000);
+}})();
+</script>"""
+
+def inject_ts(h):
+    h = re.sub(r'<!-- Last synced:.*?-->', '', h)
+    h = re.sub(r'<script>\(function\(\)\{var SYNC_TS=.*?</script>', '', h, flags=re.DOTALL)
+    h = re.sub(r'var _SYNC_TS="[^"]*";', '', h)
+    h = h.replace('</title>', f'</title>\n<!-- Last synced: {ts} -->\n<script>var _SYNC_TS="{ts}";</script>', 1)
+    h = h.replace('</body>', AUTO_REFRESH_SCRIPT + '\n</body>', 1)
+    return h
+
+html = inject_ts(html)
 
 with open('index.html', 'w', encoding='utf-8') as f:
     f.write(html)
@@ -249,8 +272,7 @@ if os.path.exists('user-request.html'):
     ur_html = replace_var(ur_html, 'SURVEY_DATA', survey)
     if kpi_data:
         ur_html = replace_var(ur_html, 'KPI_DATA', kpi_data)
-    ur_html = re.sub(r'<!-- Last synced:.*?-->', '', ur_html)
-    ur_html = ur_html.replace('</title>', f'</title>\n<!-- Last synced: {ts} -->', 1)
+    ur_html = inject_ts(ur_html)
     with open('user-request.html', 'w', encoding='utf-8') as f:
         f.write(ur_html)
     print("  ✓ user-request.html updated")

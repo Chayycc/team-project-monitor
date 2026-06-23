@@ -6,7 +6,9 @@
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
 <title>Team Project Monitoring — EasyMoney Data Team</title>
-<!-- Last synced: 2026-06-23 03:04 UTC -->
+<!-- Last synced: 2026-06-23 03:19 UTC -->
+<script>var _SYNC_TS="2026-06-23 03:19 UTC";</script>
+
 
 
 
@@ -10068,6 +10070,20 @@ function renderTdTable(){
       <td><span class="pill ${p.nick==='เชย์'?'pill-progress':'pill-todo'}"><span class="pill-dot" style="background:currentColor"></span>${p.nick==='เชย์'?'In Progress':'Not started'}</span></td>
     </tr>`).join('');
 }
+</script>
+<script>
+(function(){
+  var SYNC_TS="2026-06-23 03:19 UTC";
+  function chk(){
+    fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.text()})
+      .then(function(h){
+        var m=h.match(/var _SYNC_TS="([^"]+)"/);
+        if(m&&m[1]!==SYNC_TS)location.reload(true);
+      }).catch(function(){});
+  }
+  setInterval(chk,5*60*1000);
+})();
 </script>
 </body>
 </html>
