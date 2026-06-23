@@ -164,26 +164,45 @@ def replace_var(html, var_name, new_data):
     opn = '[' if isinstance(new_data, list) else '{'
     clo = ']' if isinstance(new_data, list) else '}'
     pattern = rf'var {re.escape(var_name)}\s*=\s*[{re.escape(opn)}]'
-    m = re.search(pattern, html)
-    if not m:
+
+    # Find ALL occurrences and keep position of the first one
+    first_start = None
+    # Remove all occurrences from last to first (to preserve positions)
+    matches = list(re.finditer(pattern, html))
+    if not matches:
         print(f"  WARNING: {var_name} not found in HTML")
         return html
-    start = m.start()
-    depth = 0
-    i = m.end() - 1
-    while i < len(html):
-        if html[i] == opn:   depth += 1
-        elif html[i] == clo:
-            depth -= 1
-            if depth == 0:
-                end = i + 1
-                if end < len(html) and html[end] == ';':
-                    end += 1
-                break
-        i += 1
+
+    # Process from last to first to avoid index shifting
+    for m in reversed(matches):
+        start = m.start()
+        depth = 0
+        i = m.end() - 1
+        while i < len(html):
+            if html[i] == opn:   depth += 1
+            elif html[i] == clo:
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    if end < len(html) and html[end] == ';':
+                        end += 1
+                    break
+            i += 1
+        if m == matches[0]:
+            first_start = start
+            first_end = end
+        else:
+            # Remove duplicate declarations (2nd, 3rd, ...)
+            html = html[:start] + html[end:]
+
+    # Replace the first occurrence with new data
     new_json = json.dumps(new_data, ensure_ascii=False, separators=(',', ':'))
-    html = html[:start] + f'var {var_name} ={new_json};' + html[end:]
-    print(f"  ✓ {var_name}: {len(new_data)} rows")
+    html = html[:first_start] + f'var {var_name} ={new_json};' + html[first_end:]
+    count = len(matches)
+    if count > 1:
+        print(f"  ✓ {var_name}: {len(new_data)} rows (removed {count-1} duplicate declaration(s))")
+    else:
+        print(f"  ✓ {var_name}: {len(new_data)} rows")
     return html
 
 html = replace_var(html, 'NOTION_DATA', user_req)
