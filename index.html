@@ -7876,12 +7876,15 @@ function renderInternalSurvey(){
     const COLS=['#C49A6C','#D4893A','#52996E','#9A8AB8','#B86848','#6A9EA8','#B89C4F'];
     if(!dd.length){dEl.innerHTML='<div style="font-size:12px;color:var(--f4);">ยังไม่มีข้อมูล</div>';}
     else dEl.innerHTML=dd.map(([k,v],i)=>`
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;border-radius:6px;padding:5px 6px;">
+      <div onclick="rovOpenISVDrill('dept','${k.replace(/'/g,"\\'")}','${k} (${v})')"
+        style="display:flex;align-items:center;gap:8px;margin-bottom:7px;border-radius:6px;padding:5px 6px;cursor:pointer;transition:background 80ms;"
+        onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background=''">
         <span style="font-size:11px;color:var(--f2);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${k}</span>
         <div style="flex:1;height:7px;background:var(--s3);border-radius:4px;overflow:hidden;">
           <div style="width:${v/dmx*100}%;height:100%;background:${COLS[i%COLS.length]};border-radius:4px;"></div>
         </div>
         <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--f3);min-width:22px;text-align:right;">${v}</span>
+        <svg viewBox="0 0 24 24" style="width:9px;height:9px;stroke:var(--f4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="9 18 15 12 9 6"/></svg>
       </div>`).join('');
   }
   // Staff chart
@@ -7891,13 +7894,16 @@ function renderInternalSurvey(){
     const sd=Object.entries(sm).sort((a,b)=>b[1]-a[1]).slice(0,8);const smx=sd[0]?.[1]||1;
     if(!sd.length){sEl.innerHTML='<div style="font-size:12px;color:var(--f4);">ยังไม่มีข้อมูล</div>';}
     else sEl.innerHTML=sd.map(([k,v])=>`
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;border-radius:6px;padding:5px 6px;">
+      <div onclick="rovOpenISVDrill('staff','${k.replace(/'/g,"\\'")}','${k.split('(')[0].trim()} (${v})')"
+        style="display:flex;align-items:center;gap:8px;margin-bottom:7px;border-radius:6px;padding:5px 6px;cursor:pointer;transition:background 80ms;"
+        onmouseover="this.style.background='var(--hv)'" onmouseout="this.style.background=''">
         <div style="width:20px;height:20px;border-radius:50%;background:var(--cud2);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--cu);flex-shrink:0;">${k.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)}</div>
         <span style="font-size:11px;color:var(--f2);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${k.split('(')[0].trim()}</span>
         <div style="flex:1;height:7px;background:var(--s3);border-radius:4px;overflow:hidden;">
           <div style="width:${v/smx*100}%;height:100%;background:var(--cu);border-radius:4px;"></div>
         </div>
         <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--f3);min-width:18px;text-align:right;">${v}</span>
+        <svg viewBox="0 0 24 24" style="width:9px;height:9px;stroke:var(--f4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="9 18 15 12 9 6"/></svg>
       </div>`).join('');
   }
   // Table
@@ -8019,6 +8025,76 @@ function rovOpenSurveyDrill(field, val, title) {
         }).join('')}
       </div>
     </div>`).join('');
+
+  document.getElementById('rov-drill').style.display='block';
+  document.getElementById('rov-drill-overlay').style.display='block';
+}
+
+function rovOpenISVDrill(field, val, title) {
+  const nd = _isvData();
+  let rows = [];
+  if (field==='dept')  rows = nd.filter(r => {
+    const sub = (r.dept||'').split(':').slice(1).join(':').trim() || r.dept || '';
+    return sub === val || r.dept === val;
+  });
+  if (field==='staff') rows = nd.filter(r => (r.staff||'').includes(val));
+
+  const scoreNum = r => parseInt((r.score||'0').split('-')[0].trim())||0;
+  const avg = arr => arr.length ? (arr.reduce((s,v)=>s+v,0)/arr.length).toFixed(2) : '—';
+  const scores = rows.map(scoreNum).filter(v=>v>0);
+  const avgScore = avg(scores);
+
+  document.getElementById('rov-drill-label').textContent = field==='dept' ? 'Sub-Department (Data)' : 'Staff (Internal)';
+  document.getElementById('rov-drill-title').textContent = title;
+  document.getElementById('rov-drill-count').textContent = rows.length + ' responses · Avg: ' + avgScore;
+
+  const metrics = [
+    {key:'s_output',label:'Output'},{key:'s_accuracy',label:'ถูกต้อง'},
+    {key:'s_consult',label:'คำปรึกษา'},{key:'s_time',label:'เวลา'},{key:'s_practical',label:'ใช้ได้จริง'}
+  ];
+  const mc = metrics.map(m=>{
+    const vals=rows.map(r=>parseFloat(r[m.key]||0)).filter(v=>v>0);
+    const a=vals.length?(vals.reduce((s,v)=>s+v,0)/vals.length).toFixed(2):'—';
+    const color=parseFloat(a)>=4.5?'var(--done)':parseFloat(a)>=3.5?'var(--cu)':'var(--risk)';
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 10px;background:var(--s2);border-radius:9px;flex:1;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:${color};">${a}</span>
+      <span style="font-size:9px;color:var(--f4);text-transform:uppercase;letter-spacing:.04em;font-weight:600;">${m.label}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('rov-drill-kpi').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 14px;background:var(--s2);border-radius:9px;min-width:64px;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--cu);">${rows.length}</span>
+      <span style="font-size:9.5px;color:var(--f4);text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Total</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 14px;background:var(--s2);border-radius:9px;min-width:64px;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--done);">${avgScore}</span>
+      <span style="font-size:9.5px;color:var(--f4);text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Avg Score</span>
+    </div>
+    <div style="display:flex;gap:6px;flex:1;">${mc}</div>`;
+
+  const satisfColor = s => s&&s.includes('10')?'var(--done)':s&&(s.includes('9')||s.includes('8'))?'var(--cu)':'var(--risk)';
+  document.getElementById('rov-drill-list').innerHTML = rows.length ? rows.map(r=>`
+    <div onclick="window.open('https://www.notion.so/${r.id}','_blank')"
+      style="background:var(--s2);border:1px solid var(--ln);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all 100ms;"
+      onmouseover="this.style.borderColor='var(--lnm)'" onmouseout="this.style.borderColor='var(--ln)'">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+        <div style="font-size:12.5px;font-weight:500;color:var(--f1);">${escHtml(r.note||'—')}</div>
+        <span style="font-size:13px;font-weight:700;color:${satisfColor(r.score)};white-space:nowrap;">${escHtml(r.score||'—')}</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;">
+        ${r.staff?`<span style="color:var(--f3);">${escHtml(r.staff.split(',')[0].trim())}</span>`:''}
+        ${r.dept?`<span style="color:var(--f4);">· ${escHtml(r.dept.split(':').slice(1).join(':').trim()||r.dept)}</span>`:''}
+        ${r.type?`<span style="color:var(--f4);">· ${escHtml(r.type.split(',')[0].trim())}</span>`:''}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+        ${['s_output:Output','s_accuracy:ถูกต้อง','s_consult:คำปรึกษา','s_time:เวลา','s_practical:ใช้ได้จริง'].map(x=>{
+          const[key,lbl]=x.split(':');const v=r[key];
+          return v?`<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:var(--s3);color:${parseFloat(v)>=5?'var(--done)':parseFloat(v)>=4?'var(--cu)':'var(--risk)'};font-weight:600;">${lbl}: ${v}</span>`:'';
+        }).join('')}
+      </div>
+    </div>`).join('')
+  : '<div style="font-size:12px;color:var(--f4);padding:20px 0;text-align:center;">ไม่พบข้อมูล</div>';
 
   document.getElementById('rov-drill').style.display='block';
   document.getElementById('rov-drill-overlay').style.display='block';
