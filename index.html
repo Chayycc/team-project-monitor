@@ -7844,10 +7844,10 @@ function renderInternalSurvey(){
   const monthEl=document.getElementById('isv-month-chart');
   const lblEl=document.getElementById('isv-month-total-lbl');
   if(monthEl){
-    const counts={};nd.forEach(r=>{const ym=_svYM(r.date);if(ym)counts[ym]=(counts[ym]||0)+1;});
+    const counts={};rows.forEach(r=>{const ym=_svYM(r.date);if(ym)counts[ym]=(counts[ym]||0)+1;});
     const sorted=Object.keys(counts).sort();
     const mx=Math.max(...Object.values(counts),1);
-    if(lblEl) lblEl.textContent=sorted.length+' เดือน · '+nd.length+' responses';
+    if(lblEl) lblEl.textContent=sorted.length+' เดือน · '+rows.length+' responses';
     if(!sorted.length){monthEl.innerHTML='<div style="font-size:12px;color:var(--f4);padding:8px 0;">ยังไม่มีข้อมูล</div>';}
     else {
       const YCOLS=['#C49A6C','#52996E','#9A8AB8','#6A9EA8','#B86848'];
