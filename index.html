@@ -252,6 +252,10 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
 .bc-pb-t{flex:1;height:3px;background:var(--s3);border-radius:2px;overflow:hidden;}
 .bc-pb-f{height:100%;border-radius:2px;}
 .bc-pb-p{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--f4);}
+.rovb-col{transition:border-color 120ms,background 120ms;}
+.rovb-drag-over{border-color:var(--cu) !important;background:var(--cud) !important;}
+.rovb-card{user-select:none;cursor:grab;}
+.rovb-card:active{cursor:grabbing;}
 
 /* Timeline */
 #timeline-view{display:none;overflow-x:auto;}
@@ -1279,6 +1283,10 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
       <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
       Table
     </button>
+    <button class="seg-btn" id="req-tab-board" onclick="reqTab('board')">
+      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="4" height="15" rx="1"/></svg>
+      Task Board
+    </button>
   </div>
 
   <!-- VISUALIZE PANEL -->
@@ -1420,6 +1428,21 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
     <div id="rovt-pag"></div>
   </div>
 
+  <!-- BOARD PANEL -->
+  <div id="rov-board" style="display:none;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--f4);">วัน</span>
+      <input type="date" id="rovb-day" oninput="renderROVBoard()" style="height:26px;padding:0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;font-family:inherit;" onfocus="this.style.borderColor='var(--cu)'" onblur="this.style.borderColor='var(--lnm)'"/>
+      <button onclick="document.getElementById('rovb-day').value='';renderROVBoard();" style="height:26px;padding:0 10px;background:transparent;border:1px solid var(--lnm);border-radius:7px;color:var(--f3);font-size:12px;cursor:pointer;font-family:inherit;transition:all 100ms;" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background='transparent'">Clear</button>
+      <span id="rovb-info" style="font-size:11px;color:var(--f4);"></span>
+      <span style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--f4);">
+        <svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:var(--f4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M5 9l4-4 4 4"/><path d="M9 5v14"/><path d="M19 15l-4 4-4-4"/><path d="M15 19V5"/></svg>
+        ลากการ์ดข้ามคอลัมน์เพื่อเปลี่ยน status
+      </span>
+    </div>
+    <div id="rovb-cols" style="display:flex;gap:10px;overflow-x:auto;align-items:flex-start;padding-bottom:16px;min-height:180px;"></div>
+    <div id="rovb-toast" style="position:fixed;bottom:24px;right:24px;background:var(--sf);border:1px solid var(--lnm);border-radius:12px;padding:12px 16px;font-size:12.5px;color:var(--f1);box-shadow:0 4px 20px rgba(0,0,0,.2);z-index:9999;display:none;flex-direction:column;gap:8px;min-width:260px;max-width:320px;"></div>
+  </div>
 
 </div>
 
@@ -6165,10 +6188,138 @@ let _rovPg = 1;
 function reqTab(tab) {
   document.getElementById('rov-viz').style.display   = tab==='viz'   ? 'block' : 'none';
   document.getElementById('rov-table').style.display = tab==='table' ? 'block' : 'none';
+  document.getElementById('rov-board').style.display = tab==='board' ? 'block' : 'none';
   document.getElementById('req-tab-viz').classList.toggle('active',   tab==='viz');
   document.getElementById('req-tab-table').classList.toggle('active', tab==='table');
+  document.getElementById('req-tab-board').classList.toggle('active', tab==='board');
   if (tab==='table') renderROVTable();
+  if (tab==='board') renderROVBoard();
 }
+
+// ── Task Board ──────────────────────────────────────────────
+const ROVB_COLS = [
+  {key:'todo',     label:'NOT STARTED', color:'var(--todo)',  bg:'var(--todobg)'},
+  {key:'progress', label:'IN PROGRESS', color:'var(--prog)',  bg:'var(--progbg)'},
+  {key:'pending',  label:'PENDING',     color:'var(--pend)',  bg:'var(--pendbg)'},
+  {key:'done',     label:'DONE',        color:'var(--done)',  bg:'var(--donebg)'},
+  {key:'cancel',   label:'CANCEL',      color:'var(--dly)',   bg:'var(--dlybg)'},
+];
+let _rovbOverrides = {};
+
+function _rovbLoadOverrides() {
+  try { _rovbOverrides = JSON.parse(localStorage.getItem('rovb_overrides')||'{}'); } catch(e) { _rovbOverrides = {}; }
+}
+function _rovbSaveOverride(id, status) {
+  _rovbOverrides[id] = status;
+  localStorage.setItem('rovb_overrides', JSON.stringify(_rovbOverrides));
+}
+function _rovbEffStatus(r) {
+  return _rovbOverrides[r.id] || r.status || 'todo';
+}
+function _rovbShowToast(r, newStatus) {
+  const toast = document.getElementById('rovb-toast');
+  if (!toast) return;
+  toast.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <span style="font-weight:600;font-size:12.5px;">ย้ายแล้ว → ${_reqStatusLabel(newStatus)}</span>
+      <button onclick="document.getElementById('rovb-toast').style.display='none';" style="background:none;border:none;color:var(--f4);cursor:pointer;font-size:18px;padding:0;line-height:1;">×</button>
+    </div>
+    <div style="font-size:11px;color:var(--f3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(r.title||'—')}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+      <span style="font-size:10.5px;color:var(--f4);">อัปเดตใน Notion เพื่อบันทึกจริง</span>
+      <button onclick="window.open('https://www.notion.so/${r.id}','_blank');" style="height:24px;padding:0 10px;background:var(--cu);border:none;border-radius:6px;color:#fff;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap;font-weight:600;">เปิด Notion</button>
+    </div>`;
+  toast.style.display = 'flex';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => { toast.style.display='none'; }, 9000);
+}
+
+function renderROVBoard() {
+  _rovbLoadOverrides();
+  const nd = rovGetFiltered ? rovGetFiltered() : (window.NOTION_DATA||[]);
+  const dayF = document.getElementById('rovb-day')?.value || '';
+  const rows = dayF ? nd.filter(r => {
+    const sub = (r.submitted||'').slice(0,10);
+    const dl  = (r.deadline||'').slice(0,10);
+    return sub === dayF || dl === dayF;
+  }) : nd;
+
+  const infoEl = document.getElementById('rovb-info');
+  if (infoEl) infoEl.textContent = rows.length < (window.NOTION_DATA||[]).length
+    ? `${rows.length} / ${(window.NOTION_DATA||[]).length} requests` : `${rows.length} requests`;
+
+  const groups = {};
+  ROVB_COLS.forEach(c => groups[c.key] = []);
+  rows.forEach(r => {
+    const st = _rovbEffStatus(r);
+    if (groups[st]) groups[st].push(r); else groups['todo'].push(r);
+  });
+
+  const colsEl = document.getElementById('rovb-cols');
+  if (!colsEl) return;
+
+  colsEl.innerHTML = ROVB_COLS.map(col => {
+    const cards = groups[col.key] || [];
+    const cardHtml = cards.map(r => {
+      const owIni = (r.owner||'?').split(',')[0].trim().split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+      const deptS = r.dept ? (r.dept.split(':').slice(1).join(':').trim() || r.dept.split(':')[0].trim()) : '';
+      const pColor = _reqPriorityColor(r.priority);
+      const pShort = _reqPriorityShort(r.priority);
+      const dl = r.deadline ? new Date(r.deadline) : null;
+      const dlPast = dl && dl < new Date();
+      const dlStr = dl ? dl.toLocaleDateString('th-TH',{day:'numeric',month:'short'}) : '';
+      const overridden = !!_rovbOverrides[r.id];
+      return `<div class="board-card rovb-card" draggable="true"
+        ondragstart="event.dataTransfer.setData('text/plain','${r.id}|${col.key}');event.currentTarget.style.opacity='.35';"
+        ondragend="event.currentTarget.style.opacity='1';"
+        onclick="window.open('https://www.notion.so/${r.id}','_blank')">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;margin-bottom:5px;">
+          <div class="board-card-title" style="margin-bottom:0;flex:1;">${escHtml(r.title||'—')}</div>
+          ${overridden ? `<span title="แก้ไขชั่วคราว (ยังไม่ sync Notion)" style="width:6px;height:6px;border-radius:50%;background:var(--risk);flex-shrink:0;margin-top:4px;"></span>` : ''}
+        </div>
+        ${deptS || r.type ? `<div class="board-card-meta" style="margin-bottom:5px;">${deptS?`<span>${escHtml(deptS.length>22?deptS.slice(0,22)+'…':deptS)}</span>`:''} ${r.type?`<span>· ${escHtml(r.type.slice(0,20))}</span>`:''}</div>` : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-top:2px;">
+          <div style="display:flex;align-items:center;gap:4px;">
+            ${r.output?`<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:var(--cud);color:var(--cus);">${escHtml(r.output)}</span>`:''}
+            ${pShort!=='—'?`<span style="font-size:9.5px;font-weight:600;color:${pColor};">${pShort}</span>`:''}
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            ${dlStr?`<span style="font-size:9.5px;color:${dlPast?'var(--dly)':'var(--f4)'};">${dlStr}</span>`:''}
+            ${r.owner?`<div style="width:20px;height:20px;border-radius:50%;background:var(--cud2);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--cu);" title="${escHtml(r.owner)}">${owIni}</div>`:''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="board-col rovb-col" style="flex:0 0 260px;max-height:calc(100vh - 320px);"
+      data-status="${col.key}"
+      ondragover="event.preventDefault();event.currentTarget.classList.add('rovb-drag-over');"
+      ondragleave="event.currentTarget.classList.remove('rovb-drag-over');"
+      ondrop="event.preventDefault();event.currentTarget.classList.remove('rovb-drag-over');_rovbOnDrop(event,'${col.key}');">
+      <div class="board-col-header" style="margin-bottom:10px;position:sticky;top:0;background:var(--sf);padding-bottom:6px;border-bottom:1px solid var(--ln);">
+        <div style="display:flex;align-items:center;gap:7px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${col.color};flex-shrink:0;"></div>
+          <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${col.color};">${col.label}</span>
+        </div>
+        <span class="board-col-count">${cards.length}</span>
+      </div>
+      ${cardHtml||`<div style="font-size:11px;color:var(--f4);text-align:center;padding:28px 8px;border:1.5px dashed var(--ln);border-radius:8px;margin-top:4px;">ไม่มีงาน</div>`}
+    </div>`;
+  }).join('');
+}
+
+function _rovbOnDrop(event, newStatus) {
+  const raw = event.dataTransfer.getData('text/plain');
+  if (!raw) return;
+  const [id, oldStatus] = raw.split('|');
+  if (!id || newStatus === oldStatus) return;
+  const r = (window.NOTION_DATA||[]).find(x => x.id === id);
+  if (!r) return;
+  _rovbSaveOverride(id, newStatus);
+  renderROVBoard();
+  _rovbShowToast(r, newStatus);
+}
+// ────────────────────────────────────────────────────────────
 
 function _reqBar(data, colorFn, filterKey) {
   const max = Math.max(...data.map(d=>d.v), 1);
@@ -6473,6 +6624,8 @@ function rovFilterChange() {
   renderROVHeatmap();
   const tabEl = document.getElementById('rov-table');
   if (tabEl && tabEl.style.display !== 'none') renderROVTable();
+  const boardEl = document.getElementById('rov-board');
+  if (boardEl && boardEl.style.display !== 'none') renderROVBoard();
 }
 
 function rovClearFilters() {
