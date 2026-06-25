@@ -1473,70 +1473,128 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
     </div>
   </div>
   <div class="pkpi-row" id="tr-kpi"></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-    <div class="card">
-      <div class="microlabel">By Type of Work</div>
-      <div class="chart-title" style="margin-bottom:10px;">ประเภทงาน</div>
-      <div id="tr-type-chart"></div>
-    </div>
-    <div class="card">
-      <div class="microlabel">By Project Owner</div>
-      <div class="chart-title" style="margin-bottom:10px;">Workload ต่อคน</div>
-      <div id="tr-owner-chart"></div>
-    </div>
-  </div>
-  <!-- Table -->
-  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-    <div style="position:relative;">
-      <svg viewBox="0 0 24 24" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:var(--f4);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input id="tr-search" type="text" placeholder="ค้นหา…" oninput="renderTeamReq()" style="height:26px;padding:0 8px 0 26px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f1);font-size:12px;outline:none;width:180px;font-family:inherit;" onfocus="this.style.borderColor='var(--cu)'" onblur="this.style.borderColor='var(--lnm)'"/>
-    </div>
-    <div class="sv-mdd" id="tr-status-mdd">
-      <button class="sv-mdd-btn" id="tr-status-btn" onclick="svTogglePanel(event,'tr-status-panel')">
-        <span id="tr-status-lbl">All Status</span>
-        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+
+  <!-- Global filters -->
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--f4);">Filter</span>
+    <select id="tr-year" onchange="trFilterChange()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;">
+      <option value="">All Years</option>
+    </select>
+    <div class="ms-wrap" id="tr-month-wrap">
+      <button class="ms-btn" id="tr-month-btn" onclick="rovMsToggle('tr')">
+        <span id="tr-month-lbl">All Months</span>
+        <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div class="sv-mdd-panel" id="tr-status-panel">
-        <div class="sv-mdd-item all" onclick="trToggleStatus(null)">
-          <div class="sv-mdd-cb" id="tr-status-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
-          All Status
-        </div>
-        <div class="sv-mdd-item" onclick="trToggleStatus('progress')"><div class="sv-mdd-cb" data-trstatus="progress"></div>In Progress</div>
-        <div class="sv-mdd-item" onclick="trToggleStatus('done')"><div class="sv-mdd-cb" data-trstatus="done"></div>Done</div>
-        <div class="sv-mdd-item" onclick="trToggleStatus('todo')"><div class="sv-mdd-cb" data-trstatus="todo"></div>Not Started</div>
+      <div class="ms-dd" id="tr-month-dd">
+        <div class="ms-list" id="tr-month-list"></div>
       </div>
     </div>
-    <div class="sv-mdd" id="tr-owner-mdd">
-      <button class="sv-mdd-btn" id="tr-owner-btn" onclick="svTogglePanel(event,'tr-owner-panel')">
-        <span id="tr-owner-lbl">All Owners</span>
-        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="sv-mdd-panel" id="tr-owner-panel">
-        <div class="sv-mdd-item all" onclick="trToggleOwner(null)">
-          <div class="sv-mdd-cb" id="tr-owner-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
-          All Owners
-        </div>
-        <div id="tr-owner-list"></div>
+    <select id="tr-gowner" onchange="trFilterChange()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:130px;">
+      <option value="">All Owners</option>
+    </select>
+    <button onclick="trClearFilters()" style="height:26px;padding:0 10px;background:transparent;border:1px solid var(--lnm);border-radius:7px;color:var(--f3);font-size:12px;cursor:pointer;font-family:inherit;transition:all 100ms;" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background='transparent'">Clear</button>
+    <span id="tr-filter-info" style="font-size:11px;color:var(--f4);"></span>
+  </div>
+
+  <!-- Tab switcher -->
+  <div style="display:flex;gap:2px;background:var(--s2);border:1px solid var(--lnm);border-radius:9px;padding:2px;width:fit-content;margin-bottom:16px;">
+    <button class="seg-btn active" id="tr-tab-viz" onclick="trTab('viz')">
+      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Visualize
+    </button>
+    <button class="seg-btn" id="tr-tab-table" onclick="trTab('table')">
+      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+      Table
+    </button>
+    <button class="seg-btn" id="tr-tab-board" onclick="trTab('board')">
+      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="4" height="15" rx="1"/></svg>
+      Task Board
+    </button>
+  </div>
+
+  <!-- VISUALIZE PANEL -->
+  <div id="tr-viz">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div class="card">
+        <div class="microlabel">By Type of Work</div>
+        <div class="chart-title" style="margin-bottom:10px;">ประเภทงาน</div>
+        <div id="tr-type-chart"></div>
+      </div>
+      <div class="card">
+        <div class="microlabel">By Project Owner</div>
+        <div class="chart-title" style="margin-bottom:10px;">Workload ต่อคน</div>
+        <div id="tr-owner-chart"></div>
       </div>
     </div>
-    <select id="tr-type" onchange="renderTeamReq()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:130px;"><option value="">All Types</option></select>
-    <button onclick="trClearAll()" style="height:26px;padding:0 10px;background:transparent;border:1px solid var(--lnm);border-radius:7px;color:var(--f3);font-size:12px;cursor:pointer;font-family:inherit;transition:all 100ms;" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background='transparent'">Clear</button>
-    <span id="tr-info" style="font-size:11.5px;color:var(--f4);"></span>
   </div>
-  <div class="table-wrap">
-    <table>
-      <thead><tr>
-        <th>Project Title</th><th>Status</th><th>Type</th><th>Owner</th>
-        <th>Member</th><th>Company</th><th>Deadline</th><th>Priority</th>
-      </tr></thead>
-      <tbody id="tr-body"></tbody>
-    </table>
-    <div id="tr-empty" class="empty-state hidden">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <div class="empty-state-title">ไม่พบ request</div>
+
+  <!-- TABLE PANEL -->
+  <div id="tr-table" style="display:none;">
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+      <div style="position:relative;">
+        <svg viewBox="0 0 24 24" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:var(--f4);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="tr-search" type="text" placeholder="ค้นหา…" oninput="renderTeamReq()" style="height:26px;padding:0 8px 0 26px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f1);font-size:12px;outline:none;width:180px;font-family:inherit;" onfocus="this.style.borderColor='var(--cu)'" onblur="this.style.borderColor='var(--lnm)'"/>
+      </div>
+      <div class="sv-mdd" id="tr-status-mdd">
+        <button class="sv-mdd-btn" id="tr-status-btn" onclick="svTogglePanel(event,'tr-status-panel')">
+          <span id="tr-status-lbl">All Status</span>
+          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="sv-mdd-panel" id="tr-status-panel">
+          <div class="sv-mdd-item all" onclick="trToggleStatus(null)">
+            <div class="sv-mdd-cb" id="tr-status-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
+            All Status
+          </div>
+          <div class="sv-mdd-item" onclick="trToggleStatus('progress')"><div class="sv-mdd-cb" data-trstatus="progress"></div>In Progress</div>
+          <div class="sv-mdd-item" onclick="trToggleStatus('done')"><div class="sv-mdd-cb" data-trstatus="done"></div>Done</div>
+          <div class="sv-mdd-item" onclick="trToggleStatus('todo')"><div class="sv-mdd-cb" data-trstatus="todo"></div>Not Started</div>
+        </div>
+      </div>
+      <div class="sv-mdd" id="tr-owner-mdd">
+        <button class="sv-mdd-btn" id="tr-owner-btn" onclick="svTogglePanel(event,'tr-owner-panel')">
+          <span id="tr-owner-lbl">All Owners</span>
+          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="sv-mdd-panel" id="tr-owner-panel">
+          <div class="sv-mdd-item all" onclick="trToggleOwner(null)">
+            <div class="sv-mdd-cb" id="tr-owner-cb-all" style="background:var(--cu);border-color:var(--cu);"><svg viewBox="0 0 10 8" style="width:10px;height:8px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><polyline points="1,4 4,7 9,1"/></svg></div>
+            All Owners
+          </div>
+          <div id="tr-owner-list"></div>
+        </div>
+      </div>
+      <select id="tr-type" onchange="renderTeamReq()" style="height:26px;padding:0 22px 0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;max-width:130px;"><option value="">All Types</option></select>
+      <button onclick="trClearAll()" style="height:26px;padding:0 10px;background:transparent;border:1px solid var(--lnm);border-radius:7px;color:var(--f3);font-size:12px;cursor:pointer;font-family:inherit;transition:all 100ms;" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background='transparent'">Clear</button>
+      <span id="tr-info" style="font-size:11.5px;color:var(--f4);"></span>
     </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Project Title</th><th>Status</th><th>Type</th><th>Owner</th>
+          <th>Member</th><th>Company</th><th>Deadline</th><th>Priority</th>
+        </tr></thead>
+        <tbody id="tr-body"></tbody>
+      </table>
+      <div id="tr-empty" class="empty-state hidden">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <div class="empty-state-title">ไม่พบ request</div>
+      </div>
+    </div>
+    <div id="tr-pag"></div>
   </div>
-  <div id="tr-pag"></div>
+
+  <!-- BOARD PANEL -->
+  <div id="tr-board" style="display:none;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--f4);">วัน</span>
+      <input type="date" id="trvb-day" oninput="renderTRBoard()" style="height:26px;padding:0 8px;background:var(--s2);border:1px solid var(--lnm);border-radius:7px;color:var(--f2);font-size:12px;outline:none;font-family:inherit;cursor:pointer;" onfocus="this.style.borderColor='var(--cu)'" onblur="this.style.borderColor='var(--lnm)'"/>
+      <button onclick="document.getElementById('trvb-day').value='';renderTRBoard();" style="height:26px;padding:0 10px;background:transparent;border:1px solid var(--lnm);border-radius:7px;color:var(--f3);font-size:12px;cursor:pointer;font-family:inherit;transition:all 100ms;" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background='transparent'">Clear</button>
+      <span id="trvb-info" style="font-size:11px;color:var(--f4);"></span>
+      <span style="font-size:10.5px;color:var(--f4);margin-left:4px;">ลากการ์ดข้ามคอลัมน์เพื่อเปลี่ยน status</span>
+    </div>
+    <div id="trvb-cols" style="display:flex;gap:10px;overflow-x:auto;align-items:flex-start;padding-bottom:16px;min-height:180px;"></div>
+    <div id="trvb-toast" style="position:fixed;bottom:24px;right:24px;background:var(--sf);border:1px solid var(--lnm);border-radius:12px;padding:12px 16px;box-shadow:0 4px 20px rgba(0,0,0,.18);display:none;flex-direction:column;gap:8px;z-index:9999;min-width:220px;max-width:300px;"></div>
+  </div>
 </div>
 
 
@@ -2544,6 +2602,7 @@ const _projSelStatus = new Set();
 const _projSelOwners = new Set();
 const _trSelStatus = new Set();
 const _trSelOwners = new Set();
+const _trSelMonths = new Set();
 const _diSelStatus = new Set();
 const _diSelOwners = new Set();
 
@@ -6466,7 +6525,7 @@ function rovMsBuildList(ns, months) {
   // Use custom .ms-chk div (always visible) instead of native checkbox
   const list = document.getElementById(ns+'-month-list');
   if (!list) return;
-  const sel = ns === 'rov' ? _rovSelMonths : _rovtSelMonths;
+  const sel = ns === 'rov' ? _rovSelMonths : (ns === 'tr' ? _trSelMonths : _rovtSelMonths);
   list.innerHTML =
     `<div class="ms-item${sel.size===0?' ms-selected':''}" onclick="rovMsAll('${ns}')">
       <div class="ms-chk${sel.size===0?' checked':''}"></div>
@@ -6485,7 +6544,7 @@ function rovMsBuildList(ns, months) {
 }
 
 function rovMsCheck(ns, val) {
-  const sel = ns === 'rov' ? _rovSelMonths : _rovtSelMonths;
+  const sel = ns === 'rov' ? _rovSelMonths : (ns === 'tr' ? _trSelMonths : _rovtSelMonths);
   if (sel.has(val)) sel.delete(val); else sel.add(val);
   // Update visual for this item + All Months row (no full rebuild)
   const list = document.getElementById(ns+'-month-list');
@@ -6505,11 +6564,11 @@ function rovMsCheck(ns, val) {
     }
   }
   rovMsUpdateLabel(ns);
-  if (ns === 'rov') rovFilterChange(); else renderROVTable();
+  if (ns === 'rov') rovFilterChange(); else if (ns === 'tr') trFilterChange(); else renderROVTable();
 }
 
 function rovMsAll(ns) {
-  const sel = ns === 'rov' ? _rovSelMonths : _rovtSelMonths;
+  const sel = ns === 'rov' ? _rovSelMonths : (ns === 'tr' ? _trSelMonths : _rovtSelMonths);
   sel.clear();
   const list = document.getElementById(ns+'-month-list');
   if (list) {
@@ -6520,11 +6579,11 @@ function rovMsAll(ns) {
     });
   }
   rovMsUpdateLabel(ns);
-  if (ns === 'rov') rovFilterChange(); else renderROVTable();
+  if (ns === 'rov') rovFilterChange(); else if (ns === 'tr') trFilterChange(); else renderROVTable();
 }
 
 function rovMsUpdateLabel(ns) {
-  const sel = ns === 'rov' ? _rovSelMonths : _rovtSelMonths;
+  const sel = ns === 'rov' ? _rovSelMonths : (ns === 'tr' ? _trSelMonths : _rovtSelMonths);
   const btn = document.getElementById(ns+'-month-btn');
   const lbl = document.getElementById(ns+'-month-lbl');
   if (!lbl) return;
@@ -7103,7 +7162,7 @@ function initTeamReq() {
   // Populate type select
   const ty=document.getElementById('tr-type');
   if(ty&&ty.options.length<=1){const types=[...new Set(nd.map(r=>r.type).filter(Boolean))].sort();types.forEach(t=>{const op=document.createElement('option');op.value=t;op.textContent=t;ty.appendChild(op);});}
-  renderTeamReq();
+  initTRFilters();
 }
 
 function renderTRKpi(nd) {
@@ -7157,18 +7216,16 @@ function renderTeamReqCharts(nd) {
 }
 
 function renderTeamReq() {
-  const nd=window.TEAM_REQ_DATA||[];
+  const base=trGetFiltered();
   const q=(document.getElementById('tr-search')?.value||'').toLowerCase();
   const tf=document.getElementById('tr-type')?.value||'';
-  let rows=nd.filter(r=>r.title&&r.title.trim()).filter(r=>{
+  let rows=base.filter(r=>{
     if(q&&!(r.title||'').toLowerCase().includes(q)&&!(r.owner||'').toLowerCase().includes(q)&&!(r.desc||'').toLowerCase().includes(q))return false;
     if(_trSelStatus.size>0&&!_trSelStatus.has(r.status))return false;
     if(_trSelOwners.size>0&&!_trSelOwners.has(r.owner||''))return false;
     if(tf&&r.type!==tf)return false;
     return true;
   });
-  renderTeamReqCharts(rows);
-  renderTRKpi(rows);
   const total=rows.length;
   const pages=Math.max(1,Math.ceil(total/PG)); _trPg=Math.min(_trPg,pages);
   const paged=_paged(rows,_trPg);
@@ -7213,6 +7270,179 @@ async function syncTeamReq() {
   }catch(e){if(btn){btn.textContent='✗ Failed';btn.disabled=false;}console.error(e);}
 }
 
+
+function initTRFilters() {
+  const nd=window.TEAM_REQ_DATA||[];
+  const yrSel=document.getElementById('tr-year');
+  if(yrSel&&yrSel.options.length<=1){
+    const years=[...new Set(nd.filter(r=>r.start).map(r=>new Date(r.start).getFullYear()))].sort().reverse();
+    years.forEach(y=>{const op=document.createElement('option');op.value=y;op.textContent=(y+543-2000)+' ('+y+')';yrSel.appendChild(op);});
+  }
+  const fillTRMonths=()=>{
+    const yr=document.getElementById('tr-year')?.value||'';
+    const src=yr?nd.filter(r=>r.start&&new Date(r.start).getFullYear()==yr):nd.filter(r=>r.start);
+    const months=[...new Set(src.map(r=>{const d=new Date(r.start);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}))].sort().reverse();
+    _trSelMonths.forEach(m=>{if(!months.includes(m))_trSelMonths.delete(m);});
+    rovMsBuildList('tr',months);
+    rovMsUpdateLabel('tr');
+  };
+  fillTRMonths();
+  if(!yrSel?._trListenerAdded){
+    yrSel?.addEventListener('change',()=>{fillTRMonths();trFilterChange();});
+    if(yrSel)yrSel._trListenerAdded=true;
+  }
+  const goSel=document.getElementById('tr-gowner');
+  if(goSel&&goSel.options.length<=1){
+    const owners=[...new Set(nd.map(r=>r.owner||'').filter(Boolean))].sort();
+    owners.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o.split(' ')[0];goSel.appendChild(op);});
+  }
+  trFilterChange();
+}
+
+function trGetFiltered() {
+  const nd=(window.TEAM_REQ_DATA||[]).filter(r=>r.title&&r.title.trim());
+  const yr=document.getElementById('tr-year')?.value||'';
+  const go=document.getElementById('tr-gowner')?.value||'';
+  return nd.filter(r=>{
+    if(r.start){
+      const d=new Date(r.start);
+      const ryear=String(d.getFullYear());
+      const rmonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      if(yr&&ryear!==yr)return false;
+      if(_trSelMonths.size>0&&!_trSelMonths.has(rmonth))return false;
+    } else if(yr||_trSelMonths.size>0) return false;
+    if(go&&!(r.owner||'').includes(go))return false;
+    return true;
+  });
+}
+
+function trFilterChange() {
+  const filtered=trGetFiltered();
+  const total=(window.TEAM_REQ_DATA||[]).filter(r=>r.title&&r.title.trim()).length;
+  const infoEl=document.getElementById('tr-filter-info');
+  if(infoEl)infoEl.textContent=filtered.length<total?`${filtered.length} / ${total} requests`:`${total} requests`;
+  _trPg=1;
+  renderTeamReqCharts(filtered);
+  renderTRKpi(filtered);
+  const tabEl=document.getElementById('tr-table');
+  if(tabEl&&tabEl.style.display!=='none')renderTeamReq();
+  const boardEl=document.getElementById('tr-board');
+  if(boardEl&&boardEl.style.display!=='none')renderTRBoard();
+}
+
+function trClearFilters() {
+  const yr=document.getElementById('tr-year'); if(yr)yr.value='';
+  const go=document.getElementById('tr-gowner'); if(go)go.value='';
+  _trSelMonths.clear();
+  rovMsUpdateLabel('tr');
+  const list=document.getElementById('tr-month-list');
+  if(list)list.querySelectorAll('.ms-item').forEach((it,i)=>{
+    it.classList.toggle('ms-selected',i===0);it.querySelector('.ms-chk')?.classList.toggle('checked',i===0);
+  });
+  trFilterChange();
+}
+
+function trTab(tab) {
+  document.getElementById('tr-viz').style.display   = tab==='viz'   ? 'block' : 'none';
+  document.getElementById('tr-table').style.display = tab==='table' ? 'block' : 'none';
+  document.getElementById('tr-board').style.display = tab==='board' ? 'block' : 'none';
+  document.getElementById('tr-tab-viz').classList.toggle('active',   tab==='viz');
+  document.getElementById('tr-tab-table').classList.toggle('active', tab==='table');
+  document.getElementById('tr-tab-board').classList.toggle('active', tab==='board');
+  if(tab==='table')renderTeamReq();
+  if(tab==='board')renderTRBoard();
+}
+
+let _trvbOverrides={};
+function _trvbLoadOverrides(){try{_trvbOverrides=JSON.parse(localStorage.getItem('trvb_overrides')||'{}');}catch(e){_trvbOverrides={};}}
+function _trvbSaveOverride(id,status){_trvbOverrides[id]=status;localStorage.setItem('trvb_overrides',JSON.stringify(_trvbOverrides));}
+function _trvbEffStatus(r){return _trvbOverrides[r.id]||r.status||'todo';}
+
+function _trvbShowToast(r,newStatus) {
+  const el=document.getElementById('trvb-toast');
+  if(!el)return;
+  const col=ROVB_COLS.find(c=>c.key===newStatus)||ROVB_COLS[0];
+  el.style.display='flex';
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:${col.color};flex-shrink:0;"></span>
+      <span style="font-size:12px;font-weight:600;color:var(--f1);">${escHtml((r.title||'—').slice(0,40))}</span>
+    </div>
+    <div style="font-size:11px;color:var(--f3);">→ ${col.label}</div>
+    <div style="display:flex;gap:8px;margin-top:2px;">
+      <button onclick="window.open('https://www.notion.so/${r.id}','_blank')" style="flex:1;height:28px;background:var(--cu);border:none;border-radius:7px;color:#fff;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">เปิด Notion</button>
+      <button onclick="document.getElementById('trvb-toast').style.display='none';" style="height:28px;padding:0 10px;background:transparent;border:1px solid var(--lnm);border-radius:7px;color:var(--f3);font-size:11.5px;cursor:pointer;font-family:inherit;">✕</button>
+    </div>`;
+  clearTimeout(_trvbToastTimer);
+  _trvbToastTimer=setTimeout(()=>{if(el)el.style.display='none';},6000);
+}
+let _trvbToastTimer=null;
+
+function renderTRBoard() {
+  _trvbLoadOverrides();
+  const base=trGetFiltered();
+  const day=document.getElementById('trvb-day')?.value||'';
+  let rows=base;
+  if(day)rows=rows.filter(r=>{const chk=r.deadline||r.start||'';return chk&&chk.startsWith(day);});
+  const infoEl=document.getElementById('trvb-info');
+  if(infoEl)infoEl.textContent=rows.length+' งาน'+(day?' ('+day+')':'');
+  const colsEl=document.getElementById('trvb-cols');
+  if(!colsEl)return;
+  const grouped={};
+  ROVB_COLS.forEach(c=>{grouped[c.key]=[];});
+  rows.forEach(r=>{const s=_trvbEffStatus(r);if(grouped[s])grouped[s].push(r);else grouped['todo'].push(r);});
+  const priColor={'Urgent':'var(--dly)','High':'var(--risk)','Medium':'var(--pend)','Low':'var(--done)'};
+  colsEl.innerHTML=ROVB_COLS.map(col=>{
+    const cards=grouped[col.key]||[];
+    const cardsHtml=cards.map(r=>{
+      const ini=(r.owner||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+      const overridden=!!_trvbOverrides[r.id];
+      const isPastDl=r.deadline&&new Date(r.deadline)<new Date()&&col.key!=='done'&&col.key!=='cancel';
+      return `<div class="board-card rovb-card" draggable="true"
+        ondragstart="event.dataTransfer.setData('text/plain','${r.id}|${col.key}');event.currentTarget.style.opacity='.35';"
+        ondragend="event.currentTarget.style.opacity='1';"
+        onclick="window.open('https://www.notion.so/${r.id}','_blank')"
+        style="background:var(--sf);border:1px solid var(--lnm);border-radius:9px;padding:10px 11px;margin-bottom:7px;cursor:grab;user-select:none;">
+        <div style="font-size:12px;font-weight:600;color:var(--f1);line-height:1.4;margin-bottom:6px;">${escHtml((r.title||'—').slice(0,60))}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
+          ${r.type?`<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--s3);color:var(--f3);">${escHtml(r.type)}</span>`:''}
+          ${r.priority?`<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--s3);color:${priColor[r.priority]||'var(--f3)'};">${r.priority}</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:5px;">
+            <div style="width:18px;height:18px;border-radius:50%;background:var(--cud2);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:var(--cu);">${escHtml(ini)}</div>
+            <span style="font-size:10.5px;color:var(--f3);">${escHtml((r.owner||'—').split(' ')[0])}</span>
+          </div>
+          ${r.deadline?`<span style="font-size:10px;font-family:'JetBrains Mono',monospace;color:${isPastDl?'var(--dly)':'var(--f4)'};">${_fmtDateTH(r.deadline)}</span>`:''}
+        </div>
+        ${overridden?`<div style="margin-top:5px;font-size:9px;padding:1px 6px;border-radius:10px;background:var(--risk);color:#fff;display:inline-block;">local override</div>`:''}
+      </div>`;
+    }).join('');
+    return `<div class="board-col rovb-col" style="flex:0 0 240px;max-height:calc(100vh - 300px);overflow-y:auto;background:var(--s2);border:1px solid var(--lnm);border-radius:12px;padding:10px;"
+      data-status="${col.key}"
+      ondragover="event.preventDefault();event.currentTarget.classList.add('rovb-drag-over');"
+      ondragleave="event.currentTarget.classList.remove('rovb-drag-over');"
+      ondrop="event.preventDefault();event.currentTarget.classList.remove('rovb-drag-over');_trvbOnDrop(event,'${col.key}');">
+      <div style="position:sticky;top:0;background:var(--s2);padding-bottom:8px;z-index:1;display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:${col.color};flex-shrink:0;"></span>
+        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--f2);">${col.label}</span>
+        <span style="margin-left:auto;font-size:10px;font-weight:700;color:${col.color};background:${col.bg};padding:1px 7px;border-radius:20px;">${cards.length}</span>
+      </div>
+      ${cardsHtml}
+      ${cards.length===0?`<div style="text-align:center;padding:20px 0;font-size:11px;color:var(--f4);">ไม่มีงาน</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function _trvbOnDrop(event,newStatus) {
+  const data=event.dataTransfer.getData('text/plain');
+  if(!data)return;
+  const [id]=data.split('|');
+  _trvbSaveOverride(id,newStatus);
+  renderTRBoard();
+  const r=(window.TEAM_REQ_DATA||[]).find(x=>x.id===id);
+  if(r)_trvbShowToast(r,newStatus);
+}
 
 // ══ KPI SCORECARD ════════════════════════════════════════════════
 // Placeholder — populated by sync_notion.py via Google Apps Script
