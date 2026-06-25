@@ -1525,6 +1525,36 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
         <div class="chart-title" style="margin-bottom:10px;">Workload ต่อคน</div>
         <div id="tr-owner-chart"></div>
       </div>
+      <!-- Monthly trend spanning full width -->
+      <div class="card" style="grid-column:1/-1;">
+        <div class="microlabel">Monthly Trend</div>
+        <div class="chart-title" style="margin-bottom:10px;">Requests รายเดือน</div>
+        <div id="tr-trend-chart"></div>
+      </div>
+    </div>
+    <!-- Activity Heatmap -->
+    <div class="card" style="margin-bottom:14px;padding:12px 14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <span class="microlabel">Activity Heatmap</span>
+          <span style="font-size:11.5px;font-weight:600;color:var(--f1);">Requests รายวัน</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:flex;align-items:center;gap:3px;">
+            <span style="font-size:9.5px;color:var(--f4);">น้อย</span>
+            <div style="display:flex;gap:1.5px;">
+              <div style="width:8px;height:8px;border-radius:1.5px;background:var(--s3);"></div>
+              <div style="width:8px;height:8px;border-radius:1.5px;background:rgba(196,154,108,0.3);"></div>
+              <div style="width:8px;height:8px;border-radius:1.5px;background:rgba(196,154,108,0.6);"></div>
+              <div style="width:8px;height:8px;border-radius:1.5px;background:var(--cu);"></div>
+            </div>
+            <span style="font-size:9.5px;color:var(--f4);">มาก</span>
+          </div>
+          <select id="tr-heatmap-year" onchange="renderTRHeatmap()" style="height:22px;padding:0 18px 0 6px;background:var(--s2);border:1px solid var(--lnm);border-radius:5px;color:var(--f2);font-size:10.5px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%228%22 height=%228%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23524E48%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 4px center;font-family:inherit;"></select>
+          <span id="tr-heatmap-total" style="font-size:9.5px;color:var(--f4);font-family:'JetBrains Mono',monospace;"></span>
+        </div>
+      </div>
+      <div id="tr-heatmap" style="overflow-x:auto;"></div>
     </div>
   </div>
 
@@ -7181,6 +7211,9 @@ function renderTeamReqCharts(nd) {
   const COLS=['var(--pend)','var(--prog)','var(--done)','var(--cu)','var(--dly)','#6AAFB2','#B89C4F'];
   // KPI
   renderTRKpi(nd);
+  // Trend and heatmap
+  renderTRTrend(nd);
+  renderTRHeatmap();
   // Type chart
   const tm={};nd.forEach(r=>{if(r.type)tm[r.type]=(tm[r.type]||0)+1;});
   const td=Object.entries(tm).sort((a,b)=>b[1]-a[1]);
@@ -7240,7 +7273,7 @@ function renderTeamReq() {
     return `<tr onclick="window.open('https://www.notion.so/${r.id}','_blank')" style="cursor:pointer;">
       <td class="td-title"><div class="td-title-text">${escHtml(r.title||'—')}</div>${r.desc?`<div class="td-parent">${escHtml(r.desc.slice(0,55))}${r.desc.length>55?'…':''}</div>`:''}</td>
       <td><span class="pill ${_reqStatusClass(r.status)}"><span class="pill-dot" style="background:${_reqStatusDot(r.status)}"></span>${_reqStatusLabel(r.status)}</span></td>
-      <td style="font-size:11.5px;color:var(--f3);">${escHtml(r.type||'—')}</td>
+      <td>${r.type?`<span style="font-size:10.5px;padding:2px 8px;border-radius:20px;background:var(--s3);color:var(--f2);white-space:nowrap;">${escHtml(r.type)}</span>`:'<span style="color:var(--f4);">—</span>'}</td>
       <td><div class="ow-c"><div class="ow-av">${escHtml(owIni)}</div><span style="font-size:12px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(r.owner||'—')}</span></div></td>
       <td style="font-size:12px;color:var(--f3);">${escHtml(r.member||'—')}</td>
       <td style="font-size:12px;color:var(--f3);">${escHtml(r.company||'—')}</td>
@@ -7270,6 +7303,176 @@ async function syncTeamReq() {
   }catch(e){if(btn){btn.textContent='✗ Failed';btn.disabled=false;}console.error(e);}
 }
 
+
+function renderTRTrend(nd) {
+  const trendEl = document.getElementById('tr-trend-chart');
+  if (!trendEl) return;
+  if (!nd) nd = trGetFiltered ? trGetFiltered() : (window.TEAM_REQ_DATA||[]).filter(r=>r.title&&r.title.trim());
+  const monthMap = {};
+  nd.forEach(r => {
+    if (!r.start) return;
+    const d = new Date(r.start);
+    if (isNaN(d)) return;
+    const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    monthMap[k] = (monthMap[k]||0) + 1;
+  });
+  const monthData = Object.entries(monthMap).sort((a,b) => a[0].localeCompare(b[0])).slice(-12);
+  if (!monthData.length) { trendEl.innerHTML = '<div style="text-align:center;padding:20px;font-size:11px;color:var(--f4);">ไม่มีข้อมูล</div>'; return; }
+  const TH = ['','ม.ค','ก.พ','มี.ค','เม.ย','พ.ค','มิ.ย','ก.ค','ส.ค','ก.ย','ต.ค','พ.ย','ธ.ค'];
+  const W=560, H=100, padX=16, padY=12, botPad=22;
+  const n = monthData.length;
+  const maxV = Math.max(...monthData.map(([,v]) => v), 1);
+  const pts = monthData.map(([k,v], i) => {
+    const x = padX + (n>1 ? i/(n-1)*(W-padX*2) : (W-padX*2)/2);
+    const y = padY + (1 - v/maxV) * (H - padY - padY/2);
+    return [x, y, v, k];
+  });
+  const pathD = pts.map((p,i) => `${i?'L':'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+  const areaD = pathD + ` L${pts[pts.length-1][0].toFixed(1)} ${H} L${pts[0][0].toFixed(1)} ${H} Z`;
+  const gridLines = [0.25, 0.5, 0.75, 1].map(f => {
+    const gy = padY + (1-f)*(H-padY-padY/2);
+    return `<line x1="${padX}" y1="${gy.toFixed(1)}" x2="${W-padX}" y2="${gy.toFixed(1)}" stroke="var(--ln)" stroke-width="0.5"/>
+            <text x="${padX-2}" y="${(gy+2).toFixed(1)}" text-anchor="end" fill="var(--f4)" font-size="5">${Math.round(f*maxV)}</text>`;
+  }).join('');
+  trendEl.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H+botPad}" style="overflow:visible;">
+    <defs><linearGradient id="trTrendGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--cu)" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="var(--cu)" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${gridLines}
+    <path d="${areaD}" fill="url(#trTrendGrad)"/>
+    <path d="${pathD}" fill="none" stroke="var(--cu)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${pts.map(([x,y,v,k]) => {
+      const [yr,mo] = k.split('-');
+      const lbl = `${TH[+mo]} ${+yr+543-2500}`;
+      const isHigh = v === maxV;
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3"
+        fill="var(--cu)" opacity="0.85" style="cursor:pointer;"
+        onclick="trOpenDrillMonth('${k}','${lbl} — ${v} requests')"
+        title="${lbl}: ${v} requests"/>
+      <text x="${x.toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle"
+        fill="${isHigh?'var(--f1)':'var(--f3)'}"
+        font-size="${isHigh?6.5:5.5}" font-weight="${isHigh?'600':'400'}">${v}</text>
+      <text x="${x.toFixed(1)}" y="${(H+botPad-4).toFixed(1)}" text-anchor="middle"
+        fill="var(--f4)" font-size="5.5">${lbl}</text>`;
+    }).join('')}
+  </svg>`;
+}
+
+function renderTRHeatmap() {
+  const nd = trGetFiltered ? trGetFiltered() : (window.TEAM_REQ_DATA||[]).filter(r=>r.title&&r.title.trim());
+  const yrSel = document.getElementById('tr-heatmap-year');
+  const el = document.getElementById('tr-heatmap');
+  if (!el) return;
+  if (yrSel && yrSel.options.length === 0) {
+    const years = [...new Set(nd.filter(r=>r.start).map(r=>new Date(r.start).getFullYear()))].filter(y=>!isNaN(y)).sort().reverse();
+    years.forEach(y => { const op=document.createElement('option'); op.value=y; op.textContent=(y+543-2000); yrSel.appendChild(op); });
+  }
+  const selectedYear = yrSel ? (parseInt(yrSel.value)||new Date().getFullYear()) : new Date().getFullYear();
+  const dayCount = {};
+  nd.forEach(r => {
+    if (!r.start) return;
+    const d = new Date(r.start);
+    if (isNaN(d) || d.getFullYear() !== selectedYear) return;
+    const k = r.start.slice(0,10);
+    dayCount[k] = (dayCount[k]||0) + 1;
+  });
+  const total = Object.values(dayCount).reduce((s,v)=>s+v,0);
+  const totEl = document.getElementById('tr-heatmap-total');
+  if (totEl) totEl.textContent = total + ' งาน';
+  const maxVal = Math.max(...Object.values(dayCount), 1);
+  const C=10, G=2, LEFT=22, TOP=14;
+  const DAYS=['S','M','T','W','T','F','S'];
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const getColor = v => {
+    if (!v) return 'var(--s3)';
+    const r = v/maxVal;
+    if (r<=0.25) return 'rgba(196,154,108,0.2)';
+    if (r<=0.5)  return 'rgba(196,154,108,0.5)';
+    if (r<=0.75) return 'rgba(196,154,108,0.75)';
+    return 'var(--cu)';
+  };
+  const firstDay = new Date(selectedYear,0,1);
+  const startSun = new Date(firstDay); startSun.setDate(firstDay.getDate()-firstDay.getDay());
+  const endDay = new Date(selectedYear,11,31);
+  const weeks = []; let cur = new Date(startSun);
+  while (cur <= endDay) {
+    const w = []; for (let d=0;d<7;d++){w.push(new Date(cur));cur.setDate(cur.getDate()+1);} weeks.push(w);
+  }
+  const W = LEFT + weeks.length*(C+G) + 4;
+  const H = TOP + 7*(C+G) + 4;
+  let mLabels = ''; let prevMo = -1;
+  weeks.forEach((wk,wi) => {
+    const mo = wk[0].getMonth();
+    if (mo !== prevMo && wk[0].getFullYear() === selectedYear) {
+      mLabels += `<text x="${LEFT+wi*(C+G)}" y="${TOP-3}" fill="var(--f3)" font-size="7" font-family="'JetBrains Mono',monospace" font-weight="500">${MONTHS[mo]}</text>`;
+      prevMo = mo;
+    }
+  });
+  const dLabels = [0,1,2,3,4,5,6].map(d =>
+    `<text x="${LEFT-3}" y="${TOP+d*(C+G)+C/2}" fill="var(--f4)" font-size="6" font-family="'JetBrains Mono',monospace" text-anchor="end" dominant-baseline="middle">${DAYS[d]}</text>`
+  ).join('');
+  let cells = '';
+  weeks.forEach((wk,wi) => {
+    wk.forEach((date,di) => {
+      const key = date.toISOString().slice(0,10);
+      const v = dayCount[key]||0;
+      const inYear = date.getFullYear() === selectedYear;
+      const x = LEFT+wi*(C+G), y = TOP+di*(C+G);
+      const color = inYear ? getColor(v) : 'transparent';
+      const click = inYear&&v>0 ? ` onclick="trOpenDrillDay('${key}','${key} — ${v} requests')"` : '';
+      const style = inYear&&v>0 ? ' style="cursor:pointer;"' : '';
+      const ttip = inYear&&v>0 ? `<title>${key}: ${v}</title>` : '';
+      cells += `<rect x="${x}" y="${y}" width="${C}" height="${C}" rx="1.5" fill="${color}" opacity="${inYear?1:0}"${style}${click}>${ttip}</rect>`;
+    });
+  });
+  el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet">${mLabels}${dLabels}${cells}</svg>`;
+}
+
+function trOpenDrillMonth(monthKey, titleLabel) {
+  const nd = trGetFiltered ? trGetFiltered() : (window.TEAM_REQ_DATA||[]).filter(r=>r.title&&r.title.trim());
+  const rows = nd.filter(r => r.start && r.start.startsWith(monthKey));
+  _trShowDrill('เดือน', titleLabel, rows);
+}
+
+function trOpenDrillDay(dateKey, titleLabel) {
+  const nd = trGetFiltered ? trGetFiltered() : (window.TEAM_REQ_DATA||[]).filter(r=>r.title&&r.title.trim());
+  const rows = nd.filter(r => r.start && r.start.startsWith(dateKey));
+  _trShowDrill('วันที่', titleLabel, rows);
+}
+
+function _trShowDrill(label, titleLabel, rows) {
+  const done=rows.filter(r=>r.status==='done').length;
+  const prog=rows.filter(r=>r.status==='progress').length;
+  const todo=rows.filter(r=>r.status==='todo').length;
+  document.getElementById('rov-drill-label').textContent = label;
+  document.getElementById('rov-drill-title').textContent = titleLabel;
+  document.getElementById('rov-drill-count').textContent = rows.length + ' requests';
+  document.getElementById('rov-drill-kpi').innerHTML = [
+    {l:'Total',v:rows.length,c:'var(--cu)'},{l:'Done',v:done,c:'var(--done)'},
+    {l:'In Progress',v:prog,c:'var(--prog)'},{l:'Not Started',v:todo,c:'var(--f3)'}
+  ].map(s=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;background:var(--s2);border-radius:9px;min-width:60px;"><span style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:${s.c};">${s.v}</span><span style="font-size:9.5px;color:var(--f4);text-transform:uppercase;letter-spacing:.05em;font-weight:600;">${s.l}</span></div>`).join('');
+  document.getElementById('rov-drill-list').innerHTML = rows.map(r => {
+    const owIni = (r.owner||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+    return `<div onclick="window.open('https://www.notion.so/${r.id}','_blank')"
+      style="background:var(--s2);border:1px solid var(--ln);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all 100ms;"
+      onmouseover="this.style.borderColor='var(--lnm)'" onmouseout="this.style.borderColor='var(--ln)'">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
+        <div style="font-size:12.5px;font-weight:500;color:var(--f1);flex:1;line-height:1.4;">${escHtml(r.title||'—')}</div>
+        <span class="pill ${_reqStatusClass(r.status)}"><span class="pill-dot" style="background:${_reqStatusDot(r.status)}"></span>${_reqStatusLabel(r.status)}</span>
+      </div>
+      ${r.desc?`<div style="font-size:11px;color:var(--f3);margin-bottom:6px;">${escHtml(r.desc.slice(0,80))}${r.desc.length>80?'…':''}</div>`:''}
+      <div style="display:flex;gap:8px;font-size:11px;color:var(--f4);flex-wrap:wrap;">
+        ${r.type?`<span style="padding:1px 6px;border-radius:10px;background:var(--s3);color:var(--f2);">${escHtml(r.type)}</span>`:''}
+        ${r.owner?`<span>· ${escHtml(r.owner.split(' ')[0])}</span>`:''}
+        ${r.deadline?`<span>· ${_fmtDateTH(r.deadline)}</span>`:''}
+        ${r.priority?`<span style="color:var(--pend);">· ${r.priority}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('rov-drill').style.display = 'block';
+  document.getElementById('rov-drill-overlay').style.display = 'block';
+}
 
 function initTRFilters() {
   const nd=window.TEAM_REQ_DATA||[];
