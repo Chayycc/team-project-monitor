@@ -7323,7 +7323,6 @@ function trFilterChange() {
   if(infoEl)infoEl.textContent=filtered.length<total?`${filtered.length} / ${total} requests`:`${total} requests`;
   _trPg=1;
   renderTeamReqCharts(filtered);
-  renderTRKpi(filtered);
   const tabEl=document.getElementById('tr-table');
   if(tabEl&&tabEl.style.display!=='none')renderTeamReq();
   const boardEl=document.getElementById('tr-board');
