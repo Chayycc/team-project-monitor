@@ -137,9 +137,29 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;}
 .sb-fi svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 .qv-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .sb-btm{margin-top:auto;padding:10px 8px;border-top:1px solid var(--ln);}
-.sb-user{display:flex;align-items:center;gap:8px;padding:6px 5px;border-radius:7px;cursor:default;}
-.sb-av{width:28px;height:28px;border-radius:50%;background:var(--cud2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--cu);flex-shrink:0;}
+.sb-user{display:flex;align-items:center;gap:8px;padding:6px 5px;border-radius:7px;cursor:pointer;transition:background .15s;}
+.sb-user:hover{background:var(--s2);}
+.sb-user.profile-active{background:var(--cud2);}
+.sb-av{width:28px;height:28px;border-radius:50%;background:var(--cud2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--cu);flex-shrink:0;transition:background .15s,color .15s;}
 .sb-uname{font-size:12px;font-weight:600;color:var(--f1);}
+.sb-user-sub{font-size:10px;color:var(--f4);margin-top:1px;}
+/* Profile Picker Popup */
+#profile-popup{position:fixed;bottom:60px;left:10px;width:220px;background:var(--s1);border:1px solid var(--lnm);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:9999;padding:8px;display:none;animation:popIn .15s ease;}
+#profile-popup.open{display:block;}
+@keyframes popIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pp-header{font-size:10px;font-weight:700;color:var(--f4);text-transform:uppercase;letter-spacing:.06em;padding:4px 8px 6px;}
+.pp-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background .12s;}
+.pp-item:hover{background:var(--s2);}
+.pp-item.active{background:var(--cud2);}
+.pp-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.pp-name{font-size:12px;font-weight:600;color:var(--f1);}
+.pp-pos{font-size:10px;color:var(--f4);}
+.pp-sep{height:1px;background:var(--ln);margin:4px 0;}
+/* Active profile banner in topbar */
+#profile-banner{display:none;align-items:center;gap:6px;background:var(--cud2);border-radius:6px;padding:3px 8px 3px 6px;font-size:11px;color:var(--cu);font-weight:600;cursor:pointer;}
+#profile-banner:hover{opacity:.8;}
+#profile-banner.show{display:flex;}
+#profile-banner .pb-close{font-size:14px;line-height:1;margin-left:2px;color:var(--f3);}
 
 /* ── CONTENT ── */
 #content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
@@ -1044,9 +1064,22 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
     <div class="sb-sub" id="sb-sub-risk"></div>
   </div>
   <div class="sb-btm">
-    <div class="sb-user"><div class="sb-av">AK</div><div class="sb-uname">Admin</div></div>
+    <div class="sb-user" id="sb-user-chip" onclick="toggleProfilePopup(event)">
+      <div class="sb-av" id="sb-av-text">AK</div>
+      <div><div class="sb-uname" id="sb-uname-text">Admin</div><div class="sb-user-sub" id="sb-user-sub">ดูทุกคน</div></div>
+    </div>
   </div>
 </aside>
+<!-- Profile Picker Popup -->
+<div id="profile-popup">
+  <div class="pp-header">เลือกโปรไฟล์</div>
+  <div class="pp-item active" id="pp-admin" onclick="setActiveProfile(null)">
+    <div class="pp-av" style="background:var(--cud2);color:var(--cu)">AK</div>
+    <div><div class="pp-name">Admin</div><div class="pp-pos">ดูทุกคน</div></div>
+  </div>
+  <div class="pp-sep"></div>
+  <div id="pp-member-list"></div>
+</div>
 
 <!-- CONTENT -->
 <div id="content">
@@ -1066,7 +1099,12 @@ td{padding:8px 11px;vertical-align:middle;color:var(--f2);}
         <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </div>
       <div class="tb-sep"></div>
-      <div class="tb-av">AK</div>
+      <div id="profile-banner" onclick="setActiveProfile(null)" title="คลิกเพื่อ clear filter">
+        <span id="pb-av" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;"></span>
+        <span id="pb-name"></span>
+        <span class="pb-close">×</span>
+      </div>
+      <div class="tb-av" id="tb-av-main">AK</div>
     </div>
   </header>
   <div id="page-body">
@@ -10873,6 +10911,110 @@ function renderTdTable(){
   }
   setInterval(chk,5*60*1000);
 })();
+</script>
+<script>
+// ══ PROFILE SWITCHER ══════════════════════════════════════════
+let _activeProfileNick = null;
+
+function _initProfilePopup() {
+  const list = document.getElementById('pp-member-list');
+  if (!list || list.children.length > 0) return;
+  if (typeof TI_MEMBERS === 'undefined') return;
+  TI_MEMBERS.forEach(m => {
+    const ini = m.nick.slice(0, 2);
+    const div = document.createElement('div');
+    div.className = 'pp-item';
+    div.id = 'pp-' + m.nick;
+    div.onclick = () => setActiveProfile(m.nick);
+    div.innerHTML = `<div class="pp-av" style="background:${m.color};color:${m.tc}">${ini}</div>
+      <div><div class="pp-name">${m.nick}</div><div class="pp-pos">${m.pos}</div></div>`;
+    list.appendChild(div);
+  });
+}
+
+function toggleProfilePopup(e) {
+  e.stopPropagation();
+  _initProfilePopup();
+  const p = document.getElementById('profile-popup');
+  p.classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+  const p = document.getElementById('profile-popup');
+  if (p && !p.contains(e.target)) p.classList.remove('open');
+});
+
+function setActiveProfile(nick) {
+  _activeProfileNick = nick;
+  document.getElementById('profile-popup')?.classList.remove('open');
+
+  // Update all active states in popup
+  document.querySelectorAll('#profile-popup .pp-item').forEach(el => el.classList.remove('active'));
+  const activeEl = document.getElementById(nick ? 'pp-' + nick : 'pp-admin');
+  if (activeEl) activeEl.classList.add('active');
+
+  if (nick) {
+    const m = typeof TI_MEMBERS !== 'undefined' ? TI_MEMBERS.find(x => x.nick === nick) : null;
+    const ini = nick.slice(0, 2);
+    const color = m ? m.color : 'var(--cud2)';
+    const tc = m ? m.tc : 'var(--cu)';
+
+    // Sidebar chip
+    document.getElementById('sb-av-text').textContent = ini;
+    document.getElementById('sb-av-text').style.background = color;
+    document.getElementById('sb-av-text').style.color = tc;
+    document.getElementById('sb-uname-text').textContent = nick;
+    document.getElementById('sb-user-sub').textContent = m ? m.pos : '';
+    document.getElementById('sb-user-chip').classList.add('profile-active');
+
+    // Topbar banner
+    const banner = document.getElementById('profile-banner');
+    const pbAv = document.getElementById('pb-av');
+    pbAv.textContent = ini;
+    pbAv.style.background = color;
+    pbAv.style.color = tc;
+    document.getElementById('pb-name').textContent = nick;
+    banner.classList.add('show');
+
+    // Topbar avatar
+    document.getElementById('tb-av-main').textContent = ini;
+    document.getElementById('tb-av-main').style.background = color;
+    document.getElementById('tb-av-main').style.color = tc;
+  } else {
+    // Reset to Admin
+    document.getElementById('sb-av-text').textContent = 'AK';
+    document.getElementById('sb-av-text').style.background = '';
+    document.getElementById('sb-av-text').style.color = '';
+    document.getElementById('sb-uname-text').textContent = 'Admin';
+    document.getElementById('sb-user-sub').textContent = 'ดูทุกคน';
+    document.getElementById('sb-user-chip').classList.remove('profile-active');
+    document.getElementById('profile-banner')?.classList.remove('show');
+    document.getElementById('tb-av-main').textContent = 'AK';
+    document.getElementById('tb-av-main').style.background = '';
+    document.getElementById('tb-av-main').style.color = '';
+  }
+
+  _applyProfileFilter(nick);
+}
+
+function _applyProfileFilter(nick) {
+  // 1. Dashboard owner filter
+  const ownerSel = document.getElementById('dash-owner-f');
+  if (ownerSel) {
+    ownerSel.value = nick || '';
+    if (typeof renderDashTable === 'function') renderDashTable();
+  }
+
+  // 2. KPI person filter
+  if (typeof kpiCurPerson !== 'undefined') {
+    window.kpiCurPerson = nick || 'all';
+    const kpiSel = document.getElementById('kpi-psel');
+    if (kpiSel) kpiSel.value = nick || 'all';
+    if (typeof kpiRefresh === 'function' && typeof _kpiInited !== 'undefined' && _kpiInited) {
+      kpiRefresh();
+    }
+  }
+}
 </script>
 </body>
 </html>
