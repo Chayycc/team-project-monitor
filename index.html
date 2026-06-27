@@ -162,6 +162,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;}
 #profile-banner:hover{opacity:.8;}
 #profile-banner.show{display:flex;}
 #profile-banner .pb-close{font-size:14px;line-height:1;margin-left:2px;color:var(--f3);}
+/* People page highlight for active profile */
+.ppl2-card.profile-highlight{outline:2px solid var(--cu);outline-offset:2px;box-shadow:0 0 0 4px rgba(var(--cu-rgb,91,141,240),.12);}
 
 /* ── CONTENT ── */
 #content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
@@ -3654,6 +3656,7 @@ function goTo(page) {
     document.getElementById('people-page').style.display = 'block';
     document.getElementById('nav-people').classList.add('active');
     renderPeople();
+    if (typeof _highlightPeoplePage === 'function') setTimeout(() => _highlightPeoplePage(_activeProfileNick), 50);
   } else if (page === 'reports') {
     document.getElementById('reports-page').style.display = 'block';
     document.getElementById('nav-reports').classList.add('active');
@@ -5909,7 +5912,8 @@ function renderDashTable(){
   if(q) rows=rows.filter(p=>p.title.toLowerCase().includes(q)||p.owners.toLowerCase().includes(q)||(p.company||'').toLowerCase().includes(q));
   if(sf) rows=rows.filter(p=>p.status===sf);
   if(of==='__BI_TEAM__'){const bl=BI_TEAM_OWNERS.map(x=>x.toLowerCase());rows=rows.filter(p=>p.owners.split(',').map(o=>o.trim().toLowerCase()).some(o=>bl.includes(o)));}
-  else if(of) rows=rows.filter(p=>p.owners.split(',').map(o=>o.trim()).includes(of));
+  else if(of) rows=rows.filter(p=>p.owners.split(',').map(o=>o.trim()).some(o=>matchNick(of,o)));
+  else if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick) rows=rows.filter(p=>p.owners.split(',').map(o=>o.trim()).some(o=>matchNick(_activeProfileNick,o)));
   if(activeDashDeptFilter) rows=rows.filter(p=>(p.dept||'').split(',').map(d=>d.split(':')[0].trim()).includes(activeDashDeptFilter));
   // sort
   rows.sort((a,b)=>{
@@ -11003,22 +11007,47 @@ function setActiveProfile(nick) {
 }
 
 function _applyProfileFilter(nick) {
-  // 1. Dashboard owner filter
+  // 1. Dashboard — clear dropdown so renderDashTable uses _activeProfileNick directly
   const ownerSel = document.getElementById('dash-owner-f');
-  if (ownerSel) {
-    ownerSel.value = nick || '';
-    if (typeof renderDashTable === 'function') renderDashTable();
+  if (ownerSel) { ownerSel.value = ''; }
+  if (typeof renderDashTable === 'function') renderDashTable();
+
+  // 2. Projects — use NICK_KEYS english key for case-insensitive includes match
+  if (typeof _projSelOwners !== 'undefined' && typeof _projUpdateFilterUI === 'function') {
+    _projSelOwners.clear();
+    if (nick && typeof NICK_KEYS !== 'undefined' && NICK_KEYS[nick]) {
+      const engKey = NICK_KEYS[nick].find(k => /^[a-z]/.test(k));
+      if (engKey) _projSelOwners.add(engKey);
+    }
+    _projUpdateFilterUI();
+    if (typeof applyFilters === 'function') applyFilters();
   }
 
-  // 2. KPI person filter
+  // 3. KPI person filter
   if (typeof kpiCurPerson !== 'undefined') {
     window.kpiCurPerson = nick || 'all';
     const kpiSel = document.getElementById('kpi-psel');
     if (kpiSel) kpiSel.value = nick || 'all';
-    if (typeof kpiRefresh === 'function' && typeof _kpiInited !== 'undefined' && _kpiInited) {
-      kpiRefresh();
-    }
+    if (typeof kpiRefresh === 'function' && typeof _kpiInited !== 'undefined' && _kpiInited) kpiRefresh();
   }
+
+  // 4. People — highlight active person card (scroll + glow)
+  _highlightPeoplePage(nick);
+}
+
+function _highlightPeoplePage(nick) {
+  // Remove previous highlight
+  document.querySelectorAll('.ppl2-card.profile-highlight').forEach(el => el.classList.remove('profile-highlight'));
+  if (!nick) return;
+  // Try to find card by nick text or data attribute
+  const cards = document.querySelectorAll('.ppl2-card');
+  cards.forEach(card => {
+    const nameEl = card.querySelector('.ppl2-nick') || card.querySelector('[class*="nick"]');
+    if (nameEl && nameEl.textContent.trim() === nick) {
+      card.classList.add('profile-highlight');
+      setTimeout(() => card.scrollIntoView({behavior:'smooth', block:'center'}), 200);
+    }
+  });
 }
 </script>
 </body>
