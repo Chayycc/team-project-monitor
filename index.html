@@ -5569,11 +5569,11 @@ function pmGoTo(page){
     else if(page==='ownership')renderOwnership();
     else if(page==='company')renderCompany();
     else if(page==='requests'){populateReqOwners();renderRequests();}
-    else if(page==='req-overview'){initROVPage();}
-    else if(page==='team-req'){initTeamReq();}
+    else if(page==='req-overview'){initROVPage();if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick&&typeof rovFilterChange==='function')setTimeout(rovFilterChange,50);}
+    else if(page==='team-req'){initTeamReq();if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick&&typeof trFilterChange==='function')setTimeout(trFilterChange,50);}
     else if(page==='survey'){initSurvey();}
     else if(page==='internal-survey'){initInternalSurvey();}
-    else if(page==='data-issue'){initDataIssue();}
+    else if(page==='data-issue'){initDataIssue();if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick&&typeof renderDataIssue==='function')setTimeout(renderDataIssue,50);}
     else if(page==='team-info'){initTeamInfoPage();}
     else if(page==='team-dev'){initTeamDevPage();}
   } else {
@@ -6806,7 +6806,8 @@ function rovGetFiltered() {
       if (yr && ryear !== yr) return false;
       if (_rovSelMonths.size > 0 && !_rovSelMonths.has(rmonth)) return false;
     }
-    if (go && !(r.owner||'').includes(go)) return false;
+    if (go) { if (!(r.owner||'').toLowerCase().includes(go.toLowerCase())) return false; }
+    else if (typeof _activeProfileNick!=='undefined'&&_activeProfileNick&&typeof matchNick==='function') { if (!matchNick(_activeProfileNick,r.owner||'')) return false; }
     return true;
   });
 }
@@ -7618,7 +7619,8 @@ function trGetFiltered() {
       if(yr&&ryear!==yr)return false;
       if(_trSelMonths.size>0&&!_trSelMonths.has(rmonth))return false;
     } else if(yr||_trSelMonths.size>0) return false;
-    if(go&&!(r.owner||'').includes(go))return false;
+    if(go){if(!(r.owner||'').toLowerCase().includes(go.toLowerCase()))return false;}
+    else if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick&&typeof matchNick==='function'){if(!matchNick(_activeProfileNick,(r.owner||'')+' '+(r.member||'')))return false;}
     return true;
   });
 }
@@ -8932,7 +8934,8 @@ function renderDataIssue() {
   let rows = nd.filter(r => {
     if(q && !(r.title||'').toLowerCase().includes(q) && !(r.owner||'').toLowerCase().includes(q) && !(r.dept||'').toLowerCase().includes(q)) return false;
     if(_diSelStatus.size>0 && !_diSelStatus.has(r.status)) return false;
-    if(_diSelOwners.size>0 && !(r.owner||'').split(',').map(x=>x.trim()).some(o=>_diSelOwners.has(o))) return false;
+    if(_diSelOwners.size>0){if(!(r.owner||'').split(',').map(x=>x.trim()).some(o=>_diSelOwners.has(o)))return false;}
+    else if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick&&typeof matchNick==='function'){if(!matchNick(_activeProfileNick,r.owner||''))return false;}
     if(pf && !(r.priority||'').includes(pf)) return false;
     return true;
   });
@@ -11031,7 +11034,22 @@ function _applyProfileFilter(nick) {
     if (typeof kpiRefresh === 'function' && typeof _kpiInited !== 'undefined' && _kpiInited) kpiRefresh();
   }
 
-  // 4. People — highlight active person card (scroll + glow)
+  // 4. User Request overview (rov-gowner cleared → rovGetFiltered uses _activeProfileNick)
+  if (typeof rovFilterChange === 'function' && document.getElementById('req-overview-page')?.style.display !== 'none') {
+    rovFilterChange();
+  }
+
+  // 5. Team Request (tr-gowner cleared → trGetFiltered uses _activeProfileNick)
+  if (typeof trFilterChange === 'function' && document.getElementById('team-req-page')?.style.display !== 'none') {
+    trFilterChange();
+  }
+
+  // 6. Data Issue (_diSelOwners empty → renderDataIssue uses _activeProfileNick)
+  if (typeof renderDataIssue === 'function' && document.getElementById('data-issue-page')?.style.display !== 'none') {
+    renderDataIssue();
+  }
+
+  // 7. People — highlight active person card (scroll + glow)
   _highlightPeoplePage(nick);
 }
 
