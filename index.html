@@ -3914,6 +3914,12 @@ function matchNick(nick, str) {
   const s = (str || '').toLowerCase();
   return (NICK_KEYS[nick] || []).some(k => s.includes(k));
 }
+// Stricter version for profile filter — skips very short keys (≤2 chars) that cause false positives
+// e.g. 'ns' in NICK_KEYS['หมิว'] would match 'wiboo**ns**irichai' (worapop's surname)
+function _matchProfileOwner(nick, str) {
+  const s = (str || '').toLowerCase();
+  return (NICK_KEYS[nick] || []).some(k => k.length > 2 && s.includes(k));
+}
 
 function renderPeople() {
   // ── KPI by nick ──────────────────────────────────────────────
@@ -5913,7 +5919,7 @@ function renderDashTable(){
   if(sf) rows=rows.filter(p=>p.status===sf);
   if(of==='__BI_TEAM__'){const bl=BI_TEAM_OWNERS.map(x=>x.toLowerCase());rows=rows.filter(p=>p.owners.split(',').map(o=>o.trim().toLowerCase()).some(o=>bl.includes(o)));}
   else if(of) rows=rows.filter(p=>p.owners.split(',').map(o=>o.trim()).some(o=>matchNick(of,o)));
-  else if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick) rows=rows.filter(p=>p.owners.split(',').map(o=>o.trim()).some(o=>matchNick(_activeProfileNick,o)));
+  else if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick) rows=rows.filter(p=>p.owners.split(',').map(o=>o.trim()).some(o=>_matchProfileOwner(_activeProfileNick,o)));
   if(activeDashDeptFilter) rows=rows.filter(p=>(p.dept||'').split(',').map(d=>d.split(':')[0].trim()).includes(activeDashDeptFilter));
   // sort
   rows.sort((a,b)=>{
@@ -6807,7 +6813,7 @@ function rovGetFiltered() {
       if (_rovSelMonths.size > 0 && !_rovSelMonths.has(rmonth)) return false;
     }
     if (go) { if (!(r.owner||'').toLowerCase().includes(go.toLowerCase())) return false; }
-    else if (typeof _activeProfileNick!=='undefined'&&_activeProfileNick&&typeof matchNick==='function') { if (!matchNick(_activeProfileNick,r.owner||'')) return false; }
+    else if (typeof _activeProfileNick!=='undefined'&&_activeProfileNick) { if (!_matchProfileOwner(_activeProfileNick,r.owner||'')) return false; }
     return true;
   });
 }
@@ -6911,7 +6917,7 @@ function renderROVCharts() {
     if (!owners.length) return;
     let k;
     if (typeof _activeProfileNick !== 'undefined' && _activeProfileNick && typeof matchNick === 'function') {
-      k = owners.find(o => matchNick(_activeProfileNick, o)) || owners[0];
+      k = owners.find(o => _matchProfileOwner(_activeProfileNick, o)) || owners[0];
     } else {
       k = owners[0];
     }
@@ -7625,7 +7631,7 @@ function trGetFiltered() {
       if(_trSelMonths.size>0&&!_trSelMonths.has(rmonth))return false;
     } else if(yr||_trSelMonths.size>0) return false;
     if(go){if(!(r.owner||'').toLowerCase().includes(go.toLowerCase()))return false;}
-    else if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick&&typeof matchNick==='function'){if(!matchNick(_activeProfileNick,(r.owner||'')+' '+(r.member||'')))return false;}
+    else if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick){if(!_matchProfileOwner(_activeProfileNick,(r.owner||'')+' '+(r.member||'')))return false;}
     return true;
   });
 }
@@ -8940,7 +8946,7 @@ function renderDataIssue() {
     if(q && !(r.title||'').toLowerCase().includes(q) && !(r.owner||'').toLowerCase().includes(q) && !(r.dept||'').toLowerCase().includes(q)) return false;
     if(_diSelStatus.size>0 && !_diSelStatus.has(r.status)) return false;
     if(_diSelOwners.size>0){if(!(r.owner||'').split(',').map(x=>x.trim()).some(o=>_diSelOwners.has(o)))return false;}
-    else if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick&&typeof matchNick==='function'){if(!matchNick(_activeProfileNick,r.owner||''))return false;}
+    else if(typeof _activeProfileNick!=='undefined'&&_activeProfileNick){if(!_matchProfileOwner(_activeProfileNick,r.owner||''))return false;}
     if(pf && !(r.priority||'').includes(pf)) return false;
     return true;
   });
