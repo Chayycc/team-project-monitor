@@ -6909,7 +6909,12 @@ function renderROVCharts() {
   nd.forEach(r => {
     const owners = (r.owner||'').split(',').map(o=>o.trim()).filter(Boolean);
     if (!owners.length) return;
-    const k = owners[0];
+    let k;
+    if (typeof _activeProfileNick !== 'undefined' && _activeProfileNick && typeof matchNick === 'function') {
+      k = owners.find(o => matchNick(_activeProfileNick, o)) || owners[0];
+    } else {
+      k = owners[0];
+    }
     if (!owMap[k]) owMap[k]={total:0,done:0,progress:0,pending:0,todo:0};
     owMap[k].total++;
     owMap[k][r.status]=(owMap[k][r.status]||0)+1;
