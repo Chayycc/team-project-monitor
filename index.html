@@ -6,8 +6,10 @@
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
 <title>Team Project Monitoring — EasyMoney Data Team</title>
-<!-- Last synced: 2026-07-12 09:45 UTC -->
-<script>var _SYNC_TS="2026-07-12 09:45 UTC";</script>
+<!-- Last synced: 2026-07-12 10:43 UTC -->
+<script>var _SYNC_TS="2026-07-12 10:43 UTC";</script>
+
+<script></script>
 
 <script></script>
 
@@ -13756,6 +13758,20 @@ function _highlightPeoplePage(nick) {
 <script>
 (function(){
   var SYNC_TS="2026-07-12 09:45 UTC";
+  function chk(){
+    fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.text()})
+      .then(function(h){
+        var m=h.match(/var _SYNC_TS="([^"]+)"/);
+        if(m&&m[1]!==SYNC_TS)location.reload(true);
+      }).catch(function(){});
+  }
+  setInterval(chk,5*60*1000);
+})();
+</script>
+<script>
+(function(){
+  var SYNC_TS="2026-07-12 10:43 UTC";
   function chk(){
     fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'})
       .then(function(r){return r.text()})
