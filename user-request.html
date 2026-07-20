@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8"/>
 <title>User Request Overview — EasyMoney Data Team</title>
-<!-- Last synced: 2026-07-20 10:44 UTC -->
-<script>var _SYNC_TS="2026-07-20 10:44 UTC";</script>
+<!-- Last synced: 2026-07-20 13:53 UTC -->
+<script>var _SYNC_TS="2026-07-20 13:53 UTC";</script>
+
+<script></script>
 
 <script></script>
 
@@ -4826,6 +4828,20 @@ var NOTION_DATA =[{"id":"3a08fd87ee6e81949caad534d0bafe2b","title":"สุพร
 <script>
 (function(){
   var SYNC_TS="2026-07-20 10:44 UTC";
+  function chk(){
+    fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.text()})
+      .then(function(h){
+        var m=h.match(/var _SYNC_TS="([^"]+)"/);
+        if(m&&m[1]!==SYNC_TS)location.reload(true);
+      }).catch(function(){});
+  }
+  setInterval(chk,5*60*1000);
+})();
+</script>
+<script>
+(function(){
+  var SYNC_TS="2026-07-20 13:53 UTC";
   function chk(){
     fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'})
       .then(function(r){return r.text()})
